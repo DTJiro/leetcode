@@ -61,32 +61,26 @@ package leetcode.editor.cn;
 public class RemoveDuplicatesFromSortedArray{
 	public static void main(String[] args) {
 		Solution solution = new RemoveDuplicatesFromSortedArray().new Solution();
-		
+
 	}
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public int removeDuplicates(int[] nums) {
-		for(int i = 0;i<nums.length;i++){
-			int count = 0;
-			for(int j = i+1;j<nums.length-1;j++){
-				if(nums[i]==nums[j]){
-					count++;
-				}else{
-					break;
-				}
-			}
-			if(count!=0){
-				for(int a=i+1;a<nums.length-count;a++){
-					nums[a]=nums[a+count];
-				}
-			}
-		}
-		for(int i=0;i<nums.length-1; i++){
-			if(nums[i]>=nums[i+1]){
-				return i+1;
-			}
-		}
-		return nums.length;
+        int p = 0;
+        int q = 1;
+        if (nums.length == 0 || nums.length == 1) {
+            return nums.length;
+        }
+        while (q < nums.length && nums[p] <= nums[q]) {
+            if (nums[p] != nums[q]) {
+                if (q - p > 1) {
+                    nums[p + 1] = nums[q];
+                }
+                p++;
+            }
+            q++;
+        }
+        return p+1;
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)
