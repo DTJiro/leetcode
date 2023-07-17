@@ -1,0 +1,145 @@
+由于我自己本身每次写连续性问题老是出错，于是今天决定总结一下如何解决这类问题。
+如何解决出现连续n次相同数字问题？ 构造新属性id-rownum。
+话不多说，来看案例。
+以题中的原始表为例：
+![1.png](https://pic.leetcode-cn.com/1616481717-AHuSWT-1.png)
+
+1. 构造新属性rownum，且rownum所实现的需求为分组排序：
+
+* 
+
+```
+SELECT *,
+      ROW_NUMBER() OVER (PARTITION BY Num ORDER BY Id) rownum
+FROM LOGS
+```
+
+![2.png](https://pic.leetcode-cn.com/1616481756-aUSjey-2.png)
+从这里可以看出Id是恒大于rownum的，因此我们可以构建一个变量Id-rownum。
+
+2. 构造新属性Id-rownum
+
+* 
+
+```
+SELECT *,Id-rownum
+FROM(
+SELECT *,
+      ROW_NUMBER() OVER (PARTITION BY Num ORDER BY Id) rownum
+FROM LOGS
+) t
+```
+
+![3.png](https://pic.leetcode-cn.com/1616482117-lRHhft-3.png)
+由上图的结果，我们可以看出当数字是连续出现时，Id-rownum的值是一致的，我们可以利用这一特性来判断当前数字的最大连续次数。
+
+3. 进行分组查询
+
+* 
+
+```
+SELECT DISTINCT Num ConsecutiveNums
+FROM(
+SELECT *,
+      ROW_NUMBER() OVER (PARTITION BY Num ORDER BY Id) rownum
+FROM LOGS
+) t
+GROUP BY (Id-rownum) 
+HAVING COUNT(*)>=3 #3可以换位任意数字
+```
+
+因此，这样我们就完成了这道题目？
+#——————————————————————————————————————————————————————————————
+不，我们根本没有做完。这里还有两个坑，首先我们来看看第一个坑吧。
+
+***caution1：Id-rownum的值是一致，数字就是连续的吗？***
+
+在我们给出的案例中，确实有这个规律，但我们要是简单的将我们的案例进行一个修改，如下：
+![5.png](https://pic.leetcode-cn.com/1616483373-sBYtbs-5.png)
+在此案例中，数字虽然是不连续的，但我们构造的Id-rownum却是一致的，因此我们并不能仅仅依赖Id-rownum进行分组。
+**正确的分组姿势：**
+
+* 
+
+```
+GROUP BY (Id-rownum),Num
+```
+
+这样对于第二行num=2来说，虽然Id-rownum的值与第三行num=1的值一致，但由于num大小不一致，因此并不会被分到同一个组中。
+
+***caution2：Id-rownum真的是恒大于0吗，如果是负数，我们将会得到bigint unsigned的错误提示***
+
+Id是当前表的主键，但其的起始数字可以为0，如：
+![4.png](https://pic.leetcode-cn.com/1616482943-Xtgjxx-4.png)
+因此为了避免负数的出现而出现的错误信息，**我们构造的变量其实应该为：**
+
+* 
+
+```
+Id+1-rownum
+```
+
+#——————————————————————————————————————————————————————————————
+**总结**
+- 我们构造的变量应该为Id+1-rownum，而非Id-rownum来避免主键的起始值为0的情况
+- 选择分组变量时，应该同时筛选需求中的连续对象和我们构造的Id+1-rownum两个属性
+  最后的答题模板应该总结为：
+
+* 
+
+```
+SELECT DISTINCT Num ConsecutiveNums
+FROM(
+SELECT *,
+      ROW_NUMBER() OVER (PARTITION BY Num ORDER BY Id) rownum
+FROM LOGS
+) t
+GROUP BY (Id+1-rownum),Num 
+HAVING COUNT(*)>=3
+```
+
+#——————————————————————————————————————————————————————————————
+**2021/4/24 更新：修改需要构造Id+1-rownum变量的想法。构造新变量单调且连续的id2替代id，将Id+1-rownum变量替换为id2-rownum。**
+
+经过这位同学[@nan88-88](/u/nan88-88/)的提醒，决定更新一下题解~
+
+***Caution3：如果原题中出id不连续的情况我们应该如何处理？***
+![image.png](https://pic.leetcode-cn.com/1619242733-QKxKiU-image.png)
+既然id本身不连续，我们自己构造一个id2来达到单调且连续的效果。
+
+* 
+
+```
+ROW_NUMBER() OVER (ORDER BY Id) id2
+```
+
+然后构造新变量id2-rownum可以得到以下结果，可以看出连续数字的id2-rownum都是一致的~
+![image.png](https://pic.leetcode-cn.com/1619243139-ftqmie-image.png)
+
+***因此我们可以更新以下我们的答题模板：***
+
+* 
+
+```
+SELECT DISTINCT Num ConsecutiveNums
+FROM(
+SELECT *,
+      ROW_NUMBER() OVER (PARTITION BY Num ORDER BY Id) rownum,
+      ROW_NUMBER() OVER (ORDER BY Id) id2
+FROM LOGS
+) t
+GROUP BY (id2-rownum),Num 
+HAVING COUNT(*)>=3
+```
+
+***题外话***
+由于我本身没有系统的学习过数据库，只是会通过简单的查询用法来达到数据获取的目的，因此可能在数据库设计上的想法有所欠缺。
+一般来说数据分析师没有对数据库进行增删改的权限。
+在我印象中，主键如果是一个数字类型，那么一般为单调且连续的数字。那么数据库中的主键是否存在不连续的情况呢？
+答案是肯定的，如果我们在设置为自增长的主键进行一个删减操作后，原来的索引值并不会进行一个自我修改，导致索引会有不连续的情况产生。
+除此之外，不连续情况产生的原因还可能是：
+1.唯一索引约束插入数据失败
+2.事务回滚操作
+3.批量插入数据
+网上有很多关于不连续主键问题的解决方法，且不连续的数字类型主键可能会带来主从数据不一致的问题。
+所以实际操作中，大家到底会不会对存在不连续主键的数据库进行更新，或者主键不连续并不是一个很大的问题？
