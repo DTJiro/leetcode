@@ -1,0 +1,69 @@
+##### 思路
+
+上一题，我们计算出了每个玩家是首次登陆日期，这回我们要根据首次登陆日期，再去寻找对应的设备名称，那么跟着上题思路，我们应该使用**子查询 where in 的联合匹配**。
+
+如果抛开上一题，我们可以使用**窗口函数排序**，然后利用排序作为筛选条件。
+
+##### 算法
+
+1. 不用窗口：匹配`(player_id, event_date)`是否在每一个玩家的首次登陆日期中
+2. 用窗口：先按时间排倒序，再利用排序`rnk=1`筛选
+
+##### 答案
+
+1. 不用窗口函数，使用联合键子查询 where in 筛选
+
+* sql
+
+```sql
+select 
+	player_id, device_id
+from activity
+where (player_id, event_date) in 
+(
+    select player_id, min(event_date)
+	from activity
+	group by player_id
+)
+```
+
+* sql
+
+```sql
+# 这样是不行的！
+# 必须用联合键来匹配
+select 
+	player_id, device_id
+from activity
+where event_date in 
+(
+    select min(event_date)
+	from activity
+	group by player_id
+)
+```
+
+✏️小技巧：
+
+![image.png](https://pic.leetcode-cn.com/1651745557-JqFxKG-image.png)
+
+2. 窗口
+
+* sql
+
+```sql
+select 
+	player_id, device_id
+from 
+(
+    select 
+    	player_id, 
+    	device_id, 
+    	dense_rank() over(partition by player_id 
+                          order by event_date asc) rnk 
+   	from activity
+) a where rnk=1
+```
+
+🥰觉得还不错的话，点个赞，加个关注吧~🥰
+

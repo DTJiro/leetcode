@@ -1,0 +1,17 @@
+![image.png](https://pic.leetcode.cn/1674851519-qjxFPh-image.png)
+此题和取salary那题一样，都是group by之后来选top1，遇到这类题无论top几，都可以使用window funtion来给出一个新的排序，通过外层where里限定条件来进行筛选。要注意三种rank的区别。
+
+* 
+
+```
+SELECT
+player_id,device_id
+FROM
+(  SELECT player_id, device_id,
+row_number() OVER(partition by player_id order by event_date) as rn
+    FROM
+    Activity)s
+
+Where rn=1
+```
+

@@ -1,0 +1,53 @@
+## SQL：方法一
+
+* sql
+
+```sql
+select activity.player_id, activity.device_id from activity, (
+	select player_id, min(event_date) as first_login
+	from activity group by player_id
+) as temp
+where activity.player_id = temp.player_id
+and activity.event_date = temp.first_login;
+```
+
+## 解析
+
+- 先是用子查询查出每个 `player_id` 最小的 `event_date` 命名为 `temp` 临时表
+- `activity` 和 `temp` 连查，筛选出 `player_id` 相等，并且 `activity.event_date = temp.first_login` 相等的数据
+
+## SQL：方法二
+
+* sql
+
+```sql
+select player_id, device_id from (
+	select
+		player_id,
+		device_id,
+		dense_rank() over(partition by player_id order by event_date) as 排名
+	from activity
+) as temp where temp.排名 = 1;
+```
+
+## 解析
+
+这个方法和 [`游戏玩法分析 I`](https://github.com/astak16/blog-mysql/issues/18) 中的方法二一样。
+
+## SQL：方法三
+
+* sql
+
+```sql
+select player_id, device_id from activity a1 where event_date <= all(
+	select a2.event_date from activity a2 where a1.player_id = a2.player_id
+);
+```
+
+## 解析
+
+使用 `all` 配合 `<=` 筛选出 `a1.player_id = a2.player_id` 的 `event_date` 数据
+
+## Tips
+
+[all 方法使用](https://github.com/astak16/blog-mysql/issues/19)

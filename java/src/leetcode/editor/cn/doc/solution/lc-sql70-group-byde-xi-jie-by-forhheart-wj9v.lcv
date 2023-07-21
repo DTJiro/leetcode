@@ -1,0 +1,80 @@
+# GROUP BY
+
+- GROUP BY按column_name或column_name1,...,column_nameN所组成的唯一值对数据进行分组，压缩成一行数据
+- GROUP BY搭配SELECT Aggregate_fuction(column_name)，根据Aggregate_fuction()输出一条记录
+- GROUP BY不搭配SELECT Aggregate_fuction(column_name)，默认取分组结果的第一条记录
+- **GROUP BY筛选的不是完整的一行记录，WHERE筛选的是完整的一行记录**
+
+# 过程剖析
+
+给出Activity Table
+
+![image.png](https://pic.leetcode.cn/1679561800-zMZqTb-image.png)
+
+根据题目要求，很容易错误地打出以下代码
+
+* 
+
+```
+WITH cte AS(
+    SELECT 
+        player_id,device_id,MIN(event_date)
+    FROM Activity
+    GROUP BY player_id
+)
+
+SELECT player_id,device_id
+FROM cte
+```
+
+**因对GROUP BY理解不透彻所幻想的查询结果**
+
+![image.png](https://pic.leetcode.cn/1679565178-nhpJiQ-image.png)
+
+**实际结果**
+
+* 
+
+```
+2. SELECT device_id,MIN(event_date)
+```
+
+![image.png](https://pic.leetcode.cn/1679563416-UHHUrv-image.png)
+
+**解法一：窗口排名函数**
+
+* 
+
+```
+WITH cte AS(
+    SELECT 
+    	player_id, 
+    	device_id, 
+    	DENSE_RANK() OVER(PARTITION BY player_id ORDER BY event_date ASC) AS ranking
+   	FROM Activity
+)
+
+SELECT
+	player_id, device_id
+FROM cte
+WHERE ranking=1
+```
+
+**解法二：WHERE IN子匹配（联合键）**
+
+* 
+
+```
+SELECT 
+	player_id,
+    device_id
+FROM Activity
+WHERE(player_id,event_date)IN (
+    SELECT 
+        player_id,
+        MIN(event_date)
+	FROM Activity
+	GROUP BY player_id
+)
+```
+

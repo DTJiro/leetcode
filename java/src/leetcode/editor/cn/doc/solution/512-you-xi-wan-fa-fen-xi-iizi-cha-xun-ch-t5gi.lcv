@@ -1,0 +1,18 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+# select player_id,device_id from Activity where (player_id,event_date)
+# in (select player_id,min(event_date) from  Activity group by player_id)
+
+#按照event_date从小到大排序 取排名第一的 将dense_rank()换成row_number()也一样
+select player_id,device_id from (select player_id,device_id,dense_rank() over(partition by player_id order by event_date asc) rk from Activity) a where a.rk=1
+
+```
+
