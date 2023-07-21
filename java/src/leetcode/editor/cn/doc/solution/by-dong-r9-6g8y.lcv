@@ -1,0 +1,16 @@
+* 
+
+```
+select id,
+       company,
+       salary
+from (select id,
+             company,
+             salary,
+             row_number() over (partition by company order by salary) as rn,
+             count(*) over (partition by company)                     as company_cnt
+      from Employee) as t1
+where rn >= company_cnt / 2
+  and rn <= company_cnt / 2 + 1
+```
+

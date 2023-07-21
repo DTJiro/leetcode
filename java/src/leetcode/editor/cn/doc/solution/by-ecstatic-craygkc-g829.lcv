@@ -1,0 +1,23 @@
+### 解题思路
+
+思路估计很多大佬都分享过了：
+1. 对company开窗，求salary的正反序；
+2. 找正反序差绝对值为0或1的记录；
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+select id, company, salary
+from
+    (select 
+        *, 
+        abs(cast(row_number() over(partition by company order by salary, id) as signed) - cast(row_number() over(partition by company order by salary desc, id desc) as signed)) as diff
+    from Employee
+    order by company, id) a 
+where diff between 0 and 1
+```
+

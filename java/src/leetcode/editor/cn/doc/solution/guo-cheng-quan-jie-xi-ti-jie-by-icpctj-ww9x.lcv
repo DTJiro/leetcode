@@ -1,0 +1,51 @@
+### **中位数定义：**
+
+- 中位数（median）是将一组数据按照从小到大的顺序排列（或者从大到小的顺序也可以）之后处在数列中点位置的数值，是典型的位置平均数
+- 如果数列是奇数，中位数等于第(n+1)/2个数；
+- 如果数列是偶数，中位数等于第n/2和n/2+1个数的平均数
+- **注意**：题目示例所求，如果数列是偶数时，中位数是第n/2和n/2+1这2个数
+
+### **前置知识：**
+
+- **(1)row_number()**
+- row_number()函数是不会跳过重复排名，即如果有两个相同的分数，它会将这两个人作为先后两名顺序依次排出，并且后面一个人的名次是依次顺加的
+- **(2)partition by**
+- group by 和 partition by 都有分组统计的功能，但partition by并没有group by的汇总功能
+- partition by统计的每一条记录都存在，而group by将所有的记录汇总成一条记录(类似于distinct EmpDepartment 去重)
+- **(3)count**
+- COUNT(列名)表示的是查询符合条件的列的值不为NULL的行数，结果是一个BIGINT值
+
+### **思路过程：**
+
+- 思路非常简单，**找中位数麻，只需要2个参数就能完成**
+- 为数列各数的序号与总数(n)
+- **获取各数的序号**
+- 最常用的三个方法莫过于row_number()、rank()、dense_rank()
+- 很明显这里要用row_number()，且基于工资排序得到序号
+- **获取总数(n)**
+- 很明显这里要用COUNT(列名)
+- **得到参数后限定条件得出结果**
+- 由于题目要求的特殊性---》注意中有提及
+- 所以不论数列是奇数，还是偶数，皆可用一个范围限定
+- 即 ranking>=n/2 and ranking<=n/2+1
+
+### **代码**
+
+* 
+
+```
+SELECT
+    Id,Company,Salary
+FROM
+    (
+        SELECT
+            Id,Company,Salary,
+            row_number() over (partition by Company order by Salary)as ranking,
+            count(Id) over (partition by Company)as n
+        FROM
+            Employee
+    )a
+WHERE
+    ranking>=n/2 and ranking<=n/2+1;
+```
+

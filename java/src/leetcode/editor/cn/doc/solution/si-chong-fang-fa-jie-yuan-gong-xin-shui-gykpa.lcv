@@ -1,0 +1,192 @@
+## SQL：方法一
+
+* sql
+
+```sql
+select id, company, salary from (
+	select
+		id, company, salary,
+		row_number() over(partition by company order by salary) as 排名,
+		count(id) over(partition by company) as total
+	from employee
+) as temp
+where temp.排名 in (floor((total + 1) / 2), floor((total + 2) / 2));
+```
+
+## 解析
+
+- 使用 `row_number()` 计算排名，并按照 `company` 分组， `salary` 升序
+- 按照 `company` 分组，并计算总数
+- 现在只需要筛选出中位数就可以了
+  - 筛选条件 `floor((total + 1) / 2)` 和 `floor((total + 2) / 2)` ， `floor` 是想下取整
+    - 当 `total = 6`，中位数是 `3` 和 `4` ，这里计算的结果正是 `3` 和 `4`
+    - 当 `total = 5`，中位数是 `3`，这里计算的两个值分别是 `3` 和 `3`
+  - 筛选条件也可以使用 `where 排名 >= total / 2 and 排名 <= total / 2 + 1`
+    - 当 `total = 6`，中位数是 `3` 和 `4` ， `排名 ≥ 3 and 排名 ≤ 4` ，筛选出来的是 `3` 和 `4`
+    - 当 `total = 5`，中位数是 `3` ， `排名 ≥ 2.5 and 排名 ≤ 3.5` ，筛选出来的就是 `3`
+
+## SQL：方法二
+
+* sql
+
+```sql
+select id, company, salary from (
+	select
+		id,
+		company,
+		salary,
+		if(@prev = company, @r:=@r+1, @r:=1) as 排名,
+		@prev:=company
+	from employee, (select @r:=0, @prev:=0) init,
+	order by company, salary, id
+) as temp1 join (
+	select count(*) as total, company from employee group by company
+) as temp2 using(company)	where 排名 >= total / 2 and 排名 <= total / 2 + 1;
+```
+
+## 解析
+
+和方法一的思路一样，这里是用变量来实现 `salary` 排名
+
+## SQL：方法三
+
+* sql
+
+```sql
+with temp as (
+	select e1.id from employee e1 join employee e2 using(company)
+	group by e1.id
+	having sum(e1.salary >= e2.salary) >= count(e1.id) / 2
+	and sum(e1.salary <= e2.salary) >= count(e1.id) / 2
+)
+select id, company, salary from employee where exists (
+	select id from temp where employee.id = temp.id
+);
+```
+
+## 解析
+
+**思路：**将每个人和公司的其他所有人一一比较，将 `employee` 通过 `company` 自连，并且按照 `e1.id` 进行分组
+
+筛选：
+
+- `sum(e1.salary >= e2.salary) >= count(e1.id) / 2`
+  - 以 `A` 公司为例， `A` 公司有 `6` 名员工，所以通过 `company` 连接后，一共有 `36` 条数据，因为每一条数据都要和自身进行连接，如下图所示。
+    | e1.id | e1.salary | e2.id | e2.salary |
+    | --- | --- | --- | --- |
+    | 6 | 513 | 1 | 2341 |
+    | 5 | 451 | 1 | 2341 |
+    | 4 | 15314 | 1 | 2341 |
+    | 3 | 15 | 1 | 2341 |
+    | 2 | 341 | 1 | 2341 |
+    | 1 | 2341 | 1 | 2341 |
+    | 6 | 513 | 2 | 341 |
+    | ... | ... | ... | ... |
+  - 通过 `group by e1.id` 分组后，就去掉了重复的 `e1.id`
+  - `sum(e1.salary >= e2.salary)` 将 `e1.id.salary` 和每个 `e2.id.salary` 比较，计算出 `e1.id.salary` 大于等于 `e2.id.salary` 的有几个
+  - 因为通过 `e1.id` 分组，所以 `count(e1.id)` 计算出有多少个 `id` ，也就是说和几个人进行比较（或者说是公司的总人数）
+- `salary(e1.salary <= e2.salary) >= count(e1.id) / 2`
+  - 思路和上面是一样的
+- 组合筛选条件
+  - 如果工资比中位数高，那么 `sum(...)` 这步计算的就比总人数的一半要大于，也就是 `sum(...) > count(e1.id) / 2`
+  - 如果工资比中位数低，那么 `sum(...)` 这步计算的就比总人数的一半要小于，也就是 `sum(...) < count(e1.id) / 2`
+  - 如果工资正好等于中位数，那么 `sum(...)` 这步计算的就等于总人数的一半，也就是 `sum(...) = count(e1.id) / 2`
+  - 组合好就是上面的筛选条件
+
+## Tips
+
+1. 无法去除最后重复的中位数，因为这里是按照员工 `id` 进行分组的。
+2. 在 `MySQL 8.0` 中使用 `group by` 需要和 `select` 的字段一致，所以当要查看连接后表中其他字段时，可以用 `any_value()`
+3. 理不清思路时可以把筛选条件放到 `select` 中，查询出来在比对自己的思路，比如说 `sum(e1.salary >= e2.salary)` 和 `count(e1.id)`
+
+   * sql
+
+   ```sql
+   select
+   	sum(e1.salary >= e2.salary),
+   	count(e1.id),
+   	e1.id,
+   	any_value(e1.salary),
+   	any_value(e1.company),
+   	any_value(e2.id),
+   	any_value(e2.salary),
+   	any_value(e2.company)
+   from employee e1 join employee e2 using(company)
+   group by e1.id
+   ```
+
+## SQL：方法四
+
+* sql
+
+```sql
+select
+	any_value(e1.id) as id,
+	e1.company as company,
+	e1.salary as salary
+from employee e1 left join employee e2 using(company)
+group by e1.company, e1.salary
+having sum(
+	case when e1.salary = e2.salary then 1 else 0 end
+) >= abs(sum(sign(e1.salary - e2.salary)))
+order by id;
+```
+
+## 解析
+
+**思路：**将每个人和公司的其他所有人一一比较，将 `employee` 通过 `company` 自连，并且按照 `e1.company` 和 `e1.salary` 进行分组
+
+筛选：
+
+- `sum(case when e1.salary = e2.salary then 1 else 0 end)`
+  - 计算出自己和自己的比较的个数
+- `abs(sum(sign(e1.salary - e2.salary)))`
+  - `sign` 用来确定一个数是正数、负数、还是零，这里以 `A` 公司的 `id = 1` 的员工为例
+    - `e1.salary=2341`，`e2.salary=451`，`sign(e1.salary-e2.salary)` 结果为 `1`
+    - `e1.salary=2341`，`e2.salary=15314`，`sign(e1.salary-e2.salary)` 结果为 `-1`
+    - `e1.salary=2341`，`e2.salary=15` ，`sign(e1.salary-e2.salary)` 结果为 `1`
+    - `e1.salary=2341`，`e2.salary=341`，`sign(e1.salary-e2.salary)` 结果为 `1`
+    - `e1.salary=2341`，`e2.salary=2341`，`sign(e1.salary-e2.salary)` 结果为 `0`
+    - `e1.salary=2341`，`e2.salary=513`，`sign(e1.salary-e2.salary)` 结果为 `1`
+      | e1.id | e1.salary | e2.id | e2.salary |
+      | ----- | --------- | ----- | --------- |
+      | 1 | 2341 | 5 | 451 |
+      | 1 | 2341 | 4 | 15314 |
+      | 1 | 2341 | 3 | 15 |
+      | 1 | 2341 | 2 | 341 |
+      | 1 | 2341 | 1 | 2341 |
+      | 1 | 2341 | 6 | 513 |
+      | 2 | 341 | 6 | 513 |
+      | ... | ... | ... | ... |
+  - 使用 `sum()` 对上面的 `sign(...)` 进行求和为 `4`
+  - 使用 `abs()` 求出 `sum(...)` 的绝对值
+  - 如此循环，直到每个都和别人进行比对后
+- 组合筛选条件
+  - 如果工资大于中位数，那么 `sign(e1.salary-e2.salary)` 大于 `1`
+  - 如果工资小于中位数，那么 `sign(e1.salary-e2.salary)` 小于 `1`
+  - 如果工资等于中位数，那么 `sign(e1.salary-e2.salary)` 等于 `1` （ps：如果有几个人的工资相等，并且是中位数，那么这里 `1` 就是对应的工资相等的人数）
+- 最后需要使用 `order by id` 对 `id` 进行升序排序
+
+## Tips
+
+1. `sum(case when e1.salary = e2.salary then 1 else 0 end) >= abs(sum(sign(e1.salary - e2.salary)))` 这里用 `>=` 是因为如果有几个人工资相等时 `sum(case when e1.salary = e2.salary then 1 else 0 end)` 会大于工资相等的人数
+2. 通过将 `sum(case when e1.salary = e2.salary then 1 else 0 end)` 和`sum(sign(e1.salary - e2.salary))` 查询出来，理清思路
+
+   * sql
+
+   ```sql
+   select
+   	sum(case when e1.salary = e2.salary then 1 else 0 end),
+   	sum(sign(e1.salary - e2.salary)),
+   	any_value(e1.id) as id,
+   	e1.company as company,
+   	e1.salary as salary,
+   	any_value(e2.id),
+   	any_value(e2.company),
+   	any_value(e2.salary)
+   from employee e1 left join employee e2 using(company)
+   group by e1.company, e1.salary
+   order by id;
+   ```
+
+更多解题：https://github.com/astak16/blog-mysql/issues/32

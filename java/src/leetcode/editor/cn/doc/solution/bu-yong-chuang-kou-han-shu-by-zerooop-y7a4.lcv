@@ -1,0 +1,19 @@
+* mysql
+
+```mysql
+select
+    min(id) id
+    , company
+    , salary
+from Employee
+where id in (
+    select e1.Id
+    from Employee e1 join Employee e2 on e1.Company = e2.Company
+    group by e1.Id
+    having sum(if(e1.salary >= e2.salary, 1, 0)) >= count(1)/2
+        and sum(if(e1.salary <= e2.salary, 1, 0)) >= count(1)/2
+)
+group by
+    company, salary
+```
+

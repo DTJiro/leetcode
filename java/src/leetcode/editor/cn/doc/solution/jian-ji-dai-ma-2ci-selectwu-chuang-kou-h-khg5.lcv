@@ -1,0 +1,26 @@
+### 解题思路
+
+首先select得到每个公司的总人数，然后select得到每个人的排名，并且与总人数比较。
+相当于手写了row_number()函数。
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with employee_with_company_size as
+(
+    select a.*, count(b.id) cnt
+    from employee a cross join employee b using(company)
+    group by a.id
+)
+select c.id, c.company, c.salary
+from employee_with_company_size c left join employee d
+on 
+    c.company = d.company and
+    (c.salary > d.salary or (c.salary = d.salary and c.id > d.id))
+group by c.id
+having abs(ifnull(count(d.id), 0) * 2 + 1 - min(c.cnt)) <= 1
+```
+

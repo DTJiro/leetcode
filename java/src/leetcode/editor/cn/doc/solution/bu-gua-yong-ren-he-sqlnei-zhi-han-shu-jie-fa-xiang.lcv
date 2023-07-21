@@ -1,0 +1,35 @@
+首先，前几天看MICK的《SQL进阶教程》的时候刚好看到了**HAVING的妙用**，用来求中位数的，因此来做一下这一道题，其实原理都是一样的。
+另外，原书中以及评论里也看到大神用`SQL92`语法写的连接，这里我写一下`SQL99`语法写一下，差别不大。
+下面讲一下详细的思路：
+对于单个公司而言，我们只需根据`salary`大小来生成子集即可
+**步骤：**
+1. 做自连接，连接条件为公司名`e1.Company = e2.Company`，之后按`e1.Id`分组
+2. 两个子集的生成：
+   第一个子集：`SUM(CASE WHEN e1.Salary >= e2.Salary THEN 1 ELSE 0 END) >= COUNT(*)/2 `用来统计下半部分+1个
+   第二个子集：`SUM(CASE WHEN e1.Salary <= e2.Salary THEN 1 ELSE 0 END) >= COUNT(*)/2`用来统计上半部分+1个
+   这里取`>= COUNT(*)/2`是为了使两个子集有交集
+3. 接着把上面的两个条件求交集，作为`HAVING`子句的筛选条件，然后统计`id`
+4. 最后把选出来的`id`放到`WHERE`里面从`Employee`表找出对应的行即可
+
+注意分组和排序
+
+**完整代码：**
+
+* sql
+
+```sql
+SELECT Id, Company, Salary
+FROM Employee
+WHERE Id in (
+    SELECT e1.Id
+    FROM Employee e1
+    JOIN Employee e2
+    ON e1.Company = e2.Company
+    GROUP BY e1.Id
+    HAVING SUM(CASE WHEN e1.Salary >= e2.Salary THEN 1 ELSE 0 END) >= COUNT(*)/2 
+    AND SUM(CASE WHEN e1.Salary <= e2.Salary THEN 1 ELSE 0 END) >= COUNT(*)/2
+    )
+GROUP BY Company, Salary
+ORDER BY Company
+```
+

@@ -1,0 +1,140 @@
+##### 思路
+
+首先明确中位数的算法：给定一个数列（长度为n）。
+
+1. 从小到大排序
+2. 如果n为偶数，则第`n/2`和`n/2+1`个值为中位数
+3. 如果n为奇数，则第`(n+1)/2`个值为中位数
+
+那么，我们可以先排序（这里要用row_number）因为我们排序是为了找索引（不能重复）
+
+之后利用排序和n的关系求解。
+
+##### 算法
+
+1. 排序&计算n
+
+* sql
+
+```sql
+select 
+	a.*,
+    row_number() over(partition by Company order by Salary) as rnk, # 排序找索引
+    count(Salary) over(partition by Company) as cnt 				# 计算n（每个company的salary有多少个）
+from Employee a
+order by rnk
+
+# 输出
+{"headers": ["id", "company", "salary", "rnk", "cnt"], 
+"values": [[3, "A", 15, 1, 6], 
+           [2, "A", 341, 2, 6], 
+           [5, "A", 451, 3, 6], 
+           [6, "A", 513, 4, 6], 
+           [1, "A", 2341, 5, 6], 
+           [4, "A", 15314, 6, 6], 
+           [8, "B", 13, 1, 6], 
+           [7, "B", 15, 2, 6], 
+           [12, "B", 234, 3, 6], 
+           [9, "B", 1154, 4, 6], 
+           [11, "B", 1221, 5, 6], 
+           [10, "B", 1345, 6, 6], 
+           [17, "C", 65, 1, 5], 
+           [13, "C", 2345, 2, 5], 
+           [14, "C", 2645, 3, 5], 
+           [15, "C", 2645, 4, 5], 
+           [16, "C", 2652, 5, 5]]}
+```
+
+2. 找排序和n的关系
+
+可以发现，当`rnk in (cnt/2, cnt/2+1, (cnt+1)/2)`的情况下成立。
+
+因为这样可以巧妙地**避免讨论n的奇偶性**。
+
+- 因为当n为偶数时，`(cnt+1)/2`必为分数，所以此时`rnk <> (cnt+1)/2`。
+- 反之亦然
+
+---
+
+我们还可以用**正反序**来去解决这个问题，目的也是避免讨论奇偶性。
+
+1. 取正反序
+
+* sql
+
+```sql
+select
+    a.*,
+    row_number() over(partition by company order by salary, id) as rnk1,
+    row_number() over(partition by company order by salary desc, id desc) as rnk2,
+    count(id) over(partition by company) as cnt
+from Employee a
+
+# 输出
+# 此时 rnk1 + rnk2 = cnt
+{"headers": ["id", "company", "salary", "rnk1", "rnk2", "cnt"], 
+"values": [[1, "A", 2341, 5, 2, 6], 
+           [6, "A", 513, 4, 3, 6], 
+           [5, "A", 451, 3, 4, 6], 
+           [2, "A", 341, 2, 5, 6], 
+           [3, "A", 15, 1, 6, 6], 
+           [4, "A", 15314, 6, 1, 6], 
+           [9, "B", 1154, 4, 3, 6], 
+           [8, "B", 13, 1, 6, 6], 
+           [7, "B", 15, 2, 5, 6], 
+           [12, "B", 234, 3, 4, 6], 
+           [11, "B", 1221, 5, 2, 6], 
+           [10, "B", 1345, 6, 1, 6], 
+           [16, "C", 2652, 5, 1, 5], 
+           [15, "C", 2645, 4, 2, 5], 
+           [14, "C", 2645, 3, 3, 5], 
+           [13, "C", 2345, 2, 4, 5], 
+           [17, "C", 65, 1, 5, 5]]}
+```
+
+2. 找正反序和n的关系
+
+必须满足`rnk1>=cnt/2 and rnk2>=cnt/2`。
+
+- 当n为偶数，上述条件会返回两个值
+- 当n为奇数，上述条件只返回一个值
+
+##### 答案
+
+1. 讨论排序和n的关系
+
+* sql
+
+```sql
+select 
+	Id,Company,Salary 
+from 
+(
+    select 
+    	a.*,
+    	row_number() over(partition by Company order by Salary) as rnk,
+    	count(Salary) over(partition by Company) as cnt 
+   	from Employee a
+) t 
+where rnk in (cnt/2,cnt/2+1,(cnt+1)/2)
+```
+
+2. 正反序
+
+* sql
+
+```sql
+select
+    id,company,salary
+from
+(select
+    a.*,
+    row_number() over(partition by company order by salary, id) as rnk1,
+    row_number() over(partition by company order by salary desc, id desc) as rnk2,
+    count(id) over(partition by company) as cnt
+from Employee a) tmp
+where rnk1 >= cnt/2 
+and rnk2 >= cnt/2
+```
+
+🥰觉得还不错的话，点个赞，加个关注吧~🥰

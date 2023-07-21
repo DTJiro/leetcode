@@ -1,0 +1,52 @@
+思路，中位数就是组成数组排序中建位的数，奇数的正反排序其下标指数相同，偶数则+-1,然后对比
+两列数组的这几个位置数值是否相同，是则为中位数。
+
+为了不适用内置函数，想了很久，通过自变量递增+排序组成下标
+
+* 
+
+```
+SELECT id,company,salary,@n:=@n+1 as n1
+FROM employee e,(SELECT@n:=0)init
+ORDER BY company,salary
+```
+
+再反向组成降序排列的下标
+
+* 
+
+```
+SELECT id,company,salary,@n:=@n+1 as n1
+FROM employee e,(SELECT@n:=0)init
+ORDER BY company,salary DESC
+```
+
+然后把两个表通过join链接，并通过反向排序对比
+
+* 
+
+```
+ON t1.id=t2.id AND (n1=n2 OR n1= n2+1 OR n1=n2-1)
+```
+
+最后需要去重偶数组返回的相同中位数值，通过GROUP BY即可
+
+* 
+
+````
+SELECT t1.id,t1.company,t1.salary
+FROM(
+SELECT id,company,salary,@n:=@n+1 as n1
+FROM employee e,(SELECT@n:=0)init
+ORDER BY company,salary) t1
+JOIN (
+SELECT id,company,salary,@p:=@p+1 as n2
+FROM employee e,(SELECT@p:=0)init
+ORDER BY company,salary DESC
+) t2
+ON t1.id=t2.id AND (n1=n2 OR n1= n2+1 OR n1=n2-1)
+group by company,salary
+ORDER BY company
+```
+````
+
