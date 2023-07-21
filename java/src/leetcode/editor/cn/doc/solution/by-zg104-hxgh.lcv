@@ -1,0 +1,40 @@
+##### 思路
+
+这道题很好理解，就是对每个玩家的`games_played`进行累加。关键是如何算这个累加。
+
+##### 算法
+
+1. 用窗口函数，`sum(games_played)over(partition by player_id order by event_date)` 解决
+2. 用self join，这题的难点就是累加，self join通过笛卡尔积可以构造出另一列`event_date`从而通过`t1.event_date>=t2.event_date`实现对特定日期的筛选，然后再sum。
+
+##### 答案
+
+1. 自连接
+
+* sql
+
+```sql
+select 
+    t1.player_id,
+    t1.event_date,
+    sum(t2.games_played) as games_played_so_far
+from Activity t1,Activity t2
+where t1.player_id=t2.player_id   -- 保证组间比对
+and t1.event_date>=t2.event_date  -- 通过横向比较可以实现累加，如下图
+group by t1.player_id,t1.event_date
+```
+
+![image.png](https://pic.leetcode-cn.com/1651750385-wTaetF-image.png)
+
+窗口累加
+
+* sql
+
+```sql
+select 
+    player_id, 
+    event_date, 
+    sum(games_played)over(partition by player_id order by event_date) games_played_so_far 
+from Activity
+```
+

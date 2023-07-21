@@ -1,0 +1,23 @@
+# 答案
+
+* 
+
+```
+SELECT 
+    player_id,
+    event_date,
+    SUM(games_played)OVER(PARTITION BY player_id ORDER BY event_date ASC)games_played_so_far
+FROM
+    Activity
+```
+
+# 同类题目
+
+- [1635. Hopper 公司查询 I](https://leetcode.cn/problems/hopper-company-queries-i/)（窗口聚合函数SUM()）
+- [1204. 最后一个能进入电梯的人](https://leetcode.cn/problems/last-person-to-fit-in-the-bus/)（窗口聚合函数SUM()）
+- [1308. 不同性别每日分数统计](https://leetcode.cn/problems/running-total-for-different-genders/)（窗口聚合函数SUM()）
+- [1126. 查询活跃业务](https://leetcode.cn/problems/active-businesses/)（窗口聚合函数AVG()）
+- [615. 平均工资：部门与公司比较](https://leetcode.cn/problems/average-salary-departments-vs-company/)（窗口聚合函数AVG()）
+- [585. 2016年的投资](https://leetcode.cn/problems/investments-in-2016/)（窗口聚合函数COUNT()）
+- [1303. 求团队人数](https://leetcode.cn/problems/find-the-team-size/)（窗口聚合函数COUNT()）
+
