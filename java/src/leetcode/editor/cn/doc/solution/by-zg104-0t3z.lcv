@@ -1,0 +1,47 @@
+##### 思路
+
+本题依旧采取正反序的方式，只不过这里是给定数字的频率来查询中位数，所以我们要还原原本的序列，所以要对`frequency`进行累加（正序），然后取反序，在和`sum(frequency)`比较。
+
+##### 算法
+
+1. 正反序
+
+* sql
+
+```sql
+select
+    a.*,
+    sum(frequency) over(order by num) as rnk1,
+    sum(frequency) over(order by num desc) as rnk2,
+    sum(frequency) over() as s
+from Numbers a
+
+# 输出
+{"headers": ["num", "frequency", "rnk1", "rnk2", "s"], 
+"values": [[0, 7, 7, 12, 12], 
+           [1, 1, 8, 5, 12], 
+           [2, 3, 11, 4, 12], 
+           [3, 1, 12, 1, 12]]}
+```
+
+2. `where rnk1>=s/2 and rnk2>=s/2`
+
+##### 答案
+
+* sql
+
+```sql
+select 
+    round(avg(num),1) as median 
+from
+(select
+    a.*,
+    sum(frequency) over(order by num) as rnk1,
+    sum(frequency) over(order by num desc) as rnk2,
+    sum(frequency) over() as s
+from Numbers a) tmp
+where rnk1>=s/2 
+and rnk2>=s/2
+```
+
+🥰觉得还不错的话，点个赞，加个关注吧~🥰

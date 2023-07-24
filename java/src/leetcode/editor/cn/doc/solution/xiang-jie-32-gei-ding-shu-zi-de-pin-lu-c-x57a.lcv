@@ -1,0 +1,115 @@
+## SQL：方法一
+
+* sql
+
+```sql
+select avg(num) as median from (
+	select
+		num,
+		sum(frequency) over(order by num desc) desc_frequency,
+		sum(frequency) over(order by num asc) asc_frequency,
+		sum(frequency) over() total_frequency
+	from numbers
+) as temp
+where desc_frequency >= total_frequency / 2
+and asc_frequency >= total_frequency / 2;
+```
+
+## 解析
+
+中位数就是将所有数字按照升序或者降序排列，然后取最中间的数字
+
+- 数字个数是奇数的话，那么中位数会在这个序列中
+- 数字个数是偶数的话，那么中位数是最中间的两个数的平均值
+
+步骤：
+
+- `sum(frequency) over() total_frequency` 计算出所有数字的个数，这里使用窗口函数 `over()` 就不需要再后面使用 `group by`
+  - 计算总数还可以用 `select sum(frequency) as total_frequency from numbers`
+- `sum(frequency) over(order by num desc) desc_frequency` 使用窗口函数 `over(order by num desc)` 按照 `num` 降序计算出当前数字和之前数字出现的次数
+
+  * sql
+
+  ```sql
+  select num, sum(frequency) over(order by num desc) desc_frequency
+  from numbers;
+  ```
+
+  | num | desc_frequency |
+  | --- | -------------- |
+  | 3   | 1              |
+  | 2   | 4              |
+  | 1   | 5              |
+  | 0   | 12             |
+
+- `sum(frequency) over(order by num asc) asc_frequency` 使用窗口函数 `over(order by num asc)` 按照 `num` 升序计算出当前数字和之前数字出现的次数
+
+  * sql
+
+  ```sql
+  select num, sum(frequency) over(order by num asc) asc_frequency
+  from numbers;
+  ```
+
+  | num | asc_frequency |
+  | --- | ------------- |
+  | 0   | 7             |
+  | 1   | 8             |
+  | 2   | 11            |
+  | 3   | 12            |
+
+- 将查询出来的 `num` ， `desc_frequency` ， `asc_frequency` ， `total_frequency` 作为临时表 `temp`
+- 查询临时表 `temp` ， 筛选条件是 `desc_frequency >= total_frequency / 2 and asc_frequency >= total_frequency / 2` ， `desc_frequency` 的一半就是中位数
+- 通过筛选条件查询出来的 `num` 就是中位数，使用 `avg` 对其求平均数，因为如果是偶数个的话，查出来的中位数是两个。
+
+## SQL：方法二
+
+* sql
+
+```sql
+select avg(num) as median from (
+	select
+		num,
+		(
+			select sum(frequency) from numbers n2 where n1.num >= n2.num
+		) asc_frequency,
+		(
+			select sum(frequency) from numbers n3 where n1.num <= n3.num
+		) desc_frequency,
+		(select sum(frequency) from numbers) total_frequency
+	from numbers n1
+) temp
+where asc_frequency >= total_frequency / 2
+and desc_frequency >= total_frequency / 2;
+```
+
+## 解析
+
+和方法一的思路是一样的，没有使用窗口函数 `over()` ，而是使用查询的方式并通过 `sum()` 计算出 `asc_frequency` 、 `desc_frequency` 、 `total_frequency`
+
+## SQL：方法三
+
+* sql
+
+```sql
+select avg(num) as median from (
+	select n1.num from numbers n1 join numbers n2 group by n1.num
+	having sum(if(n1.num >= n2.num, n2.frequency, 0)) >= sum(n2.frequency) / 2
+	and sum(if(n1.num <= n2.num, n2.frequency, 0)) >= sum(n2.frequency) / 2
+) as temp;
+```
+
+## 解析
+
+- 将 `numbers` 表自连接，并按照 `n1.num` 分组
+- 计算
+  - `if(n1.num >= n2.num, n2.frequency, 0)` ，第二个参数为什么使用 `n2.frequency` 是因为按照 `n1.num` 进行分组的，再使用 `sum()` 计算 `n1.num` 比 `n2.num` 大的 `n2.frequency`
+    - 当 `n1.num = 0` 只会大于等与 `n2.num = 0` ，只会计算 `0` 的 `n2.frequency`
+    - 当 `n1.num = 1` 符合条件的有 `n2.num = 0, n2.num = 1` ，就会计算 `0` 和 `1` 的 `n2.frequency`
+  - `if(n1.num >= n2.num, n2.frequency, 0)` ，也是同样的流程
+
+## Tips
+
+这三种方法都是利用某一数的正序或者逆序的累计大于或等于所有数的个数的一半
+
+更多解题：https://github.com/astak16/blog-mysql/issues/35

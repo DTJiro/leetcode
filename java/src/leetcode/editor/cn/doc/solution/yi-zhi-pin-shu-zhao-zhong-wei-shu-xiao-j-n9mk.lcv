@@ -1,0 +1,29 @@
+**原理**
+
++----------+-------------+-------------+-------------+
+|  Number  |  Frequency  |  sum1(asc)  |  sum2(desc) |
++----------+-------------|-------------+-------------|
+|  0       |  5          | 5           | 10          |
+|  1       |  1          | 6           | 5           |
+|  2       |  3          | 9           | 4           |
+|  3       |  1          | 10          | 1           |
++----------+-------------|-------------+-------------|
+当sum1和sum2都大于等于总数的1/2时，Number的平均数就是中位数。
+
+**代码**
+
+* 
+
+```
+select avg(Number) median from
+(
+    select Number, Frequency, 
+    sum(Frequency) over (order by Number desc) s1,
+    sum(Frequency) over (order by Number asc) s2,
+    sum(Frequency) over () s3
+    from Numbers
+) exp
+where s1 >= s3/2 and s2 >= s3/2
+
+```
+
