@@ -1,0 +1,23 @@
+![image.png](https://pic.leetcode-cn.com/1663955635-puOwLd-image.png)
+
+### 解题思路
+
+左连接+count+group+limit
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+
+select name
+from Vote 
+join Candidate 
+on Vote.candidateId = Candidate.id
+group by name
+order by count(distinct vote.id) desc
+limit 1
+```
+

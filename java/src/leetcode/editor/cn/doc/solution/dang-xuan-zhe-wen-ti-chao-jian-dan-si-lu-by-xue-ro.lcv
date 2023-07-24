@@ -1,0 +1,12 @@
+解题思路：首先统计每位候选人票数，再与候选人名字表相联结，最后按照票数从大到小排列，返回第一个人的名字。
+select c.name
+from
+(
+select candidateid,count(*) as votes
+from vote
+group by candidateid
+) v
+left join candidate c
+on c.id=v.candidateid
+order by votes desc
+limit 1

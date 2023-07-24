@@ -1,0 +1,30 @@
+首先不妨直接在Vote表上下文章，选出票数最高的candidateId，题目中说了不存在平票的情况，所以可以放心大胆地LIMIT，如若在现实生活中存在平票的情况话，那么肯定有别的限制条件，到时候具体问题具体分析，咱们这里只关注题目本身。
+将其按照candidateId分组，并利用COUNT函数将其所得票数汇总并按倒序，然后取其第一栏并记录其candidateId。
+
+* 
+
+```
+SELECT candidateId AS id 
+FROM Vote
+GROUP BY candidateId
+ORDER BY COUNT(candidateId) DESC
+LIMIT 1) AS c2
+```
+
+然后将Vote表与查询后的Candidate表作连接，这里我用的左连接，条件为两表id相等，这里我对原candidateId进行了重新命名，
+然后判断c2表的id是否为空就行了。
+
+* 
+
+```
+# Write your MySQL query statement below
+SELECT c1.name
+FROM Candidate AS c1 LEFT JOIN (SELECT candidateId AS id 
+                          FROM Vote
+                          GROUP BY candidateId
+                          ORDER BY COUNT(candidateId) DESC
+                          LIMIT 1) AS c2
+ON c1.id = c2.id
+WHERE c2.id IS NOT NULL;
+```
+

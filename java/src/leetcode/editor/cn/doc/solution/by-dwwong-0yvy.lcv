@@ -1,0 +1,21 @@
+### 解题思路
+
+COUNT(id) OVER(PARTITION BY V.CandidateId)
+
+### 代码
+
+* oraclesql
+
+```oraclesql
+/* Write your PL/SQL query statement below 
+报告获胜候选人的名字(即获得最多选票的候选人)。
+以确保 只有一个候选人赢得*/
+
+SELECT C.name AS "NAME" FROM 
+(SELECT V.CandidateId,COUNT(id) OVER(PARTITION BY V.CandidateId) AS CO--,ROWNUM AS SEQ
+FROM Vote V  
+ORDER BY CO DESC) T,Candidate C 
+WHERE T.CandidateId = C.id
+AND ROWNUM = 1
+```
+
