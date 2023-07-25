@@ -1,0 +1,70 @@
+## SQL：方法一
+
+* sql
+
+```sql
+select question_id as survey_log from (
+	select 
+		question_id,
+		sum(case action when 'answer' then 1 else 0 end) / 
+		sum(case action when 'show' then 1 else 0 end) as rate
+	from surveyLog group by question_id order by rate desc
+) as temp limit 1;
+```
+
+## 解析
+
+- 通过 `sum` 和 `case` 计算出回答率 `rate` ，并且升序排列，作为临时表 `temp`
+- 查询临时表 `temp` 取第一条数据
+
+## SQL：方法二
+
+* sql
+
+```sql
+select action_answer.question_id as survey_log from (
+	select question_id, count(*) as answer_count from surveyLog
+	where action = 'answer' group by question_id
+) as action_answer join (
+	select question_id, count(*) as show_count from surveyLog
+	where action = 'show' group by question_id
+) as action_show using(question_id)
+order by answer_count / show_count desc limit 1;
+```
+
+## 解析
+
+- 首先查出 `action = answer` 的数据存为一张临时表 `action_answer`
+- 再查出 `action = show` 的数据作为一张临时表 `show_answer`
+- 通过 `question_id` 连接两表
+- 使用 `order by` 对回答进行排列，取第一条数据
+
+## SQL：方法三
+
+* sql
+
+```sql
+select question_id as survey_log from surveyLog 
+group by question_id 
+order by avg(action = 'answer') desc limit 1;
+```
+
+## 解析
+
+一道题只有回答了 `action` 才是 `answer` ，这里通过计算每道题的 `action = 'answer'` 的平均数，因为这里计算平均数的分数是 `question_id` 的个数，所以 `action = 'answer'` 个数越多，回答率越高，最后取第一条数据。ps：这里默认 `question_id` 是升序排列的
+
+## SQL：方法四
+
+* sql
+
+```sql
+select question_id as survey_log from surveyLog
+group by question_id 
+order by count(answer_id) desc limit 1;
+```
+
+## 解析
+
+一道题只有回答了才有 `answer_id` ，所以计算出每道题有多少个 `answer_id` ， `answer_id` 数量最多的就是回答率最高的，ps：这里默认 `question_id` 是升序排列的
+
+更多解题：https://github.com/astak16/blog-mysql/issues/34

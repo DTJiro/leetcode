@@ -1,0 +1,82 @@
+# 预备知识
+
+**最大值问题的三种思路**
+
+* 
+
+```
+- 内层：窗口排名函数 AS ranking，外层：WHERE ranking=1
+- HAVING Aggregate_function(字段)>=ALL(SELECT Aggregate_function(字段))
+- ORDER BY 字段 DESC，LIMIT 1
+```
+
+**最小值问题的三种思路**
+
+* 
+
+```
+- 内层DENSE_RANK() OVER(ORDER BY 字段 ASC) AS ranking，外层WHERE ranking=1
+- HAVING Aggregate_function()<=ALL(SELECT Aggregate_function())
+- ORDER BY 字段 ASC，LIMIT 1
+```
+
+**SUM IF & COUNT IF**
+
+* 
+
+```
+对条件进行计数：SUM(条件)=SUM(if(条件,1,0))
+对条件进行计数：COUNT(IF(条件,1,null))
+
+注：COUNT(条件)=COUNT(条件,true,null)，条件满足返回true，否则返回null
+```
+
+# 答案
+
+**解法一：窗口排名函数**
+
+* 
+
+```
+WITH cte AS(
+    SELECT 
+        question_id,
+        DENSE_RANK() OVER(ORDER BY SUM(action='answer')/SUM(action='show') DESC,question_id ASC ) AS ranking
+    FROM SurveyLog
+    GROUP BY question_id
+)
+
+SELECT question_id AS survey_log
+FROM cte
+WHERE ranking=1
+```
+
+**解法二：HAVING aggregate_function()>=ALL(SELECT aggregate_function())**
+
+* 
+
+```
+SELECT question_id AS survey_log
+FROM SurveyLog
+GROUP BY question_id
+HAVING SUM(action='answer')/SUM(action='show')>=ALL(
+    SELECT SUM(action='answer')/SUM(action='show')
+    FROM SurveyLog
+    GROUP BY question_id
+)
+ORDER BY question_id ASC
+LIMIT 1
+```
+
+**解法三：ORDER BY**
+
+* 
+
+```
+SELECT question_id AS survey_log
+FROM SurveyLog
+GROUP BY question_id
+ORDER BY SUM(action = 'answer') / SUM(action = 'show') DESC, question_id ASC
+LIMIT 1
+```
+

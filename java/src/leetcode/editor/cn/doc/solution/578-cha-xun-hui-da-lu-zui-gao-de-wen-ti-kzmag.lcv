@@ -1,0 +1,22 @@
+### 解题思路
+
+![image.png](https://pic.leetcode-cn.com/1632217214-LRJukK-image.png)
+
+### 代码
+
+* mysql
+
+```mysql
+select question_id as survey_log
+from(
+    select 
+        question_id,
+        row_number() over(order by tag desc) as rnk # 此题bug,两个一样的怎么办，一样的就用rank() over()
+    from(
+        select question_id, 
+        sum(if(answer_id is not null,1,0))/sum(if(action='show', 1, 0)) as tag
+        from survey_log
+        group by question_id) as t)as p
+where rnk = 1
+```
+

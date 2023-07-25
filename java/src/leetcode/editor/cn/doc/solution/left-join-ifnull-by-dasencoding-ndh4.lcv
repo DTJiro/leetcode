@@ -1,0 +1,29 @@
+直接左外连接，筛选出奖金小于1000 或者奖金为Null的值，因为如果为 null 的话，是不会参与运算比较的，所以这里需要分开处理。
+
+* 
+
+```
+SELECT
+    e.name,
+    b.bonus
+FROM Employee e
+LEFT JOIN Bonus b
+ON e.empId = b.empId
+WHERE b.bonus < 1000
+OR b.bonus IS NULL
+```
+
+也可以将小于 1000和Null 放在一起处理，使用IFNULL函数，如果是Null的话，用一个小于1000的值代替null值，这样就会筛选出bonus为Null的员工。
+
+* 
+
+```
+SELECT
+    e.name,
+    b.bonus
+FROM Employee e
+LEFT JOIN Bonus b
+ON e.empId = b.empId
+WHERE IFNULL(b.bonus,0) < 1000
+```
+

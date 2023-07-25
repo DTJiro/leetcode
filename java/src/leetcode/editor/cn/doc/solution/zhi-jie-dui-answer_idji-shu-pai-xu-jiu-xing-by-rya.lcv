@@ -1,0 +1,10 @@
+1. 没有那么复杂,直接对question_id分组
+2. 再对answer_id计数,倒序排列取第一个就行,因为只有回答了,answer_id才会是非空,这样子计数就是回答最多的题
+
+* 
+
+```
+select question_id survey_log from survey_log group by question_id 
+order by count(answer_id) desc limit 1
+```
+
