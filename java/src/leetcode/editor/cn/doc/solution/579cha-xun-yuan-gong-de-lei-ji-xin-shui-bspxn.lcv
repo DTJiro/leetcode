@@ -1,0 +1,26 @@
+# 题目解析：
+
+-- 请你编写 SQL 语句，对于每个员工，查询他除最近一个月（即最大月）之外，剩下每个月的近三个月的累计薪水（不足三个月也要计算）。
+
+# 解题思路&知识点
+
+-- 求移动总和
+syntax：
+`SUM() OVER(PARTITION BY expression ORDER BY sort_expression ROWS XX PRECEDING)`
+`SUM() OVER(PARTITION BY expression ORDER BY sort_expression RANGE XX PRECEDING)`
+
+* 
+
+```
+SELECT id,Month,
+       SUM(Salary) OVER(PARTITION BY id 
+                        ORDER BY Month RANGE 2 PRECEDING) AS Salary
+FROM Employee
+WHERE (id,Month) NOT IN (
+    SELECT id,MAX(Month) AS Month
+    FROM Employee
+    GROUP BY id
+)
+ORDER BY id, Month DESC
+```
+

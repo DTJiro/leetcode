@@ -1,0 +1,64 @@
+### 思路
+
+思路整体为先找到每个用户最大月份，然后过滤当前用户的最大月份，查询每个月最近前N月份的数据总和。
+方法详情如下：
+
+### 1.查询每个用户的最大月份
+
+sql如下：
+
+* 
+
+```
+SELECT e.Id , MAX(e.Month) AS Month FROM Employee e GROUP BY e.Id
+```
+
+表别名为:e1
+
+### 2.过滤掉用户的最大月份数，查询用户月份薪水
+
+根据题意需要 ID升序、月份降序，且不能为当前用户最近一个月数据，sql 如下：
+
+* 
+
+```
+SELECT e1.Id,e1.Month,e1.Salary  FROM Employee e1 ,
+(SELECT e.Id , MAX(e.Month) AS Month FROM Employee e GROUP BY e.Id ) A
+where
+e1.Id = A.Id  AND e1.Month < A.Month
+ORDER BY  e1.Id ASC,e1.Month DESC
+```
+
+表别名:B
+
+### 3.查询最近前N月份（题目为3,N换3）的数据总和
+
+对每个用户当前月份往前推N个月份数据总和，并且
+条件满足: ID=B.id AND 月份 <= B.月份 and 月份 > B.月份-N
+sql如下：
+
+* 
+
+```
+SELECT SUM(e2.Salary) FROM Employee e2 
+WHERE e2.Id = B.Id AND e2.Month <= B.Month AND e2.Month > B.Month-3 
+ORDER BY e2.Month DESC 
+```
+
+### 4.整体sql
+
+* 
+
+```
+SELECT B.Id as id,B.Month as month,
+(SELECT SUM(e2.Salary) FROM Employee e2 WHERE e2.Id = B.Id AND e2.Month <= B.Month AND e2.Month > B.Month-3 ORDER BY e2.Month DESC LIMIT 3
+) as Salary 
+FROM (
+    SELECT e1.Id,e1.Month,e1.Salary  FROM Employee e1 ,
+    (SELECT e.Id , MAX(e.Month) AS Month FROM Employee e GROUP BY e.Id ) A
+WHERE
+    e1.Id = A.Id  AND e1.Month < A.Month
+ORDER BY  e1.Id ASC,e1.Month DESC
+ ) B 
+```
+

@@ -1,0 +1,38 @@
+##### 思路
+
+![image.png](https://pic.leetcode-cn.com/1652784058-FmqVtU-image.png)
+
+**注意理解rows和range的区别！**
+
+详情查看这里吧！
+
+- [b站视频讲解](https://www.bilibili.com/video/BV1xa411e7o3/)
+
+##### 答案
+
+* sql
+
+```sql
+# 窗口
+select id, month, sum(salary) over (partition by id order by month range 2 preceding) as Salary 
+from employee
+where (id,month) not in 
+(select id, max(month) from employee
+group by id)
+order by id, month desc
+
+# 自连接
+SELECT
+  a.Id AS id, 
+  a.Month AS month,
+  SUM(b.Salary) AS Salary
+FROM
+  Employee a, Employee b
+WHERE a.Id = b.Id 
+AND a.Month >= b.Month
+AND a.Month < b.Month+3
+AND (a.Id, a.Month) NOT IN (SELECT Id, MAX(Month) FROM Employee GROUP BY Id)
+GROUP BY a.Id, a.Month
+ORDER BY a.Id, a.Month DESC
+```
+

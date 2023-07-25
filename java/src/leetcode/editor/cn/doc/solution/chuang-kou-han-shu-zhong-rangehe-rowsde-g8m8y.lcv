@@ -1,0 +1,23 @@
+### 解题思路
+
+假如有1,2,3,4,7,8月份的数据，7月份的累积前三个月工资应该是5,6,7月份工资
+使用"rows 2 PRECEDING"计算的是3,4,7月份的工资
+使用"range 2 PRECEDING"计算的是5,6,7月份的工资
+
+### 代码
+
+* mysql
+
+```mysql
+
+SELECT Id, Month, Salary
+FROM (
+    SELECT Id, Month, 
+    SUM(Salary) OVER (PARTITION BY Id ORDER BY Month asc range 2 PRECEDING) AS Salary, 
+    rank() OVER (PARTITION BY Id ORDER BY Month DESC) AS r
+      FROM Employee
+    ) t
+WHERE r > 1
+ORDER BY Id, Month DESC;
+```
+
