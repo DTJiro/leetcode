@@ -1,0 +1,23 @@
+##### 思路
+
+比较简单，考察点：
+
+- 左连接
+- null的处理（ifnull）
+- group by
+
+##### 答案
+
+* sql
+
+```sql
+select 
+    d.dept_name,
+    ifnull(count(student_id),0) as student_number
+from Department d
+left join Student s
+using(dept_id)
+group by 1
+order by 2 desc,1
+```
+
