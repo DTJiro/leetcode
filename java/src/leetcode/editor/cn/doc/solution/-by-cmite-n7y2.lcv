@@ -1,0 +1,20 @@
+![image.png](https://pic.leetcode-cn.com/1661392066-epNCoM-image.png)
+
+解题思路：
+1. 计算所有的申请，注意过滤重复
+2. 计算所有的通过，注意过滤重复
+3. 计算结果，注意特殊情况
+
+* sql
+
+```sql
+# Write your MySQL query statement below
+select round(
+    ifnull(
+    (select count(distinct requester_id, accepter_id) from RequestAccepted) /
+    (select count(distinct sender_id, send_to_id) from FriendRequest), 0),
+    2
+) accept_rate
+;
+```
+
