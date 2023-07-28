@@ -1,0 +1,21 @@
+![WX20210525-225423@2x.png](https://pic.leetcode-cn.com/1621954485-KhbVij-WX20210525-225423@2x.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select distinct s1.seat_id
+from cinema s1,cinema s2
+where s1.free = 1 and s2.free = 1 and
+(
+    s1.seat_id = s2.seat_id-1 
+    or
+    s1.seat_id = s2.seat_id+1
+)
+order by s1.seat_id
+
+
+```
+

@@ -1,0 +1,16 @@
+### 解题思路
+
+1.因为需要最后需要查出空闲的连续的座位号，所以就需要连续的两个座位号 seat_id 进行比较，而现在只有一张表，需要自己连自己 自连接join 结果为笛卡尔乘积
+2.若连续空余座位 差值固定 abs(a.seat_id - b.seat_id)=1  空余free=1
+3.按照座位升序排序
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select  distinct a.seat_id from Cinema a join Cinema b on abs(a.seat_id - b.seat_id)=1 where a.free=1 and b.free=1
+order by seat_id
+```
+

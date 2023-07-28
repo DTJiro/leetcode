@@ -1,0 +1,51 @@
+![image.png](https://pic.leetcode.cn/1669866510-OmAnrE-image.png)
+![image.png](https://pic.leetcode.cn/1669866547-JZIraG-image.png)
+![image.png](https://pic.leetcode.cn/1669866576-SJxcSo-image.png)
+![image.png](https://pic.leetcode.cn/1669866595-FjXMGB-image.png)
+
+首先我们筛选出空余座位的id
+
+* 
+
+```
+select seat_id from Cinema where free=1
+```
+
+接着我们考虑 如果
+1，某个座位空余 且该座位的连续前一个座位 空余 则该座位符合要求
+2，某个座位空余 且该座位的连续后一个座位 空余 则该座位符合要求
+
+我们使用left join 为每个座位 匹配他之前和之后的座位，注意已经筛选过满的座位，所以如果该座位的前后为满座位，则前后座id 会变成null
+
+* 
+
+```
+(select seat_id from Cinema where free=1) t1 
+    left join  
+    (select seat_id-1 as next_seat_id from Cinema where free=1) t2 
+    on t1.seat_id=next_seat_id 
+    left join 
+    (select seat_id+1 as pre_seat_id from Cinema where free=1) t3
+    on t1.seat_id=pre_seat_id
+```
+
+因为对每个表都先筛选出了空余座位，如果seat_id的pre_seat_id 不是null
+或者seat_id的next_seat_id 不是null
+那么这个座位符合要求 见上图
+语句如下：
+
+* 
+
+```
+select t1.seat_id 
+from 
+    (select seat_id from Cinema where free=1) t1 
+    left join  
+    (select seat_id-1 as next_seat_id from Cinema where free=1) t2 
+    on t1.seat_id=next_seat_id 
+    left join 
+    (select seat_id+1 as pre_seat_id from Cinema where free=1) t3
+    on t1.seat_id=pre_seat_id
+where next_seat_id is not null or pre_seat_id is not null
+```
+

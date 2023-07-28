@@ -1,0 +1,27 @@
+尽量还是避免join、自联接、子查询、临时表这种
+
+* 
+
+```
+SELECT seat_id
+FROM (
+      SELECT seat_id
+            ,free
+            ,GREATEST(IFNULL(LAG(free) OVER (ORDER BY seat_id ASC), 0), IFNULL(LEAD(free) OVER (ORDER BY seat_id ASC), 0)) AS p_free
+      FROM Cinema
+) AS temp
+WHERE free = 1
+  AND p_free = 1
+```
+
+#### SQL中`MAX()`函数内只能传入一个参数，即作为聚合函数联合`group by`在列的级别上取出一个维度的最大值
+
+#### 如果是要想其他编程语言中实现`“max(a, b)”`这种，需要用`GREATEST()`，该函数可以传入多列，在行的级别上取出多个维度中的最大值
+
+##### GREATEST() 函数有几个特性：
+
+1. 可以传入数值类型、字符串类型、时间类型
+2. 虽然对于部分字符串能够隐式转换为数值，但不推荐不同类型混用
+3. 只要GREATEST的有一个参数为NULL，就会返回NULL。
+
+参考链接：https://blog.csdn.net/liangweiwei130/article/details/36384145
