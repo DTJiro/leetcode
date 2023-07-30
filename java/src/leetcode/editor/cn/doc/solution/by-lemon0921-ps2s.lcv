@@ -1,0 +1,11 @@
+* 
+
+```
+select p1.id,p2.id from (
+    select p1.id,p1.x,p2.id,p2.x,min(abs(p1.x-p2.x)) as shortest
+    from point p1 inner join point p2
+    on p1.id!=p2.id
+)tmp
+where abs(p1.x-p2.x)=shortest and p1.id<p2.id
+```
+

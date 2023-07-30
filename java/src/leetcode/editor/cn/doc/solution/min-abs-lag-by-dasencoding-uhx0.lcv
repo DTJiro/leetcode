@@ -1,0 +1,17 @@
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+SELECT
+    min(abs(x-pre)) shortest
+FROM(
+SELECT
+    x,
+    lag(x,1,null) over() pre
+FROM point
+ORDER BY x
+)tmp
+
+```
+

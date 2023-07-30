@@ -1,0 +1,19 @@
+### 解题思路
+
+1 **窗口函数**使用**lag**来解决, 运算**窗口函数**那一行计算距离
+2 祛除那个null 用**limit 1 offset 1**
+
+### 代码
+
+* mysql
+
+```mysql
+
+select  x- lag(x) over(order by x) as shortest
+  from point
+ order by shortest 
+ limit 1
+ offset 1
+
+```
+

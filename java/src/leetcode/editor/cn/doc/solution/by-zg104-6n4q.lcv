@@ -1,0 +1,28 @@
+##### 思路
+
+实际上我们要找follower的follower，那么我们自然要把follower当做followee来看，也就是使用self join。
+
+或者用子查询匹配的方法找到follower里面的followee存在情况，再计数。
+
+##### 答案
+
+* sql
+
+```sql
+# self join
+select
+    a.followee as follower,
+    count(distinct a.follower) as num
+from follow a, follow b
+where a.followee = b.follower
+group by a.followee
+
+# 子查询匹配
+select
+    followee as follower,
+    count(distinct follower) as num
+from follow
+where followee in (select distinct follower from follow)
+group by followee
+```
+
