@@ -1,0 +1,7 @@
+* 
+
+```
+select min(abs(a.x-b.x)) shortest from point a,point b where a.x!=b.x ;  
+```
+
+简单易懂性能快，不用join不排序

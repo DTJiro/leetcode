@@ -1,0 +1,21 @@
+### 解题思路
+
+自连接
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+SELECT 
+    ABS(p1.x - p2.x) AS shortest 
+FROM
+    `point` AS p1 
+    INNER JOIN `point` AS p2 
+        ON p1.x < p2.x 
+ORDER BY shortest 
+LIMIT 1 ;
+```
+

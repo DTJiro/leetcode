@@ -1,0 +1,10 @@
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select min(abs(p.x - p1.x)) as shortest
+from point p,point p1
+where p.x != p1.x;
+
+```
+
