@@ -1,0 +1,66 @@
+这题有两个重点：
+
+1. 部门每个月的平均薪资
+2. 公司每个月的平均薪资
+
+## SQL
+
+* sql
+
+```sql
+
+select 
+	distinct date_format(pay_date, '%Y-%m') as pay_month,
+	department_id,
+	(case when avg_department > avg_company then 'higher'
+				when avg_department < avg_company then 'lower'
+				else 'same'
+	end) as comparison
+from (
+	select
+		pay_date,
+		department_id,
+		avg(amount) as avg_department
+	from salary join employee using(employee_id)
+	group by pay_date, department_id
+) as temp1 join (
+	select pay_date, avg(amount) as avg_company from salary group by pay_date
+) as temp2 using(pay_date)
+
+--- 等价于
+
+select 
+	pay_month,
+	department_id,
+	(case when avg_department > avg_company then 'higher'
+				when avg_department < avg_company then 'lower'
+				else 'same'
+	end) as comparison
+from (
+	select
+		date_format(pay_date, '%Y-%m') as pay_month, 
+		department_id,
+		avg(amount) as avg_department
+	from salary join employee using(employee_id)
+	group by pay_month, department_id
+) as temp1 join (
+	select 
+		date_format(pay_date, '%Y-%m') as pay_month, 
+		avg(amount) as avg_company
+	from salary group by pay_month
+) as temp2 using(pay_month)
+```
+
+## 解析
+
+计算部门每个月的平均薪资，将 `salary` 和 `employee` 用 `employee_id` 连接，并且按照 ，计算出部门薪资平均值 `avg_department` ， `pay_month` 和 `department_id` 进行分组，将它作为临时表 `temp1`
+
+计算公司每个月的平均薪资比较简单，直接对 `salary` 表按照 `pay_date` 进行分组，并且计算出公司薪资平均值 `avg_company`，将它作为临时表 `temp2`
+
+将 `temp1` 和 `temp2` 用 `pay_date` 连接起来，使用 `case ... when ... end` 语句比较`avg_department` 和 `avg_company` 的大小后输出 `same` 、 `higher`、 `lower`
+
+因为这里输出的都是日期 `date` ，所以这里要使用 `date_format()` 对它进行日期格式化。
+
+这里要注意一点的是因为 `temp1` 和 `temp2` 都是用 `date` 分组的，而最后查出来的数据只需要月份，所以这里可能会出现重复的数据，需要在最后使用 `distinct` 去重，或者呢在 `temp1` 和 `temp2` 是就直接使用 `month` 进行分组。
+
+更多解题：https://github.com/astak16/blog-mysql/issues/45
