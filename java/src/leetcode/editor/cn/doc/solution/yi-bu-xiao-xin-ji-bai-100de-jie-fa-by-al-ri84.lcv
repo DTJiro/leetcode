@@ -1,0 +1,16 @@
+可以先看官方的答案，然后这里是一些小优化：
+我的理解是如果要避免所有的重复，那就在on里定义刚好半个平面，也就是
+
+* 
+
+```
+select round(min(sqrt(pow(p1.x-p2.x, 2) + pow(p1.y-p2.y, 2))), 2) as shortest
+
+from point2d p1 join point2d p2 
+on (p1.x < p2.x) or (p1.x=p2.x and p1.y < p2.y)
+```
+
+这里的半个平面就是所有 x值更大，或者x值相同但是y更大 的点
+
+不知道为啥上传图片一直失败，提交记录在这里 https://leetcode.cn/problems/shortest-distance-in-a-plane/submissions/441784257/
+但是不知道看不看的见诶，以及不能保证以后都是击败100%哦 😊

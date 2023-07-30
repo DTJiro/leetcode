@@ -1,0 +1,20 @@
+### 解题思路
+
+标准判断，通过限定连接条件减少一半计算
+
+### 结果
+
+![image.png](https://pic.leetcode-cn.com/bd9ebed540b72a62ef6146de2489383e84ac4eca3871a54d0c9d021aa0f699da-image.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select 
+    round(min(sqrt(power(p1.x-p2.x, 2)+power(p1.y-p2.y, 2))), 2) shortest
+from 
+    point_2d p1 join point_2d p2 on p1.x<p2.x or (p1.x=p2.x and p1.y<p2.y)
+```
+
