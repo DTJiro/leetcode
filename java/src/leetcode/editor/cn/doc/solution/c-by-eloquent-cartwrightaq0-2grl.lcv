@@ -1,0 +1,77 @@
+先来看看直观的想法，利用case when来进行分列操作，直接用以下代码：
+
+* 
+
+```
+select
+case when continent = 'America' then name end as America,
+case when continent = 'Asia' then name end as Asia,
+case when continent = 'Europe' then name end as Europe
+from student
+```
+
+将得到以下结果：
+![image.png](https://pic.leetcode-cn.com/1660813372-wYOTHz-image.png)
+可以看到有很多的null，为了去掉这些null,我们进行以下操作：
+**第一步，先用row_number() over()进行分组排序：**
+
+* 
+
+```
+select
+*,
+row_number() over(partition by continent order by name) rn
+from
+student
+```
+
+得到如下结果：
+![image.png](https://pic.leetcode-cn.com/1660813025-nqdFXU-image.png)
+
+**第二步，利用case when进行行转列**
+
+* 
+
+```
+select
+case when continent = 'America' then name end as America,
+case when continent = 'Asia' then name end as Asia,
+case when continent = 'Europe' then name end as Europe
+from
+(
+select
+*,
+row_number() over(partition by continent order by name) rn
+from
+student
+)a
+```
+
+进行以上代码操作，会产生4行数据，如下：
+![image.png](https://pic.leetcode-cn.com/1660813047-nDEpoB-image.png)
+
+可以看到有很多null，为了去掉过多的null，需进行第三步操作。
+**第三步，按照rn进行分组，并对每组数据取max或者min**
+这样做可以去掉多余的null，使得每一列下如果name非空就只保留name。
+（补充：max和min在计算中时忽略null的，这里用max或者min是因为计算的是字符串类型，如果是数值型可以用sum）
+
+* 
+
+```
+select
+max(case when continent = 'America' then name end) as America,
+max(case when continent = 'Asia' then name end) as Asia,
+max(case when continent = 'Europe' then name end) as Europe
+from
+(
+select
+*,
+row_number() over(partition by continent order by name) rn
+from
+student
+)a
+group by rn
+```
+
+即可得到题目要求的结果。
+

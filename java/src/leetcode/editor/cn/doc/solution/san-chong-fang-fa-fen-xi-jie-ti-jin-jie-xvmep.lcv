@@ -1,0 +1,94 @@
+## SQL：方法一
+
+* sql
+
+```sql
+select America, Asia, Europe from (
+	select
+		name as America,
+		row_number() over(order by name) as rn
+	from student where continent = 'America'
+) temp1 left join (
+	select
+		name as Europe,
+		row_number() over(order by name) as rn
+	from student where continent = 'Europe'
+) temp2 on temp1.rn = temp2.rn left join (
+	select
+		name as Asia,
+		row_number() over(order by name) as rn
+	from student where continent = 'Asia'
+) temp3 on temp1.rn = temp3.rn;
+```
+
+## 解析
+
+对 `continent` 实现透视操作，就是说把 `continent` 的每一行变成列，再合并重复的列。
+
+要实现透视操作， `continent` 每个值按照 `America` 、 `Europe` 、 `Asia` 进行分类并排序。
+
+排序可以使用 `row_number()` 。
+
+将 `America` 、 `Europe` 、 `Asia` 值作为临时表 `temp1` 、 `temp2` 、 `temp3` ，使用左连依次将这三个表连接，连接条件是各表的 `rn`
+
+## SQL：方法二
+
+* sql
+
+```sql
+select
+	America, Asia, Europe
+from (select @america:=0, @europe:=0, @asia:=0) as init, (
+	select
+		name as America,
+		@america:= @america + 1 as america_id
+	from student where continent = 'America' order by name
+) t1 left join (
+	select
+		name as Europe,
+		@europe:= @europe + 1 as europe_id
+	from student where continent = 'Europe' order by name
+) t2 on america_id = europe_id left join (
+	select
+		name as Asia,
+		@asia:= @asia + 1 as asia_id
+	from student where continent = 'Asia' order by name
+) t3 on america_id = asia_id;
+```
+
+## 解析
+
+方法二和方法一是一样的思路，这里的排序用的是变量。
+
+## Tips
+
+方法一和方法二都有一个问题：需要知道哪个大洲的人数最多，人数多的表作为基准表，别的表与它相连，也就是说表连接的方式是从大到小。
+
+## SQL：方法三
+
+* sql
+
+```sql
+select
+	max(case continent when 'America' then name else null end) America,
+	max(case continent when 'Asia' then name else null end) Aisa,
+	max(case continent when 'Europe' then name else null end) Europe
+from (
+	select
+		*,
+		row_number() over(partition by continent order by name) as rn
+	from student
+) temp group by rn;
+```
+
+## 解析
+
+方法三解决了需要先知道哪个大洲人数最多的问题。
+
+使用 `row_number()` 按照 `continent` 分组并排序，序号为 `rn` ，作为临时表 `temp`
+
+查询临时表 `temp` 按照 `rn` 分组
+
+每一列使用 `case ... when ... then ... end` 查询出 `America`、 `Asia`、 `Europe` ，因为要使用到 `group by` ，所以需要使用到聚合函数， `max` 和 `min` 都可以。
+
+更多解题：https://github.com/astak16/blog-mysql/issues/46
