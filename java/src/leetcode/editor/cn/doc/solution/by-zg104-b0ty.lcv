@@ -1,0 +1,36 @@
+##### 思路
+
+- 主体：`buyer_id `
+- 条件：购买S8，且没购买iPhone
+
+也就是group by having框架加上具体的计数筛选，这里注意一点：
+
+sum if 和 count if 的区别和注意事项：
+
+- sum if 对出现次数求和（出现一次计1，加起来得到该条件共出现几次）
+- count if 对非null情况全部计数，所以在不满足条件时，一定要定义为null，才能避免count对其计数。
+
+##### 答案
+
+* sql
+
+```sql
+# sum
+select
+    b.buyer_id
+from Product a
+join Sales b
+using(product_id)
+group by buyer_id
+having sum(product_name = 'S8')>0
+and sum(product_name = 'iphone') = 0
+
+# count
+select s.buyer_id
+from product p, sales s
+where p.product_id = s.product_id
+group by s.buyer_id
+having count(if(p.product_name='S8',1,null)) > 0 
+and count(if(p.product_name='iPhone',1,null)) < 1
+```
+

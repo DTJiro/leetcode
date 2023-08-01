@@ -1,0 +1,15 @@
+* 
+
+```
+select buyer_id
+from (
+select buyer_id,
+case when p.product_name ='S8' then 1 else 0 end s8,
+case when p.product_name = 'iPhone' then 1 else 0 end IPh
+from Sales s left join Product p on s.product_id=p.product_id
+) a
+group by buyer_id 
+having sum(s8)>0 and sum(IPh)=0
+```
+
+列转行，然后加总筛选

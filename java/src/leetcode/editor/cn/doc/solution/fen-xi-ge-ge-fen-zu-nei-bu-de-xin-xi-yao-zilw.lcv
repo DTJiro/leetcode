@@ -1,0 +1,22 @@
+* 
+
+```
+我认为, 评论区的某大佬的解法, 是题解最想要的, 如下
+这是要我们, 在分组后, 分析各个分组内部的信息,
+这位大佬巧妙的运用  sum 来统计数量 来
+代替我们经常想用而在分组后不能用的 
+where product_name = 'S8' and product_name != 'iPhone'
+
+这个给了我们以后 分析各个分组内部的信息一个方法
+大有裨益
+```
+
+* 
+
+```
+select s.buyer_id
+from sales s left join product p on s.product_id = p.product_id
+group by buyer_id
+having sum(product_name = 'S8') > 0 and sum(product_name = 'iPhone') = 0
+```
+
