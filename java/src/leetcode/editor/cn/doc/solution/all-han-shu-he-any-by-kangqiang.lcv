@@ -1,0 +1,25 @@
+### 解题思路
+
+max和all函数起到的作用是一样的， all和每一个进行比较（大于最大的或者小于最小的）
+any 则是大于任何一个都可以（大于最小的，小于最大的）
+
+非常有用的两个函数
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+select
+    seller_id
+from
+    sales
+group by seller_id
+having
+sum(price) >= all(select sum(price) from sales group by seller_id)
+
+
+```
+
