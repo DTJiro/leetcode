@@ -1,0 +1,217 @@
+## 分析
+
+需要几个值
+
+1. 每个玩家第一个登录日
+2. 第一个登陆日之后有没有登录
+3. 第一个登录日的玩家的数量，第一个登录日的第二天登录玩家的数量
+
+## SQL：方法一
+
+* sql
+
+```sql
+select
+	first_date as install_dt,
+	count(*) installs,
+	round(count(activity.event_date) / count(*), 2) as day1_retention
+from (
+	select 
+		player_id,
+		min(event_date) as first_date
+	from activity group by player_id
+) t1 left join activity
+on t1.player_id = activity.player_id 
+and datediff(activity.event_date, t1.first_date) = 1
+group by first_date;
+```
+
+## 解析
+
+1. 每个玩家第一个登录日，作为 `t1` 表
+
+   * sql
+
+   ```sql
+   select 
+   	player_id,
+   	min(event_date) as first_date
+   from activity group by player_id;
+   ```
+2. 需要得到每个玩家第一个登陆日之后第二天有没有登录
+
+   1. 将 `t1` 表和 `activity` 左连
+   2. 这要注意输出的字段 `event_date` 是第一天登录之后第二天又登录的玩家日期
+
+   * sql
+
+   ```sql
+   select * from t1 
+   left join activity 
+   on t1.player_id = activity.player_id 
+   and datediff(activity.event_date, t1.first_date) = 1;
+   ```
+3. 查询 `t1` 和 `activity` 左连后的表，按照第一个登陆日进行分组 `first_date`
+   1. `count(*)` 第一个登陆日的总人数
+   2. `count(activity.event_date)` 第二个登录日的人数
+   3. `a/b` 是第一天玩家的留存率
+
+## SQL：方法二
+
+* sql
+
+```sql
+select
+	first_date as install_dt,
+	count(distinct player_id) as installs,
+	round(
+		sum(if(date_add(first_date, interval 1 day) = event_date, 1, 0)) 
+		/ count(distinct player_id),
+	2) as day1_retention
+from (
+	select 
+		player_id,
+		event_date,
+		min(event_date) over(partition by player_id) as first_date
+	from activity
+) t1 group by first_date;
+```
+
+## 解析
+
+方法二的思路和方法一是一样的，使用了窗口函数代替了分组。
+
+1. 使用窗口函数，计算出每个玩家的第一次登录日期，作为临时表 `t1`
+
+   * sql
+
+   ```sql
+   select 
+   	player_id,
+   	event_date,
+   	min(event_date) over(partition by player_id) as first_date
+   from activity;
+   ```
+
+   输出
+
+   * sql
+
+   ```sql
+   player_id	 |  event_date  |  first_date
+   1	         |  2016-03-01  |  2016-03-01
+   1          |	2016-03-02	|  2016-03-01
+   2          |	2017-06-25	|  2017-06-25
+   3	         |  2016-03-01	|  2016-03-01
+   3	         |  2018-07-03	|  2016-03-01
+   ```
+2. 查询 `t1` ，按照 `first_date` 进行分组
+   1. `count(distinct player_id)` 第一个登陆日的总人数
+   2. `sum(if(date_add(first_date, interval 1 day) = event_date, 1, 0))`
+      1. `date_add(first_date, interval 1 day) = event_date` 第一个登陆日后一天也登录的用户
+      2. `sum(if(expr, 1, 0))` 或者 `count(if(expr, 1, null))` ，使用 `sum` 求和 `if` 表达式的 `false` 应该用 `0` ，使用 `count` 求和 `if` 表达式的 `false` 应该用 `null` ，因为 `count` 会忽略 `null`
+
+## SQL：方法三
+
+* sql
+
+```sql
+select
+	a1.event_date as install_dt,
+	count(a1.event_date) as installs,
+	round(
+		sum(if(datediff(a2.event_date, a1.event_date) = 1, 1, 0))
+		 / count(a1.event_date),
+	2) as day1_retention
+from activity a1
+left join activity a2 on a1.player_id = a2.player_id 
+and datediff(a2.event_date, a1.event_date) = 1
+left join activity a3 on a1.player_id = a3.player_id
+and a1.event_date > a3.event_date
+where a3.event_date is null
+group by a1.event_date;
+```
+
+## 解析
+
+`activity` 表自身左连 `2` 次
+
+1. 筛选出第一天登录的玩家，第二天也登录了 `datediff(a2.event_date, a1.event_date) = 1`
+
+   * sql
+
+   ```sql
+   select 
+   	* 
+   from activity a1
+   left join activity a2 on a1.player_id = a2.player_id
+   and datediff(a2.event_date, a1.event_date) = 1
+   ```
+2. 筛选出第一个登录日，因为 `a1.event_date > a3.event_date` ，所以第一个登录日 `a3.event_date` 为 `null`
+
+   * sql
+
+   ```sql
+   select 
+   	* 
+   from activity a1
+   left join activity a3 on a1.player_id = a3.player_id
+   and a1.event_date > a3.event_date where a3.event_date is null
+   ```
+3. 合并第一步和第二步
+
+   * sql
+
+   ```sql
+   select 
+   	* 
+   from activity a1
+   left join activity a2 on a1.player_id = a2.player_id
+   and datediff(a2.event_date, a1.event_date) = 1
+   left join activity a3 on a1.player_id = a3.player_id
+   and a1.event_date > a3.event_date where a3.event_date is null
+   ```
+4. 计算出对应的值
+   1. `a1.event_date` 是第一个登录日
+   2. `count(a1.event_date)` 第一个登录日的总人数
+   3. `sum(if(datediff(a2.event_date, a1.event_date) = 1, 1, 0))` 第一个登录日的第二天登录的总人数
+   4. `b/c` 是第一天玩家的留存率
+
+## SQL：方法四
+
+* sql
+
+```sql
+select
+	first_date as install_dt,
+	count(a1.event_date) as installs,
+	round(
+		sum(if(datediff(a2.event_date, a1.event_date) = 1, 1, 0)) 
+		/ count(a1.event_date), 
+	2) as day1_retention 
+from (
+	select 
+		player_id,
+		min(event_date) first_date
+	from activity group by player_id 
+) t1
+left join activity a1 on t1.player_id = a1.player_id 
+and t1.first_date = a1.event_date
+left join activity a2 on a1.player_id = a2.player_id
+and datediff(a2.event_date, a1.event_date) = 1
+group by first_date;
+```
+
+## 解析
+
+方法四和方法三是一个思路，不同都是查询第一个登录日，用下面的方法代替方法三中的第二步，方法三中的第二步迷惑性很大，不太好理解。
+
+* sql
+
+```sql
+select 
+	player_id,
+	min(event_date) first_date
+from activity group by player_id 
+```
+
