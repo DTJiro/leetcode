@@ -1,0 +1,48 @@
+解法一：窗口排名函数
+
+* 
+
+```
+WITH cte AS(
+    SELECT
+        t1.project_id,
+        t1.employee_id,
+        DENSE_RANK()OVER(PARTITION BY t1.project_id ORDER BY t2.experience_years DESC) AS ranking
+    FROM Project AS t1 
+    JOIN Employee AS t2
+    ON t1.employee_id=t2.employee_id
+)
+
+SELECT
+    project_id,
+    employee_id
+FROM cte
+WHERE ranking=1
+```
+
+解法二：WHERE IN子查询
+
+* 
+
+```
+WITH cte AS(
+    SELECT 
+        t1.project_id,
+        t1.employee_id,
+        t2.name,
+        t2.experience_years
+    FROM Project t1 JOIN Employee t2 ON t1.employee_id=t2.employee_id
+)
+
+SELECT 
+    project_id,
+    employee_id
+FROM cte
+WHERE (project_id, experience_years) IN(
+    SELECT project_id, MAX(experience_years)
+    FROM cte
+    GROUP BY project_id
+)
+
+```
+

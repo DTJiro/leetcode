@@ -1,0 +1,48 @@
+##### 思路
+
+接1076思路。
+
+- 主体：雇员
+- 满足条件：经验最丰富（`max(experience_years)`）
+
+1. 子查询匹配
+
+先找每个`project_id`对应的`max(experience_years)`，再用`(project_id, experience_years)`联合键子查询匹配出对应的`employee_id`。
+
+2. 窗口函数
+
+数据构造出`experience_years `的排序，再筛选`rnk=1`
+
+* sql
+
+```sql
+# 链接2表
+with t as
+(select
+a.project_id,
+a.employee_id,
+b.experience_years 
+from project a
+join employee b
+using(employee_id))
+
+# 子查询匹配
+select project_id,employee_id
+from t
+where (project_id, experience_years)
+in
+(select project_id, max(experience_years)
+from t 
+group by 1)
+
+# 窗口函数
+select project_id,employee_id
+from 
+(select 
+    project_id,
+    employee_id,
+    dense_rank() over(partition by project_id order by experience_years desc) as rnk
+from t) tmp
+where rnk =1
+```
+
