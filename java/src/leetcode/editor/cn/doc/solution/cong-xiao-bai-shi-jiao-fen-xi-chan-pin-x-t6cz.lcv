@@ -1,0 +1,37 @@
+## 分析
+
+`sales` 表中就有每个产品的销量 `quantity` ，而且输出的字段也都在 `sales` 表中，所以这里 `product` 表没有作用。
+
+## SQL：方法一
+
+* sql
+
+```sql
+select 
+	product_id,
+  sum(quantity) total_quantity 
+from sales group by product_id;
+```
+
+## 解析
+
+1. 使用 `group by` 对 `product_id` 分组
+2. 使用聚合函数 `sum()` 计算 `quantity`
+
+## SQL：方法二
+
+* sql
+
+```sql
+select 
+	distinct product_id,
+	sum(quantity) over(partition by product_id) total_product
+from sales;
+```
+
+## 解析
+
+1. 这里使用窗口函数按照 `product_id` 进行分组
+2. 使用聚合函数 `sum()` 计算 `quantity`
+
+更多题解：https://github.com/astak16/blog-mysql/issues/49
