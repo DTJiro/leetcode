@@ -1,0 +1,15 @@
+![WX20210826-235327@2x.png](https://pic.leetcode-cn.com/1629993244-VJyqTU-WX20210826-235327@2x.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+select project_id
+from Project
+group by  project_id
+having count(employee_id)>=all(select count(employee_id) from Project group by  project_id);
+```
+

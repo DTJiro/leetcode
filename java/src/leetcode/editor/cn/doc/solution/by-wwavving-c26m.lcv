@@ -1,0 +1,19 @@
+all(查询语句)通常配合比较符号（<, >, <=, >=）使用，比较all括号里查询语句的所有返回，全都通过则为true
+
+### 代码
+
+* mysql
+
+```mysql
+select
+    project_id
+from Project 
+group by project_id
+having count(project_id) >= all(
+    select 
+        count(project_id) 
+    from Project 
+    group by project_id  
+)
+```
+

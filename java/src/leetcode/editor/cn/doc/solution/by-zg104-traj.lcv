@@ -1,0 +1,43 @@
+##### 思路
+
+本题思路比较多，这里介绍三种常见的。
+
+先对`project_id`分组，然后
+
+1. 子查询匹配，如果当前组内count大于等于所有组内count，即为所求
+2. 如果只有一个第一存在，那么对`count(order_number)`取倒序的第一个即可（这里不适用！）
+3. 窗口函数排倒序，取`rnk=1`
+
+##### 答案
+
+1. **子查询匹配**
+
+* sql
+
+```sql
+select
+    project_id  
+from project
+group by project_id
+having count(employee_id ) >= 
+all(
+    select count(employee_id) 
+    from project group by project_id  
+   )
+```
+
+2. **窗口函数**
+
+* sql
+
+```sql
+select project_id from
+(select 
+    project_id, 
+    dense_rank() over(order by count(employee_id) desc) as ranking
+ 	# 窗口函数适用范围广，在数据层面先构造再筛选
+from project
+group by project_id) t
+where ranking = 1
+```
+
