@@ -1,0 +1,80 @@
+这题目有 `2` 个问题容易忽略：
+
+1. `orders` 表中没有销量的书
+2. `orders` 表中在指定时间内没有销量的书
+   1. `books` 左连 `orders` ，容易将 `dispatch_date` 的判断放在 `where` 中，以至于筛选不出指定时间内没有销量的书
+
+这题的方法有很多，都是 `books` 连接 `orders` ，却别是在①、②、③、④写法不一样
+
+* sql
+
+```sql
+select book_id, name from ① left join ② on ③ where ④;
+```
+
+## SQL：方法一
+
+* sql
+
+```sql
+select books.book_id, books.name from books left join (
+	select book_id, sum(quantity) as total_sales
+	from orders where datediff('2019-06-23', dispatch_date) < 365
+	group by book_id
+) as temp on books.book_id = temp.book_id 
+where datediff('2019-06-23', available_from) > 30 
+and (total < 10 or isnull(total_sales));
+```
+
+* sql
+
+```sql
+select temp1.book_id, temp1.name from (
+	select book_id, name from books 
+	where datediff('2019-06-23', available_from) > 30
+) as temp1 left join (
+	select book_id, sum(quantity) as total_sales from orders 
+	where datediff('2019-06-23', dispatch_date) < 365
+	group by book_id
+) as temp2 on temp1.book_id = temp2.book_id 
+where ifnull(total_sales, 0) < 10;
+```
+
+## 解析
+
+- 方法一是将 `orders` 进行分组
+- 对 `dispatch_date` 的筛选就可以放在 `orders` 中了
+- 对于上面说的两个问题，可以在连接后的表中统一处理
+  - `ifnull()`
+  - `isnull()`
+  - `is null`
+
+## SQL：方法二
+
+* sql
+
+```sql
+select books.book_id, books.name from books left join orders
+on books.book_id = orders.book_id 
+and ifnull(datediff('2019-06-23', dispatch_date), 0) < 365
+where datediff('2019-06-23', available_from) > 30 
+group by books.book_id, name having ifnull(sum(quantity), 0) < 10;
+```
+
+* sql
+
+```sql
+select temp1.book_id, temp1.name from (
+	select book_id, name from books 
+	where datediff('2019-06-23', available_from) > 30
+) as temp1 left join orders on temp1.book_id = orders.book_id 
+and ifnull(datediff('2019-06-23', dispatch_date), 0) < 365
+group by temp1.book_id, temp1.name having ifnull(sum(quantity), 0) < 10;
+```
+
+## 解析
+
+- 方法二是将两个表先连接，在进行分组处理，并用 `having` 筛选
+- 这里要注意的一点是判断 `dispatch_date` 要放在 `on` 当中，不能放在后面的 `where` 中
+
+参考：https://github.com/astak16/blog-mysql/issues/28

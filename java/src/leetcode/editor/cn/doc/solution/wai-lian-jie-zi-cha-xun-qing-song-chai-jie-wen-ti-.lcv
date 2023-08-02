@@ -1,0 +1,25 @@
+读完题之后先做的是把问题拆解了，这一题中，有这么几个子问题需要解决：
+1. 找出`Books`表中上架超过一个月的书的`id`以及`name`
+2. 找出`Orders`表中近一年的订单
+3. 相信前两个子问题大家应该都做起来没啥难度，第三步也比较容易，就是把**1**、**2**中的两个表进行左连接，**1**中的表做主表，因为没有订单的书不会出现在**2**中，但是同样满足要求，这样我们得到了近一年内，上架超过一个月书的订单信息
+4. 最后，根据**3**中的表，按书名/ID分类，找出订单数量少于10的书，输出它的id和书名即可
+
+代码如下：
+
+* sql
+
+```sql
+SELECT b.book_id, b.name
+FROM (
+    SELECT book_id, name
+    FROM books
+    WHERE DATEDIFF('2019-06-23',available_from) >= 30
+) b LEFT JOIN (
+    SELECT book_id, quantity
+    FROM orders
+    WHERE DATEDIFF('2019-06-23',dispatch_date) <= 365
+) o ON b.book_id=o.book_id
+GROUP BY b.book_id
+HAVING SUM(IFNULL(quantity,0))<10
+```
+
