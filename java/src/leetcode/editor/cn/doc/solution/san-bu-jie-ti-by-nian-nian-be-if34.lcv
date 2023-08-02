@@ -1,0 +1,53 @@
+### 解题思路
+
+# 1. 找到孩子成绩最高的列
+
+    SELECT 
+        student_id, max(grade) 
+    FROM 
+        Enrollments
+    GROUP BY 
+        student_id
+
+# 2. 找到所有最高成绩中，course_id比较小的那一个
+
+SELECT
+student_id, min(course_id) AS course_id, grade
+
+# 3. 排序
+
+ORDER BY student_id ASC
+
+### 代码
+
+* mysql
+
+```mysql
+
+
+SELECT 
+    student_id, min(course_id) AS course_id, grade
+FROM 
+    Enrollments 
+WHERE 
+    (student_id, grade)
+    IN(
+        SELECT 
+            student_id, max(grade) 
+        FROM 
+            Enrollments
+        GROUP BY 
+            student_id
+    )
+GROUP BY student_id, grade
+ORDER BY student_id ASC
+
+
+
+
+
+
+
+
+```
+
