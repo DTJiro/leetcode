@@ -1,0 +1,111 @@
+##### 思路
+
+首先，我们要构造Result之中的前两列（cte1），可以用union直接把both嵌进去，然后再通过【每人每天用的不同平台数=2】的条件去定义【both】（cte2），然后再left join计算total_amount 和 total_users
+
+##### 算法
+
+1. 要构造Result之中的前两列
+
+* sql
+
+```sql
+with cte1 as
+(
+    select distinct spend_date, 'desktop'  as platform from spending
+    union 
+    select distinct spend_date, 'mobile' from spending
+    union
+    select distinct spend_date, 'both' from spending
+)
+
+# 输出
+{"headers": ["spend_date", "platform"], 
+"values": [["2019-07-01", "desktop"], 
+           ["2019-07-02", "desktop"], 
+           ["2019-07-01", "mobile"], 
+           ["2019-07-02", "mobile"], 
+           ["2019-07-01", "both"], 
+           ["2019-07-02", "both"]]}
+```
+
+2. 定义【both】
+
+* sql
+
+```sql
+cte2 as
+(
+select
+    user_id,
+    spend_date,
+    if(count(distinct platform)=2,'both',platform) as platform,
+    sum(amount) as amount
+from spending
+group by 1,2
+)
+
+# 输出
+{"headers": ["user_id", "spend_date", "platform", "amount"], 
+"values": [[1, "2019-07-01", "both", 200], 
+           [2, "2019-07-01", "mobile", 100], 
+           [2, "2019-07-02", "mobile", 100], 
+           [3, "2019-07-01", "desktop", 100], 
+           [3, "2019-07-02", "desktop", 100]]}
+```
+
+3. left join计算
+
+* sql
+
+```sql
+select 
+    t1.spend_date,
+    t1.platform,
+    ifnull(sum(t2.amount),0) as total_amount,
+    ifnull(count(t2.user_id),0) as total_users
+from cte1 t1
+left join cte2 t2
+using(spend_date,platform)
+group by 1,2
+```
+
+##### 答案
+
+* sql
+
+```sql
+# Write your MySQL query statement below
+
+with cte1 as
+(
+    select distinct spend_date, 'desktop'  as platform from spending
+    union 
+    select distinct spend_date, 'mobile' from spending
+    union
+    select distinct spend_date, 'both' from spending
+),
+
+cte2 as
+(
+select
+    user_id,
+    spend_date,
+    if(count(distinct platform)=2,'both',platform) as platform,
+    sum(amount) as amount
+from spending
+group by 1,2
+)
+
+
+select 
+    t1.spend_date,
+    t1.platform,
+    ifnull(sum(t2.amount),0) as total_amount,
+    ifnull(count(t2.user_id),0) as total_users
+from cte1 t1
+left join cte2 t2
+using(spend_date,platform)
+group by 1,2
+```
+
+🥰觉得还不错的话，点个赞，加个关注吧~🥰

@@ -1,0 +1,31 @@
+参考了 MySQL 版本的题解 [【鲸析】1127. 用户购买平台（考点：cte、union、if）](https://leetcode.cn/problems/user-purchase-platform/solution/by-zg104-1hah/)
+
+* sql
+
+```sql
+WITH T1 AS (
+    SELECT DISTINCT spend_date, 'desktop' platform FROM spending
+    UNION
+    SELECT DISTINCT spend_date, 'mobile' platform FROM spending
+    UNION
+    SELECT DISTINCT spend_date, 'both' platform FROM spending
+), T2 AS (
+    SELECT
+        user_id,
+        spend_date,
+        CASE
+            WHEN COUNT(DISTINCT platform) = 2 THEN 'both' ELSE MAX(platform)
+        END platform,
+        SUM(amount) amount
+    FROM spending
+    GROUP BY user_id, spend_date
+)
+SELECT 
+    T1.spend_date,
+    T1.platform,
+    ISNULL(SUM(T2.amount), 0) total_amount,
+    ISNULL(COUNT(T2.user_id), 0) total_users
+FROM T1 LEFT JOIN T2 ON T1.spend_date = T2.spend_date AND T1.platform = T2.platform
+GROUP BY T1.spend_date, T1.platform
+```
+
