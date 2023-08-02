@@ -1,0 +1,26 @@
+##### 思路
+
+- 先找出所有用户第一次登陆的时间 （`min(activity_date)`）
+
+- 筛选出距今90天内的信息（`datediff`）
+
+- 按照日期聚合计数
+
+##### 答案
+
+* sql
+
+```sql
+select
+    first_date as login_date,
+    count(user_id) as user_count  
+from
+(select 
+    user_id,min(activity_date) as first_date
+from Traffic
+where activity = 'login'
+group by 1) t
+where datediff("2019-06-30",first_date) <= 90
+group by 1
+```
+
