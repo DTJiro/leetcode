@@ -1,0 +1,19 @@
+思路和心得：
+
+1.没有主键
+
+会有重复
+
+* []
+
+```mysql
+# Write your MySQL query statement below
+SELECT extra AS 'report_reason', COUNT(DISTINCT(post_id)) AS 'report_count'
+FROM Actions
+WHERE extra IS NOT NULL             #非空
+    AND action = 'report'           #是报告活动
+    AND action_date = '2019-07-04'  #昨天
+GROUP BY extra
+;
+```
+

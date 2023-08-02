@@ -1,0 +1,25 @@
+### 解题思路
+
+中文没有把这个翻译出来呀   昨天的action='report'
+the number of posts **reported** yesterday
+
+![图片.png](https://pic.leetcode-cn.com/1640054754-qrVlBx-%E5%9B%BE%E7%89%87.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select 
+extra    as report_reason 
+,count(distinct post_id    ) as report_count 
+from Actions
+where action_date ='2019-07-04'
+and action='report '
+and extra  is not null
+group by extra   
+
+
+```
+
