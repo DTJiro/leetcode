@@ -1,0 +1,40 @@
+1. 先计算每个事件的平均发生次数
+
+* 
+
+```
+select event_type, avg(occurences) as avg_occurences
+from Events
+group by event_type
+```
+
+2. 与原表进行表连接，并且返回 occurences > avg_occurences 的数据
+
+* 
+
+```
+select e1.business_id
+from Events e1 left join (
+    select event_type, avg(occurences) as avg_occurences
+    from Events
+    group by event_type
+) e2 on e1.event_type = e2.event_type and e1.occurences > e2.avg_occurences
+where e2.event_type is not null
+```
+
+3. 按 e1.business_id 分组，并返回至少有两个这样的事件类型的数据
+
+* 
+
+```
+select e1.business_id
+from Events e1 left join (
+    select event_type, avg(occurences) as avg_occurences
+    from Events
+    group by event_type
+) e2 on e1.event_type = e2.event_type and e1.occurences > e2.avg_occurences
+where e2.event_type is not null
+group by e1.business_id
+having count(e1.occurences) >= 2
+```
+
