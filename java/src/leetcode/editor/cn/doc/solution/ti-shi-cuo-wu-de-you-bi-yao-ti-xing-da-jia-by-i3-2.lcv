@@ -1,0 +1,48 @@
+题不难，但是我想说：
+求总平均，不应该是题目中举例那样求。
+我举个例子，我第1天射箭1发，命中0发，命中率0%；第2天射箭100发，命中99发，命中率99%。
+那么我两天的平均命中率为多少？
+按照该题描述，应该是 ( 0% + 99% ) / 2 = 49.5%
+而实际难道不应该是 ( 0 + 99 ) / ( 1 + 100 ) ≈ 98% ？
+当然也可以称之为口径区别，但是我想大多数场景应该用后面这个口径，现实中应用时注意不要用错了。
+
+该题按口径1写SQL：
+
+* MYSQL
+
+```MYSQL
+SELECT
+    ROUND(AVG(percent),2) average_daily_percent
+FROM
+    (
+    SELECT
+        action_date,
+        COUNT(DISTINCT R.post_id) / COUNT(DISTINCT A.post_id) * 100 percent
+    FROM 
+        Actions A
+    LEFT JOIN
+        Removals R
+    ON A.post_id = R.post_id
+    WHERE
+        extra='spam'
+    GROUP BY
+        action_date
+    ) T
+```
+
+该题按口径2写SQL：
+
+* MYSQL
+
+```MYSQL
+SELECT
+    ROUND(COUNT(DISTINCT R.post_id) / COUNT(DISTINCT A.post_id) * 100,2) average_daily_percent
+FROM 
+    Actions A
+LEFT JOIN
+    Removals R
+ON A.post_id = R.post_id
+WHERE
+    extra='spam'
+```
+

@@ -1,0 +1,25 @@
+![image.png](https://pic.leetcode-cn.com/1662558725-radeNh-image.png)
+
+解题步骤：
+1. 统计每一天的被举报的垃圾邮件的数量，仅查询 Actions 表即可
+2. 统计每一天的被举报的垃圾邮件中，被处理的邮件，需要连接 Actions 表和 Removals 表
+3. 计算每一天的被处理的邮件占当天举报邮件的比例，并求均值得到最终结果
+
+注意事项：Action 表可能会有重复，需要过滤
+
+* sql
+
+```sql
+# Write your MySQL query statement below
+with a as (
+    select count(distinct post_id) num, action_date from Actions where extra='spam' group by action_date
+),
+b as (
+    select distinct r.post_id, action_date from Actions a join Removals r on a.post_id=r.post_id where extra='spam'
+)
+select round(avg(avg_num)*100,2) average_daily_percent from (
+    select count(b.post_id)/a.num avg_num from a left join b on a.action_date=b.action_date group by a.action_date
+) t
+;
+```
+

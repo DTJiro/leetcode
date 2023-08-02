@@ -1,0 +1,31 @@
+严重怀疑自己阅读理解水平，自己写的通不过全部测试用例
+
+* 
+
+```
+select cast(avg(avg_day) * 100 as decimal(16, 2)) as average_daily_percent
+from (select avg(r.post_id is not null) as avg_day
+      from (select post_id,
+                   action_date
+            from (select *
+                  from actions
+                  group by user_id, post_id, action_date, action, extra) as t0
+            where extra = 'spam') as t1
+               left join removals as r
+                         on t1.post_id = r.post_id
+      group by action_date) as t1;
+```
+
+参考题解的，能通过
+
+* 
+
+```
+select round(avg(avg_per * 100), 2) as average_daily_percent
+from (select count(distinct t2.post_id) / count(distinct t1.post_id) as avg_per
+      from Actions t1
+               left join Removals t2 on t1.post_id = t2.post_id
+      where t1.extra = 'spam'
+      group by action_date) t3
+```
+

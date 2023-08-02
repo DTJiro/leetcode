@@ -1,0 +1,36 @@
+##### 思路
+
+本题描述的不是很明确，根据题中逻辑，我们处理的步骤是：
+
+- left join 2个表
+- 筛选extra = 'spam'
+- 根据每个action_date计算移除率（注意：分子用removals的post_id计数）
+
+##### 答案
+
+* sql
+
+```sql
+select 
+	round(100*avg(rate),2) average_daily_percent  
+from(
+select 
+    count(distinct r.post_id)/count(distinct a.post_id) rate 
+from Actions a 
+left join Removals r
+on a.post_id =r.post_id       
+where  extra = 'spam'
+group by action_date) a
+
+# https://leetcode.cn/problems/reported-posts-ii/comments/496331
+SELECT
+    ROUND(COUNT(DISTINCT R.post_id) / COUNT(DISTINCT A.post_id) * 100,2) average_daily_percent
+FROM 
+    Actions A
+LEFT JOIN
+    Removals R
+ON A.post_id = R.post_id
+WHERE
+    extra='spam'
+```
+

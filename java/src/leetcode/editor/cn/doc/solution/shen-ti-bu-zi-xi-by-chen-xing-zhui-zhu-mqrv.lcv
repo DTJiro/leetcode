@@ -1,0 +1,31 @@
+### 解题思路
+
+1、示例3会报错，是因为垃圾广告移除率是百分比的形式，而非其他，如小数形式
+2、重复情况开篇即点出来了：这张表没有主键，并**有可能存在重复的行**
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select 
+    round(avg(rate),2) as average_daily_percent 
+from (
+    select 
+        action_date,
+        count(distinct Removals.post_id)/count(distinct Actions.post_id)*100 as rate 
+    from 
+        Actions 
+    left join 
+        Removals 
+    on Actions.post_id = Removals.post_id 
+    where 
+        extra = 'spam' 
+    group by 
+        action_date
+) as R
+
+
+```
+

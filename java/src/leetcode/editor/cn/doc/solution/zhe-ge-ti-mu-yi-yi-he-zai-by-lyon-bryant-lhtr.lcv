@@ -1,0 +1,28 @@
+### 解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with t1 as (
+    select post_id
+        ,action_date
+        ,case when post_id in (select post_id from Removals) then 1 else 0 end whether_remove
+    from Actions
+    where extra = 'spam'
+    group by 1,2
+    )
+,t2 as (
+    select action_date
+        ,sum(whether_remove)/count(1)*100 rate
+    from t1 
+    group by 1     
+    )
+select round(avg(rate),2) average_daily_percent
+from t2
+
+
+```
+
