@@ -1,0 +1,33 @@
+![screenshot-20210804-231848.png](https://pic.leetcode-cn.com/1628090340-NTtkXT-screenshot-20210804-231848.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT seller_id, 'no' AS 2nd_item_fav_brand
+FROM (
+	SELECT user_id AS seller_id
+	FROM Users d
+		LEFT JOIN Orders c ON d.user_id = c.seller_id
+	GROUP BY d.user_id
+	HAVING COUNT(c.order_id) <= 1
+) b
+UNION
+SELECT user_id AS seller_id
+	, CASE 
+		WHEN u.favorite_brand = a.item_brand THEN 'yes'
+		ELSE 'no'
+	END AS 2nd_item_fav_brand
+FROM Users u
+	INNER JOIN (
+		SELECT seller_id, i.item_brand, row_number() OVER (PARTITION BY seller_id ORDER BY order_date) AS rk
+		FROM Orders o
+			INNER JOIN Items i ON o.item_id = i.item_id
+	) a
+	ON u.user_id = a.seller_id
+WHERE a.rk = 2
+
+```
+
