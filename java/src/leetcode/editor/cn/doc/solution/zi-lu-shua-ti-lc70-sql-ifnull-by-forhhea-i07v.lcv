@@ -1,0 +1,41 @@
+# 预备知识
+
+**DATEDIFF()**
+
+* 
+
+```
+DATEDIFF(x1,x2) -- 返回x1-x2的时间差值，其中x1,x2为column_name或时间字符串
+```
+
+**IFNULL()**
+
+* 
+
+```
+IFNULL(x1,x2) -- 如果x1为NULL，返回x2
+```
+
+**ROUND()**
+
+* 
+
+```
+ROUND(x,d)：四舍五入保留x的d位小数
+```
+
+# 思路
+
+- COUNT(DISTINCT session_id)/COUNT(DISTINCT user_id)
+- 使用IFNULL对COUNT(DISTINCT session_id)/COUNT(DISTINCT user_id)
+
+# 答案
+
+* 
+
+```
+SELECT IFNULL(ROUND(COUNT(DISTINCT session_id)/COUNT(DISTINCT user_id),2),0) AS average_sessions_per_user
+FROM Activity
+WHERE DATEDIFF('2019-07-27',activity_date)>=0 AND DATEDIFF('2019-07-27',activity_date)<30
+```
+
