@@ -1,0 +1,17 @@
+* 
+
+```
+select tmp2.viewer_id as id
+ from
+ (
+     select tmp.viewer_id, count(1) as cnt
+     from
+     (select view_date,viewer_id,author_id, article_id
+     from views
+     group by view_date, viewer_id, author_id, article_id) tmp
+     group by tmp.view_date, tmp.viewer_id having count(1) >= 2
+ ) tmp2
+ group by tmp2.viewer_id 
+ order by tmp2.viewer_id
+```
+

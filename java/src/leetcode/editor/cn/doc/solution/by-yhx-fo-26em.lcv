@@ -1,0 +1,15 @@
+* 
+
+```
+WITH t1 as (SELECT DISTINCT article_id, viewer_id, view_date
+            FROM Views)
+SELECT DISTINCT viewer_id as id
+FROM (SELECT *, COUNT(*)OVER(PARTITION BY viewer_id, view_date) as cnt 
+      FROM t1) as t2
+WHERE cnt >= 2
+ORDER BY id
+```
+
+首先使用DISTINCT，建立一个新表t1，来筛选掉一个人在同一天阅读同一篇文章两遍的情况。
+然后利用COUNT窗口函数，通过viewer_id和view_date分组，来对一个人在一天内阅读不同文章的次数来计数。
+最后用WHERE筛选出数量cnt大于等于2的人数即可。

@@ -1,0 +1,57 @@
+在拿到题目的时候我就对表的结构就有了一个大概的理解
+一行数据 表示某人在某天浏览了某位作者的某篇文章
+某人是：viewer_id 某天是：view_date 某位作者是：author_id 某篇文章是：article_id
+
+题目提示了可能会有重复行，说的就是同一个人在同一天浏览了同一篇文章 （注：如果文章id相同，那么作者ID也相同）
+**遇到重复行我们是要去重的。**
+
+我们要做的是： **找出在同一天阅读至少两篇文章的人，结果按照 id 升序排序**
+
+# 使用group by
+
+毫无疑问：我们要用时间来聚合，但是单单使用时间来聚合的话，可能还不够。
+使用时间来聚合，聚合出来的数据表示的是：这一天有多少人读了多少书，显然不是我们想要的
+加上viewer_id 一起聚合，代表的是：一个人一天读了多少书，这个就是我们想要的
+
+# 使用having
+
+根据题目，我们需要阅读至少两篇文章，因此需要过滤条件 having count(*) >= 2
+但是这样会出现一个问题：重复阅读同一本书是算一本书的，因此我们要用article_id 去重计算某人一天读了多少本书
+因此过滤条件为：having count(DISTINCT article_id) >= 2
+
+# 使用order by
+
+因为结果要使用id升序排序，这个我们使用order by即可完成
+
+所以我们写出了这样的语句
+
+* 
+
+```
+SELECT viewer_id AS id
+FROM Views
+GROUP BY view_date, viewer_id
+HAVING COUNT(DISTINCT article_id) >= 2
+ORDER BY viewer_id
+```
+
+# 使用distinct过滤
+
+在使用多个字段进行group by的时候，需要特别小心重复的情况，我们使用了两个时间和id，
+那么我们需要考虑
+1. 同一个时间，不同id 代表的是：不同人在同一天的情况，这个是正确的
+2. 同一个id，不同的时间，代表的是：同一个人在不同的时间阅读的书，这样可能会出现某人在两天或者以上的时间阅读达到要求的情况，那么会有多个相同的ID出现，这样的情况在这道题中是错误的，同一个人，统计一次即可。
+   **因此需要对 viewer_id 去重**
+
+所以正确的答案是：
+
+* 
+
+```
+SELECT DISTINCT viewer_id AS id
+FROM Views
+GROUP BY view_date, viewer_id
+HAVING COUNT(DISTINCT article_id) >= 2
+ORDER BY viewer_id
+```
+

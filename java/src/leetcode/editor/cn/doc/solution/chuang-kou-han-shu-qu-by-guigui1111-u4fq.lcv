@@ -1,0 +1,28 @@
+因为article_id 可能有重复，例如
+| 3          | 4         | 4         | 2019-07-21 |
+| 3          | 4         | 4         | 2019-07-21 |
+
+所以我们想要去重，但是如果在窗口函数中写入distinct会报错，
+
+报错！！！
+select distinct viewer_id as id from
+(
+select *,
+count(distinct article_id) over(partition by view_date,viewer_id) as counts
+from Views
+) tmp
+where counts >1
+order by viewer_id
+
+报错！！！
+
+这个时候怎么办呢？
+我们只需要改变思路，使用rank 窗口函数，问题解决~
+select distinct viewer_id as id from
+(
+select *,
+rank() over(partition by view_date,viewer_id order by article_id) as ranks
+from Views
+) tmp
+where ranks >1
+order by viewer_id
