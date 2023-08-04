@@ -1,0 +1,49 @@
+##### 思路
+
+1. 每个选手的积分怎么算？
+
+不管是first_player还是second_player合成一个player不可以嘛？所以第一步union all
+
+2. 算每个选手的总分
+3. 再和Players表join起来，算每个组的最高分（排序，还记得那三种方法么？）
+4. 最高分对应的选手
+
+##### 答案
+
+* sql
+
+```sql
+with cte1 as
+(select
+    first_player as player_id,
+    first_score as score
+from Matches
+union all
+select
+    second_player ,
+    second_score 
+from Matches),
+
+cte2 as
+(select 
+    player_id,
+    sum(score) as score
+from cte1
+group by player_id
+order by 2 desc,1)
+
+
+select 
+group_id,player_id
+from
+(select 
+    group_id ,
+    player_id , 
+    dense_rank() over(partition by group_id order by score desc, player_id) as rnk
+from Players a
+left join cte2 b
+using(player_id)) t 
+where rnk=1
+
+```
+

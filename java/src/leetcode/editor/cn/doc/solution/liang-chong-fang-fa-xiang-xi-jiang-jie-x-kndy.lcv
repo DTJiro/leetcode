@@ -1,0 +1,103 @@
+## 分析
+
+这题有个迷惑性是：组内累计得分最高的选手，
+
+根据示例一，很容易理解成每场比赛每组的最高分是这场比赛的最高分，然后筛选出最高分是这个组的最高分。
+
+实际上应该是每场比赛，每个选手累计得分，然后筛选出最高分是这个组的最高分。
+
+## SQL：方法一
+
+* sql
+
+```sql
+select group_id, player_id from (
+	select
+		group_id,
+		t2.player_id,
+		rank() over(partition by group_id order by score desc, t2.player_id) rk
+	from (
+		select player_id, sum(score) score from (
+			select first_player player_id, first_score score from matches
+			union all
+			select second_player, second_score from matches
+		) t1 group by player_id
+	) t2 left join players on t2.player_id = players.player_id
+) t3 where rk = 1;
+```
+
+## 解析
+
+1. 查询 `first_player` 的得分和 `second_player` 得分，使用 `union all` 最终结果，输出字段为 `player_id` 和 `score` 作为临时表 `t1`
+2. 计算每个选手总分，按照 `player_id` 分组，输出字段 `player_id` 和 `score` ，作为临时表 `t2`
+3. 联结临时表 `t2` 和 `players` ，连接条件是 `t2.player_id = players.player_id` 作为临时表 `t3` ，输出字段 `group_id` 、 `player_id` 和 `rk`
+   1. 使用窗口函数 `rank` ，计算每组中选手的排名，按照 `score` 从高到低， `player_id` 从低到高，作为排名字段 `rk`
+4. 查询临时 `t3` 筛选出 `rk = 1` 的选手就是每组组内累计最高分
+
+## SQL：方法二
+
+* sql
+
+```sql
+select group_id, player_id from (
+	select
+		group_id,
+		player_id,
+		rank() over(
+			partition by group_id 
+			order by sum(
+				if(player_id = first_player, first_score, second_score)
+			) desc, player_id
+		) rk
+	from players, matches 
+	where players.player_id = matches.first_player
+	or players.player_id = matches.second_player
+	group by group_id, player_id
+) t1 where rk = 1;
+```
+
+## 解析
+
+1. 一开始思考的时候，很容易想到用 `players.player_id` 分别去连接 `matches.first_player` 和 `matches.second_player` ，也就是说会将 `players` 和 `matches` 两表联结，连接条件是：
+
+* sql
+
+```sql
+select * from players left join matches 
+on players.player_id = matches.first_player 
+or players.player_id = matches.second_player;
+```
+
+1. 因为每位选手既可以作为 `first_player` 又可以作为 `second_player`，在后面计算累计得分时，不能简单的把 `first_score` 或者 `second_score` 累加。
+
+   如下表所示，其中有一场比赛， `id = 15` 的选手作为 `second_player` ，其他比赛都是作为 `first_player`
+
+   | player_id | first_player | second_player | first_score | second_score |
+   | --- | --- | --- | --- | --- |
+   | 15 | 15 | 50 | 6 | 0 |
+   | 15 | 15 | 45 | 7 | 0 |
+   | 15 | 15 | 40 | 2 | 3 |
+   | 15 | 15 | 35 | 1 | 0 |
+   | 15 | 15 | 25 | 6 | 0 |
+   | 15 | 15 | 20 | 8 | 9 |
+   | 15 | 30 | 15 | 2 | 0 |
+   | 15 | 15 | 45 | 3 | 0 |
+
+   在计算 `id = 15` 的选手总分时，需要将他作为 `first_player` 时的分数和 `second_player` 时的分数分别累加，然后在累加：
+
+   * sql
+
+   ```sql
+   sum(if(player.player_id === first_player, first_score, second_score)) as score
+   -- 等价于
+   sum(case when player.player_id === first_player then first_score else second_score end) as score
+   ```
+2. 使用窗口函数 `rank` ，计算每组中选手的排名，按照 `score` 从高到低， `player_id` 从低到高，作为排名字段 `rk`
+
+## Tips
+
+方法一和方法二基本思路是一样的，区别在于获取每组运动员的分数不一样，
+
+方法一使用的是将每场比赛的分数 `first_socre` 和 `second_socre` 分别查出来，使用 `union all` 将两次查询结果连接起来，输出的结果就只有 `player_id` 和 `score`，只需要将每个选手的 `score` 累加就是每个选手的总成绩
+
+方法二使用的通过判断每场比赛，选手是 `first_player` 还是 `second_player` ，如个是 `first_player` 就累加 `first_score` ，如果是 `second_player` 就累加 `second_score`

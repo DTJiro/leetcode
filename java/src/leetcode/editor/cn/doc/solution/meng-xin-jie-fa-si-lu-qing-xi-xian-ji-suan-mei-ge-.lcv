@@ -1,0 +1,28 @@
+* 
+
+```
+select group_id, player_id
+from
+(
+    select group_id, player_id,
+    row_number()over(partition by group_id order by total_score desc,player_id asc) as      rn
+    from
+    (
+        select a.group_id, a.player_id, total_score
+        from Players a
+        join 
+        (
+            select player, sum(score) as total_score from 
+            (
+                select first_player as player, first_score as score from Matches 
+                union all
+                select second_player as player, second_score as score from Matches 
+            )a
+            group by player
+        )b
+        on a.player_id = b.player
+    )c
+)d
+where rn = 1
+```
+
