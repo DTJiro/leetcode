@@ -1,0 +1,19 @@
+* 
+
+```
+with base as (
+    select 'approved' tag, country, date_format(trans_date, '%Y-%m') month, amount
+    from Transactions where state = 'approved'
+    union all
+    select 'chargeback' tag, t.country, date_format(c.trans_date, '%Y-%m') month, t.amount
+    from Chargebacks c join Transactions t on c.trans_id = t.id
+)
+select month, country, 
+       sum(if(tag = 'approved', 1, 0)) approved_count,
+       sum(if(tag = 'approved', amount, 0)) approved_amount,
+       sum(if(tag = 'chargeback', 1, 0)) chargeback_count,
+       sum(if(tag = 'chargeback', amount, 0)) chargeback_amount
+from base 
+group by month, country;
+```
+

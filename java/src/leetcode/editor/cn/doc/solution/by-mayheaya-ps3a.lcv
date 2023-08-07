@@ -1,0 +1,60 @@
+题解来自于评论区，这里给出拆分过程帮助理解
+
+1. 一、使用只是用T表或者C表都会造成月份的缺失，因此使用union得到所有的月份，
+   而C表中的所有数据都是chargeback的含义，加上state字段
+
+* 
+
+```
+select * from transactions
+    union all
+    select id, country, 'chargeback' state, amount, c.trans_date
+    from chargebacks c left join transactions t 
+    on c.trans_id = t.id
+```
+
+![image.png](https://pic.leetcode-cn.com/1647500168-vLKHcd-image.png)
+
+2. 按照时间进行排序，可以看出每个月的交易具体情况
+
+* 
+
+```
+select id,country,state,amount,trans_date
+from (select * from Transactions
+union all
+select id,country,'chargeback' state,amount,c.trans_date
+from chargebacks c
+left join Transactions t 
+on c.trans_id = t.id) A
+order by trans_date; 
+-- group by date_format(trans_date,'%Y-%m');
+
+```
+
+![image.png](https://pic.leetcode-cn.com/1647501061-LzGfsO-image.png)
+
+3. 对上表中字段为‘approved’和‘chargeback’的分别进行统计，得到结果
+
+* 
+
+```
+select 
+    date_format(trans_date, '%Y-%m') month, 
+    country,
+    sum(state = 'approved') approved_count,
+    sum(if(state = 'approved', amount, 0)) approved_amount,
+    sum(state = 'chargeback') chargeback_count,
+    sum(if(state = 'chargeback', amount, 0)) chargeback_amount
+from (
+    select * from transactions
+    union all
+    select id, country, 'chargeback' state, amount, c.trans_date
+    from chargebacks c left join transactions t 
+    on c.trans_id = t.id
+) tmp 
+group by month, country
+having approved_amount or chargeback_amount;
+```
+
+![image.png](https://pic.leetcode-cn.com/1647500631-tukeEB-image.png)

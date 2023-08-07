@@ -1,0 +1,124 @@
+### 解题思路
+
+Table: Transactions交易
+**id is the primary key of this table。**
+
+Table: Chargebacks退款
+**Chargebacks contains basic information regarding incoming chargebacks from some transactions placed in Transactions table.**
+**trans_id is a foreign key to the id column of Transactions table.**。
+**Each chargeback corresponds to a transaction made previously even if they were not approved.**。
+正确的中文意思是:
+**Chargebacks表中关于退款记录的基本信息都来自transactions表中。**
+trans_id是Transactions表id列的外键。
+**每次退款都对应于之前所做的交易，即使它们没有被批准。**
+
+以上基本可以对Chargebacks表中的数据做基本的业务逻辑判定了：
+表Transactions交易数据包括两种状态：approved批准和declined拒绝；且每笔数据具有独一性(id是主键的原因)
+表Chargebacks退款数据均来源于表Transactions，因为trans_id是Transactions表id列的外键。
+
+观察题目中给的例子和结果看，可以断定需用到union操作；而union操作需要两个表的列数相同且列的数据类型也一一对应相同。故这也是为什么会需要在下面的解答步骤中补全Chargebacks退款记录的状态、金额等信息。且Chargebacks表中的退款记录的状态不能用approved和declined表示。
+
+所以表Chargebacks中每条记录的退款金额可以通过同表Transactions联结带出来；
+**第一步**
+
+* 
+
+```
+-- chargeback表退款金额信息补全
+SELECT * FROM `transactions` AS t RIGHT JOIN `chargebacks` AS c
+ON t.`id` = c.`trans_id`
+```
+
+**第二步：**
+
+* 
+
+```
+-- 提取特定列的数据，这里我给chargeback表中的退款数据自定义了一个状态‘refund’
+SELECT t.`id`, t.`country`, 'refund' AS `state`, t.amount, c.`trans_date`
+FROM `transactions` AS t 
+RIGHT JOIN `chargebacks` AS c
+ON t.`id` = c.`trans_id`
+```
+
+**第三步：**
+
+* 
+
+```
+-- 将第二部结果同`transactions`表做union 操作
+SELECT `id`,`country`,`state`,`amount`,`trans_date` FROM `transactions`
+UNION 
+SELECT t.`id`, t.`country`, 'refund' AS `state`, t.amount, c.`trans_date`
+FROM `transactions` AS t 
+RIGHT JOIN `chargebacks` AS c
+ON t.`id` = c.`trans_id`
+```
+
+**第四步：**
+
+* 
+
+```
+-- 对第三步结果做临时表，并按题目要求select出所需数据
+WITH temp AS (
+SELECT `id`,`country`,`state`,`amount`,`trans_date` FROM `transactions`
+UNION 
+SELECT t.`id`, t.`country`, 'refund' AS `state`, t.amount, c.`trans_date`
+FROM `transactions` AS t 
+RIGHT JOIN `chargebacks` AS c
+ON t.`id` = c.`trans_id`
+)
+SELECT DATE_FORMAT(`trans_date`, '%Y-%m') AS `month`,
+       `country`,
+       COUNT(IF(`state` = 'approved',1,NULL)) AS `approved_count`,
+       SUM(IF(`state` = 'approved',`amount`,0)) AS approved_amount,
+       COUNT(IF(`state` = 'refund',1,NULL)) AS chargeback_count,
+       SUM(IF(`state` = 'refund',`amount`,0)) AS chargeback_amount
+   FROM temp WHERE `state` != 'declined' 
+   GROUP BY DATE_FORMAT(`trans_date`, '%Y-%m'),`country`;
+```
+
+这里需要注意，对临时表做select数据筛选时，需要对数据做一个where限定，就是**WHERE `state` != 'declined'**
+
+因为题中要求了
+Note: In your query, given the month and country, **ignore rows with all zeros**.
+注意：在您的查询中，只需显示给定月份和国家，**忽略所有为零的行**。
+
+如果还是不清楚为什么，将WHERE `state` != 'declined'删除掉，用下面的业务数据做判断就明白了。
+Transactions
+[100,"CB","declined",4000,"2019-02-04"],
+[101,"BB","approved",7000,"2019-02-17"],
+[102,"CA","declined",6000,"2019-02-26"],
+[103,"AA","declined",7000,"2019-04-01"],
+Chargebacks
+[100,"CB","refund",4000,"2019-03-29"],
+[102,"CA","refund",6000,"2019-02-28"],
+[103,"AA","refund",7000,"2019-05-09"]
+
+删除WHERE `state` != 'declined'后，sql语句对数据判定如下所示：
+![2.jpg](https://pic.leetcode-cn.com/1623844345-uftlhN-2.jpg)
+
+### 代码
+
+* mysql
+
+```mysql
+WITH temp AS (
+SELECT `id`,`country`,`state`,`amount`,`trans_date` FROM `transactions`
+UNION 
+SELECT t.`id`, t.`country`, 'refund' AS `state`, t.amount, c.`trans_date`
+FROM `transactions` AS t 
+RIGHT JOIN `chargebacks` AS c
+ON t.`id` = c.`trans_id`
+)
+SELECT DATE_FORMAT(`trans_date`, '%Y-%m') AS `month`,
+       `country`,
+       COUNT(IF(`state` = 'approved',1,NULL)) AS `approved_count`,
+       SUM(IF(`state` = 'approved',`amount`,0)) AS approved_amount,
+       COUNT(IF(`state` = 'refund',1,NULL)) AS chargeback_count,
+       SUM(IF(`state` = 'refund',`amount`,0)) AS chargeback_amount
+   FROM temp WHERE `state` != 'declined' 
+   GROUP BY DATE_FORMAT(`trans_date`, '%Y-%m'),`country`;
+```
+

@@ -1,0 +1,69 @@
+##### 思路
+
+本题难点在于如何处理``Chargebacks`表，题目中说：**每项退单都对应于之前进行的交易，即使未经批准。**这说明我们应该使用`full outer join` 构造chargeback这个state，然后再对年月group by计算各类指标。
+
+> ⚠️ MySQL没有full outer join，所以我们要先left join再union all。
+
+##### 算法
+
+1. union all
+
+* sql
+
+```sql
+with cte as
+(
+    select * from transactions
+    union all
+    select id, country, 'chargeback' state, amount, c.trans_date
+    from chargebacks c left join transactions t 
+    on c.trans_id = t.id
+) 
+# 其实是full outer join
+```
+
+2. 计算指标
+
+* sql
+
+```sql
+select 
+    date_format(trans_date, '%Y-%m') month,  # 转换年月
+    country,
+    sum(state = 'approved') approved_count,
+    sum(if(state = 'approved', amount, 0)) approved_amount,
+    sum(state = 'chargeback') chargeback_count,
+    sum(if(state = 'chargeback', amount, 0)) chargeback_amount
+from cte 
+group by month, country
+having approved_count <> 0 or chargeback_amount <> 0
+# 注意：在您的查询中，只需显示给定月份和国家，忽略所有为零的行。
+```
+
+##### 答案
+
+* sql
+
+```sql
+with cte as
+(
+    select * from transactions
+    union all
+    select id, country, 'chargeback' state, amount, c.trans_date
+    from chargebacks c left join transactions t 
+    on c.trans_id = t.id
+) 
+
+select 
+    date_format(trans_date, '%Y-%m') month, 
+    country,
+    sum(state = 'approved') approved_count,
+    sum(if(state = 'approved', amount, 0)) approved_amount,
+    sum(state = 'chargeback') chargeback_count,
+    sum(if(state = 'chargeback', amount, 0)) chargeback_amount
+from cte 
+group by month, country
+having approved_amount or chargeback_amount
+```
+
+🥰觉得还不错的话，点个赞，加个关注吧~🥰

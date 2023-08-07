@@ -1,0 +1,62 @@
+首先这个题目就有点难以理解，我来帮你理解一下。
+
+题目意思就是：一些商品被一些顾客退款了，被退款的有两种状态：
+
++ approved （批准退款）
++ declined （拒绝退款）
+
+`Transactions` 这个表就是记录所有要退款的「交易信息」。
+
+`Chargebacks` 这个表就是记录所有已经退款的「交易」。
+
+**注意！哪怕是在 Transactions 里被拒绝了也可以退款！（具体为什么，我们就不知道了）**
+
+我们要求的是：
+
+不同国家在不同月里接受的
+
++ 批准退款数目和总额（也就是 Transactions 里面的 approved）
++ 已经退款数目和总额（也就是 Chargebacks 与 Transactions 连接后的信息）
+
+因此我们需要用 `UNION ALL`
+
+`UNION ALL` 非常简单，和 UNION 对比一下你就知道了：
+
+![](https://pic.leetcode-cn.com/b5eb76f2c9555d98d2514242a97aff81fb960234384aabd15c42ecd5f5380fb3-image.png)
+
+![](https://pic.leetcode-cn.com/4363137a4f937a408a09d9db68f1da45dc333bc1c92dcfb802ba49a49f15d51f-image.png)
+
+（前者 UNION 后者 UNION ALL）
+
+我们来看看代码：
+
+* Mysql
+
+```Mysql
+SELECT month, country,
+COUNT(IF(tag=1, 1, NULL)) AS approved_count,
+SUM(IF(tag=1, amount, 0)) AS approved_amount,
+COUNT(IF(tag=0, 1, NULL)) AS chargeback_count,
+SUM(IF(tag=0, amount, 0)) AS chargeback_amount
+FROM (
+    SELECT country, amount, 1 AS tag,
+    date_format(trans_date, '%Y-%m') AS month
+    FROM Transactions
+    WHERE state='approved'
+    
+    UNION ALL
+
+    SELECT country, amount, 0 AS tag,
+    date_format(c.trans_date, '%Y-%m') AS month
+    FROM Transactions AS t RIGHT OUTER JOIN Chargebacks AS c
+    ON t.id = c.trans_id
+) AS temp
+GROUP BY  month, country;
+
+```
+
+其中 `tag = 1` 表示这个是 approved，
+
+`COUNT(IF(tag=1, 1, NULL)` 这个语句的意思是：
+
+如果 tag = 1那么就计数否则不计数，前面那个 1 是多少都可以。
