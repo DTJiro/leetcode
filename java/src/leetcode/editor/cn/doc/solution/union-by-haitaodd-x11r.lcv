@@ -1,0 +1,35 @@
+1、计算主队、客队的积分情况，放到一个派生表中
+
+> 这里用的是CTE表达式，也可以用子查询
+
+2、主表是队伍详情表，left join 积分详情派生表
+
+> 需要注意，没有打比赛的，积分为0，用 `ifnull` 这个函数
+
+* 
+
+```
+with t as (
+    select
+        host_team as team_id,
+        case when host_goals > guest_goals then 3
+            when host_goals = guest_goals then 1
+            else 0 end as score
+    from matches
+    union all
+    select 
+        guest_team as team_id,
+        case when guest_goals > host_goals then 3
+             when host_goals = guest_goals then 1
+             else 0 end as score
+    from matches
+)
+select 
+    t2.team_id, t2.team_name, sum(ifnull(score, 0)) as num_points
+from teams t2
+left join t 
+ on t2.team_id = t.team_id
+group by t2.team_id, t2.team_name
+order by num_points desc, t2.team_id
+```
+

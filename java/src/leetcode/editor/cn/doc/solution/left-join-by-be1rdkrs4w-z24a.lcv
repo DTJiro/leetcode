@@ -1,0 +1,30 @@
+先建立主客球队的得分分别都可查询的子表ta1，再按team_id计算出每个球队无论主客的总得分，之后left join以及sum()并加ifnull()求出所有球队的得分结果，如下：
+
+* 
+
+```
+with ta1 as (select match_id, host_team, guest_team, 
+case when host_goals > guest_goals then 3
+when host_goals < guest_goals then 0
+when host_goals = guest_goals then 1
+end as host_scores,
+case when host_goals > guest_goals then 0
+when host_goals < guest_goals then 3
+when host_goals = guest_goals then 1
+end as guest_scores
+from matches)
+select t.team_id, team_name, ifnull(sum(teamscores),0) as num_points
+from teams t left join 
+(select host_team as teamid, sum(host_scores) as teamscores
+from ta1
+group by host_team
+union all
+select guest_team as teamid, sum(guest_scores) as teamscores
+from ta1
+group by guest_team) as ta2
+on t.team_id = ta2.teamid
+group by t.team_id
+order by num_points desc, t.team_id asc
+```
+
+代码写得有点长，小白第一份题解，谢大佬们赞嘿嘿～

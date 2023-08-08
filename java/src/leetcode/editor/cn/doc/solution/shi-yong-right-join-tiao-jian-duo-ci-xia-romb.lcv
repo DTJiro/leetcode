@@ -1,0 +1,23 @@
+* 
+
+```
+SELECT
+t.team_id, t.team_name,
+sum(
+ case 
+ when t.team_id=host_team AND host_goals>guest_goals then 3
+ when t.team_id=host_team AND host_goals=guest_goals then 1
+ when t.team_id=guest_team AND host_goals<guest_goals then 3
+ when t.team_id=guest_team AND host_goals=guest_goals then 1
+ else 0 end 
+) as num_points
+ 
+from Matches m 
+right join Teams t 
+#多条件或连接，将列转为行，即一行转为多行
+on m.host_team = t.team_id or m.guest_team  = t.team_id 
+
+group by t.team_id
+order by num_points desc, t.team_id
+```
+
