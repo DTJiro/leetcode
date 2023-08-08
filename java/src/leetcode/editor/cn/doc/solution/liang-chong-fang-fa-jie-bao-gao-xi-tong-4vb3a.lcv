@@ -1,0 +1,130 @@
+## 分析
+
+1. 每一个 `成功任务的起始日期和终止日期` 以及 `失败任务的起始日期和终止日期` 是个连续的区间，但是在成功任务表 `succeeded` 中这个日期是不连续，失败任务表 `failed` 中也是，就需要将连续的日期分在一个组中，这个组的最小日期是起始日期，最大的日期是终止日期
+2. 判断一个时间在 `2019` 年的两种方法
+   - `between '2019-01-01' and '2019-12-31'`
+   - `extract(year from '2019-01-03') = 2019`
+
+## SQL：方法一
+
+* sql
+
+```sql
+select
+  'failed' period_state,
+  min(fail_date) start_date,
+  max(fail_date) end_date
+from (
+  select
+	  fail_date,
+	  subdate(fail_date, row_number() over()) first_date
+  from failed where extract(year from fail_date) = 2019
+) t1 group by first_date
+union
+select
+  'succeeded' period_state,
+  min(success_date) start_date,
+  max(success_date) end_date
+from (
+  select
+    success_date,
+    subdate(success_date, row_number() over()) first_date
+  from succeeded where extract(year from success_date) = 2019
+) t2 group by first_date order by start_date;
+```
+
+## 解析
+
+将日期分组：用一个数(日期)减去它的排名，会得到一个相同的数
+
+分别对 `failed` 和 `succeeded` 计算连续区间，在使用 `union` 连接两次结果
+
+`subdate()` 函数可以对一个日期减去一个数得到一个新的日期
+
+* sql
+
+```sql
+select
+  fail_date,
+  subdate(fail_date, row_number() over()) first_date
+from failed where extract(year from fail_date) = 2019
+```
+
+`succeeded` 表也是用这样的方法
+
+### Tips
+
+`subdate(fail_date, row_number() over()) first_date` 这步不明白可以写成，因为窗口函数的结果无法当前的查询中使用
+
+* sql
+
+```sql
+-- 错误的写法
+select
+  fail_date,
+  row_number() over() rn,
+	subdate(fail_date, rn) first_date
+from failed where extract(year from fail_date) = 2019
+
+-- 正确的写法
+select
+  fail_date,
+  subdate(fail_date, rn) first_date
+from (
+	select
+	  fail_date,
+	  row_number() over() rn
+	from failed where extract(year from fail_date) = 2019
+) temp
+```
+
+## SQL：方法二
+
+* sql
+
+```sql
+select
+  period_state,
+  min(date) start_date,
+  max(date) end_date
+from (
+  select
+    'succeeded' period_state,
+    success_date date,
+    if(datediff(@pre_date, @pre_date:=success_date) = -1, @id, @id:=@id+1) rn
+  from succeeded, (select @pre_date:=null, @id:=0) init
+  union
+  select
+    'failed' period_state,
+    fail_date date,
+    if(datediff(@pre_date, @pre_date:=fail_date) = -1, @id, @id:=@id+1) rn
+  from failed, (select @pre_date:=null, @id:=0) init
+) temp where date between '2019-01-01' and '2019-12-31'
+group by period_state, rn
+order by start_date;
+```
+
+思路和方法一是一样的，只不过这里使用变量来实现的
+
+`@pre_date` 用来保存上一条数据的日期， `@id` 用来记录当前数据的排名
+
+- `@pre_date` 初始化为 `null`
+- `@id` 初始化为 `0`
+
+具体的执行逻辑(这里排除 `2018` 的数据)：
+
+- 当运行第一条数据时 `@pre_date = null` ， `@id = 0`
+  - `datediff(null, '2019-01-01') = -1` 为 `false` ， `if` 输出 `@id:=@id + 1` 为 `1`
+  - 这条数据运行结束后， `@pre_date = '2019-01-01'` ， `@id = 1`
+- 运行第二条数据时 `@pre_date = '2019-01-01'` ， `@id = 1`
+  - `datediff('2019-01-01', '2019-01-02') = -1` 为 `true` ， `if` 输出 `@id` 为 `1`
+  - 这条数据运行结束后， `@pre_date = '2019-01-02'` ， `@id = 1`
+- 以此类推，直到运行到最后一条数据
+
+* sql
+
+```sql
+if(datediff(@pre_date, @pre_date:=success_date) = -1, @id, @id:=@id+1) rn
+```
+
+`failed` 表也是用这种方法计算出日期的排序，最后使用 `union` 将这两次查询连接起来。

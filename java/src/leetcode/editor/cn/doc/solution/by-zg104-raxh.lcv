@@ -1,0 +1,41 @@
+##### 思路
+
+本题乍一看，有些不知所措，根据输出，我们知道要构造出`period_state`这一列，那么可以对两个输入表格分别**打标签**。
+
+然后沿用连续区间序减的方法即可，参考1285！
+
+##### 答案
+
+* sql
+
+```sql
+# 打标签
+with cte as
+(select 
+    fail_date as date,
+    'failed' as period_state 
+from Failed
+union
+select 
+    success_date,
+    'succeeded'    
+from Succeeded 
+order by 1)
+
+
+select 
+    period_state,
+    min(date) as start_date,
+    max(date) as end_date
+from
+(select
+    period_state,
+    date,
+    row_number() over(order by date) - 
+    row_number() over(partition by period_state order by date) as rnk_diff
+from cte
+where date between '2019-01-01' and '2019-12-31') t
+group by period_state, rnk_diff # 不同period_state时rnk_diff一样
+order by 2
+```
+

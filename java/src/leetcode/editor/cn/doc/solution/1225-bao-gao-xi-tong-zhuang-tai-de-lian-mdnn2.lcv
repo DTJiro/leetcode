@@ -1,0 +1,78 @@
+### 解题思路
+
+- 第一步将两张表和为一张表,并对日期进行排序
+
+* mysql
+
+```mysql
+select *
+from (
+    (
+        select success_date as d,"succeeded" as status
+        from Succeeded
+        where success_date >= " 2019-01-01" and success_date <= "2019-12-31"
+    )union all (
+        select fail_date as d,"failed" as status
+        from Failed
+        where fail_date >= " 2019-01-01" and fail_date <= "2019-12-31"
+    )
+) t
+order by d
+```
+
+- 第二步,定义两个变量,一个用来记录当前行的前一行的状态,另一个用来标记这行属于哪组(与1285. 找到连续区间的开始和结束数字 这题的思路差不多)
+
+* mysql
+
+```mysql
+select d,status,if(@status_tem = status,@pre := @pre,@pre := @pre+1) as g,@status_tem := status
+from (
+    select *
+    from (
+        (
+            select success_date as d,"succeeded" as status
+            from Succeeded
+            where success_date >= " 2019-01-01" and success_date <= "2019-12-31"
+        )union all (
+            select fail_date as d,"failed" as status
+            from Failed
+            where fail_date >= " 2019-01-01" and fail_date <= "2019-12-31"
+        )
+    ) t
+    order by d
+) t1,(select @status_tem := null,@pre := 0) t2
+```
+
+- 最后,按照之前分好的组,每组在小日期作为起始日期,每组最大日期作为结束日期
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select status as period_state,min(d) as start_date,max(d) as end_date
+from (
+    select d,status,if(@status_tem = status,@pre := @pre,@pre := @pre+1) as g,@status_tem := status
+    from (
+        select *
+        from (
+            (
+                select success_date as d,"succeeded" as status
+                from Succeeded
+                where success_date >= " 2019-01-01" and success_date <= "2019-12-31"
+            )union all (
+                select fail_date as d,"failed" as status
+                from Failed
+                where fail_date >= " 2019-01-01" and fail_date <= "2019-12-31"
+            )
+        ) t
+        order by d
+    ) t1,(select @status_tem := null,@pre := 0) t2
+) t
+group by g
+order by start_date
+
+```
+
+![屏幕截图 2023-08-03 112115.png](https://pic.leetcode.cn/1691033484-cuYJPx-%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202023-08-03%20112115.png)

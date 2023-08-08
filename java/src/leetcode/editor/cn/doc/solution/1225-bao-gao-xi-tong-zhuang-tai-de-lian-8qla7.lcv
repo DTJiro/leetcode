@@ -1,0 +1,32 @@
+### 解题思路
+
+知识点：一般求与连续日期相关的 可以使用 日期与日期的排名相减 得到的数字固定则说明日期连续
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+#1.联合Failed和Succeeded表整理出status为‘failed’和‘succeeded’的数据
+# select 'failed' as status,fail_date dates from Failed
+# union
+# select 'succeeded' as status,success_date dates from Succeeded
+with t as (
+    select 'failed' as status,fail_date dates from Failed
+    union
+    select 'succeeded' as status,success_date dates from Succeeded
+)
+#2.求出 1中结果中dates,与按照状态分组按照dates升序排序后的排名 相减后得到的日期 diff
+# select status,dates,subdate(dates,rank()over(partition by status order by dates)) as diff from t
+#3.如果日期连续 则得到的diff是固定的 故按照status,diff联合分组 查询日期在'2019-01-01' and '2019-12-31'之间的最小日期作为开始时间 最大日期作为结束时间的记录
+select status as period_state, min(dates) as start_date, max(dates) as end_date
+from 
+(select status,dates,subdate(dates,rank()over(partition by status order by dates)) as diff from t
+) tmp
+where dates between '2019-01-01' and '2019-12-31'
+group by status,diff
+order by start_date
+
+```
+
