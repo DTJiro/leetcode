@@ -1,0 +1,13 @@
+* 
+
+```
+# Mysql 模拟
+select a.post_id as post_id,count(b.parent_id) as number_of_comments
+from (select distinct(sub_id) as post_id
+from Submissions
+where parent_id is null) as a left join (select distinct *
+from Submissions) as b on a.post_id = b.parent_id
+group by a.post_id
+order by a.post_id asc;
+```
+
