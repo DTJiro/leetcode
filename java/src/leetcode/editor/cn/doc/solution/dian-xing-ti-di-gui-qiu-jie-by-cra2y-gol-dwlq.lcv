@@ -1,0 +1,14 @@
+**典型题：父求子/子求父**
+
+解法：recursive 递归语句
+两篇讲解清晰的博客：
+CSDN博文：https://blog.csdn.net/dylan95/article/details/105739504
+CSDN博文：https://blog.csdn.net/xubenxismile/article/details/107662209
+
+思路：
+①创建recursion 临时表table1
+②表中先写出最直接的索引语句
+③union all
+④找到相对应的承接关系 + join/跨表 table1 条件相联
+⑤从table1中筛选
+

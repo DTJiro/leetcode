@@ -1,0 +1,30 @@
+### 代码
+
+* mysql
+
+```mysql
+with table1 as (
+    select 
+        employee_id
+    from Employees
+    where manager_id = 1 and employee_id != 1
+), 
+table2 as (
+    select 
+        employee_id
+    from Employees
+    where manager_id in (select * from table1)
+),
+table3 as (
+    select 
+        employee_id
+    from Employees
+    where manager_id in (select * from table2)
+)
+select * from table1
+union
+select * from table2
+union
+select * from table3
+```
+

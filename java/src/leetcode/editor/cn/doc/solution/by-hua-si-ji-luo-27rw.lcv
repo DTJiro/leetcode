@@ -1,0 +1,28 @@
+### 解题思路
+
+递归的语法就是with recursive t as (
+select ...  #此处为第一句，在数结构中，我用来查根节点
+union all
+select ...  #此处为递归语句，可以直接使用上一次查询的结果集 当此句查询为空时，停止递归
+)
+
+起初代码第一句select我没有加上employee_id!=1,导致无法让递归语句中的select查询为空，迭代超出限制。下文为最终代码，
+![DS6HT9)L29NLI@K(9E9P`SW.png](https://pic.leetcode-cn.com/1661927123-SWezvz-DS6HT9)L29NLI@K(9E9P%60SW.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+#对数的查询，也是嵌套查询
+
+with recursive temp as (
+    select * from employees where manager_id=1 and employee_id!=1
+    union all 
+    select employees.* from employees join temp on temp.employee_id=employees.manager_id
+)
+select employee_id from temp
+```
+

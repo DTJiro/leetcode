@@ -1,0 +1,34 @@
+### 解题思路
+
+题目是个子求父，父求子类问题。都可以用递归的方法解决。with recursive as：
+
+父求子:
+with recursive temp as (
+select t1* from t1 where t1.id=000 #找出父结点id
+union all 连接t2
+select t2.* from t2 join temp t3 on t2.父节点父id(parent code)=t3.id(普遍code)
+)
+select * from temp
+
+子求父：
+with recursive temp as (
+select t1* from t1 where t1.id=000 #找出子结点id
+union all 连接t2
+select t2.* from t2 join temp t3 on t2.子节点子id(parent code)=t3.父节点父id
+)
+select * from temp
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with recursive temp as (
+    select e.employee_id from Employees e where e.employee_id!=1 and manager_id=1
+    union all 
+    select e.employee_id from Employees e join temp t on t.employee_id=e.manager_id
+)
+select * from temp 
+
+
+```
+
