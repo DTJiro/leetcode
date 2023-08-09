@@ -1,0 +1,20 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+#1.先查1的好友 2. 在查好友的喜欢 去重复 3.排除user_id=1的喜欢
+select distinct page_id as recommended_page from Likes where user_id 
+in(
+    select user2_id from Friendship where user1_id = 1
+    union
+    select user1_id from Friendship where user2_id = 1
+) and page_id not in (select page_id from Likes where user_id=1)
+
+```
+

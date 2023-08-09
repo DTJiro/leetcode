@@ -1,0 +1,28 @@
+1. 先找到1的所有朋友，然后找到1喜欢的页面
+2. 外层嵌套查询，找到1所有朋友喜欢的页面，同时排除1喜欢的页面
+
+* 
+
+```
+-- 找到用户1朋友喜欢的页面id（需要去重）,同时排除用户1已经喜欢过的页面id
+SELECT
+    DISTINCT page_id recommended_page
+FROM Likes
+WHERE user_id IN(
+    SELECT
+        user2_id user_id
+    FROM Friendship
+    WHERE user1_id = 1
+    UNION ALL
+    SELECT
+        user1_id
+    FROM Friendship
+    WHERE user2_id = 1
+) AND page_id NOT IN(
+    SELECT
+        page_id
+    FROM Likes
+    WHERE user_id=1
+)
+```
+
