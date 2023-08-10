@@ -1,0 +1,30 @@
+##### 思路
+
+此类型题有套路，目的不是研究连续（所以不要去自连接），目的是找到不同的连续区间，并使其分组，再找开始和结束数字。
+
+1. 排序（row_number）
+2. 对应相减发现各连续区间可对应不同的固定值
+
+因为只要是连续区间的`log_id`，必定连续增1，同理`row_number`也如此，所以互相减抵消了，会得到一个常数$k_1$（指的是第一个连续区间）。
+
+如果断开连接，再开启新的连续区间，那么相减后会得到新的常数$k_2$，以此类推！
+
+3. group by 连续区间
+4. 找min和max
+
+##### 答案
+
+* sql
+
+```sql
+select
+    min(log_id) as start_id,
+    max(log_id) as end_id
+from
+(select
+    log_id,
+    log_id - row_number() over(order by log_id) as diff
+from Logs) t
+group by diff
+```
+

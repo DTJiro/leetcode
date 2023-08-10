@@ -1,0 +1,133 @@
+## SQL：方法一
+
+* sql
+
+```sql
+select
+	min(log_id) start_id,
+	max(log_id) end_id
+from (
+	select
+		log_id,
+		log_id - row_number() over() diff
+	from logs
+) temp group by diff
+```
+
+## 解析
+
+1. `log_id - row_number() over() diff`，如何知道一个连续区间的开始和结束数字，首先需要知道这个区间
+
+   1. `一个连续区间内的数` 减去 `某个规律的数` 结果应该是一样的
+   2. 基于这个思路会想到，将这些数按照从小到大的顺序进行排列，那么这个数字减去它在这张表中的排名，如果是一个区间内的数，这个结果应该是一样的。
+
+      * sql
+
+      ```sql
+      log_id  |  rank  |  diff
+      1       |  1     |  0
+      3       |  2     |  1
+      4       |  3     |  1
+      7       |  4     |  3
+      8       |  5     |  3
+      ```
+   3. 将查询出来的结果作为临时表 `temp`
+2. 使用 `min` 和 `max` 函数按照 `diff` 进行分组，分别求出 `start_id` 和 `end_id`
+
+## SQL：方法二
+
+* sql
+
+```sql
+select
+	min(log_id) start_id,
+	max(log_id) end_id
+from (
+	select
+		log_id,
+		case when @id = log_id - 1 then @num:=@num else @num:=@num+1 end num,
+		@id:=log_id
+	from logs, (select @id:=null, @num:=0) init
+) temp group by num;
+```
+
+## 解析
+
+思路和方法一是一样的，方法一使用窗口函数实现的，方法二是变量的方式去实现的
+
+1. `@num` 是用来记录一个里连续区间的， `@id` 用来保存当前 `log_id`
+
+   1. 初始化 `@id = null` ， `@num = 0`
+   2. 当运行第一条数据时 `@id = log_id - 1` 为 `null = 1 - 1` 结果是 `false` ，所以输出`@num:=@num + 1` 结果是 `0 + 1 = 1`，同时再把 `@id` 的设置为当前的 `log_id` ，即 `@id = 1`
+   3. 当运行第二条数据时， `@id = log_id - 1` 为 `1 = 2 - 1` 结果是 `true` ，所以输出 `@num:=@num` 结果是 `1` ，同时再把 `@id` 的设置为当前的 `log_id` ，即 `@id = 2`
+   4. 以此类推，直到运行到最后一条记录
+
+   * sql
+
+   ```sql
+   select
+     log_id,
+     case when @id = log_id - 1 then @num:=@num else @num:=@num+1 end num,
+     @id:=log_id
+   from logs, (select @id:=null, @num:=0) init
+
+   -- 结果
+   log_id  |  num  |  @id:=log_id
+   1       |  1    |  1
+   2       |  1    |  2
+   3       |  1    |  3
+   7       |  2    |  7
+   8       |  2    |  8
+   10      |  3    |  10
+   ```
+2. 将第一步的结果作为临时表 `temp`
+3. 查询临时表 `temp` 按照 `num` 进行分组，使用 `min()` ， `max()` 求出 `start_id` 和 `end_id`
+
+## SQL：方法三
+
+* sql
+
+```sql
+with l1 as (
+	select
+		log_id start_id,
+		row_number() over(order by log_id) as rank_id
+	from logs where log_id - 1 not in (select log_id from logs)
+),
+l2 as (
+  select
+	  log_id end_id,
+	  row_number() over(order by log_id) as rank_id
+  from logs where log_id + 1 not in (select log_id from logs)
+)
+select start_id, end_id from l1 join l2 using(rank_id);
+```
+
+## 解析
+
+一个连续数字的区间， `start_id - 1` 和 `end_id + 1` 肯定不在表中
+
+1. 将 `log_id - 1` 的值肯定不在 `logs` 表中，将这些符合这些值的 `log_id` 查询出来就是 `start_id`
+
+   * sql
+
+   ```sql
+   select
+     log_id start_id
+   from logs where log_id - 1 not in (select log_id from logs);
+   ```
+2. 同理， `end_id` 也是通过这种方法进行查询出来的， `end_id + 1` 的值肯定不在 `logs` 表中
+
+   * sql
+
+   ```sql
+   select
+     log_id end_id
+   from logs where log_id + 1 not in (select log_id from logs);
+   ```
+3. 将第一步的结果作为临时表 `l1` ，第二步的结果作为临时表 `l2`
+4. 将临时表 `l1` 和 `l2` 进行 `join` 连接，等等，这里好像缺少连接条件？
+   1. 一个区间有 `start_id` ，就一定会有 `end_id` ，所以 `start_id` 和 `end_id` 的数量应该是相同的
+   2. 因为 `start_id` 和 `end_id` 的数量相同，所以可以使用排序函数分别对 `l1` 和 `l2` 表进行排序 `row_number() over(order by log_id) as rank_id`
+   3. 连接条件就是两表共有的 `rank_id`
+
