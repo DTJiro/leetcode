@@ -1,0 +1,20 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+SELECT COUNTRY_NAME,
+       CASE WHEN AVG(WEATHER_STATE) <= 15 THEN 'Cold'
+            WHEN AVG(WEATHER_STATE) >= 25 THEN 'Hot'
+            ELSE 'Warm' END AS WEATHER_TYPE
+FROM COUNTRIES AS C
+INNER JOIN WEATHER AS W
+ON C.COUNTRY_ID = W.COUNTRY_ID
+WHERE LEFT(DAY, 7) = '2019-11'
+GROUP BY 1;
+```
+
