@@ -1,0 +1,56 @@
+# 预备知识
+
+**窗口聚合函数中ORDER BY的细节**
+- 无ORDER BY，无frame_clause：窗口聚合范围 默认组内所有行
+- 有ORDER BY，无frame_clause：窗口聚合范围 默认从第一行到当前行
+- 有ORDER BY，有frame_clause：窗口聚合范围 frame_clause
+
+i. 窗口聚合范围：从第一行到当前行
+
+* 
+
+```
+“累计”：累计求和、累计计数、累计平均数、累计最小值、累计最大值
+<窗口聚合函数> OVER(ORDER BY order_list)
+<窗口聚合函数> OVER(ORDER BY order_list ROWS UNBOUNDED PRECEDING AND CURRENT ROW）
+```
+
+ii. 窗口聚合范围：组内所有行
+
+* 
+
+```
+<窗口聚合函数> OVER()
+<窗口聚合函数> OVER(ORDER BY order_list ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
+```
+
+iii. 窗口聚合范围：frame_clause
+
+* 
+
+```
+<窗口聚合函数> OVER(ORDER BY order_list *frame_clause*)
+```
+
+# 答案
+
+* 
+
+```
+SELECT 
+    employee_id,
+    COUNT(employee_id) OVER(PARTITION BY team_id) AS team_size
+FROM Employee
+```
+
+# 错误答案
+
+* 
+
+```
+SELECT 
+    employee_id,
+    COUNT(employee_id) OVER(PARTITION BY team_id ORDER BY employee_id) AS team_size
+FROM Employee
+```
+

@@ -1,0 +1,18 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+# select employee_id,team_size from Employee e left join
+# (select team_id,count(team_id) as team_size from Employee group by team_id) a on e.team_id = a.team_id
+
+# select e1.employee_id,(select count(e2.team_id) from Employee e2 where e1.team_id=e2.team_id)team_size from Employee e1
+
+select employee_id,count(*) over(partition by team_id ) team_size from Employee
+```
+
