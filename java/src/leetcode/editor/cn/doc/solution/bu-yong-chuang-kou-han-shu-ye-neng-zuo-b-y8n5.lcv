@@ -1,0 +1,63 @@
+# 题意
+
+给你一张分数记录表，请你查询出其中每种性别在每一天的累积分数
+
+# 思路
+
+- 题目本身其实很简单，因为是求不同性别的分数，所以需要根据性别分组，之后需要根据日期值来累加
+- 如果熟悉窗口函数的话，其实很容易就会想到使用SUM(col) OVER()，此时SQL如下
+
+* mysql
+
+```mysql
+SELECT
+    gender,
+    day,
+    SUM(score_points) OVER(
+        PARTITION BY gender
+        ORDER BY day
+    ) AS 'total'
+FROM
+    Scores
+```
+
+- 那么问题来了，MySQL目前只有8.0才实现了窗口函数，如果是之前那些不支持的版本呢？
+- 此时我们就要考虑标准SQL的解法了，其实累加计算就是在根据性别分组的前提下，生成每个日期对应的递归子集，每个子集的和值就是对应日期范围内的累计值
+- 而获取递归子集的方法就是非等值自连接，用连接的方式写如下:
+
+* mysql
+
+```mysql
+SELECT
+    t1.gender,
+    t1.day,
+    SUM(t2.score_points) AS 'total'
+FROM
+    Scores AS t1
+INNER JOIN Scores AS t2 ON t1.day >= t2.day
+AND t1.gender = t2.gender
+GROUP BY t1.gender, t1.day
+ORDER BY t1.gender, t1.day
+```
+
+- 其实这个连接的部分也可以放在SELECT列表里，此时SQL如下
+
+* mysql
+
+```mysql
+SELECT
+    t1.gender,
+    t1.day,
+    (
+        SELECT
+            SUM(t2.score_points)
+        FROM
+            Scores AS t2
+        WHERE t1.day >= t2.day
+        AND t1.gender = t2.gender
+    ) AS 'total'
+FROM
+    Scores AS t1
+ORDER BY gender, day
+```
+

@@ -1,0 +1,27 @@
+##### 解题思路
+
+### 不用把窗口函数想的那么难，可以简要理解成：
+
+* 
+
+```
+[你要的操作] OVER ( PARTITION BY  <用于分组的列名>
+                   ORDER BY <按序叠加的列名> )
+```
+
+本题中，要的是  **不同性别， 按日期的， 成绩的累计**
+则可理解成  **我要的操作是‘累计分数’， 用于分组的列是‘性别’， 按序叠加的列是‘日期’**
+
+##### 代码
+
+* 
+
+```
+# Write your MySQL query statement below
+
+SELECT gender, day, 
+       SUM(score_points) OVER ( PARTITION BY gender ORDER BY day) AS total
+FROM Scores
+
+```
+
