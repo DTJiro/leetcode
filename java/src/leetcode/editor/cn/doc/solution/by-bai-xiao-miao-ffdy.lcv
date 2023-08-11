@@ -1,0 +1,64 @@
+### 方法一
+
+知识点复习：
+1. sum（条件）=计数
+2. desc(降序)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select 
+    ad_id,
+    ROUND(IFNULL(SUM(ACTION='CLICKED')/(COUNT(*)-SUM(ACTION='IGNORED'))*100,0),2) AS ctr
+#    SUM(ACTION='VIEWED') AS VIEWED,
+#    COUNT(*)
+from ADS
+GROUP BY AD_ID
+ORDER BY CTR DESC,AD_ID
+```
+
+### 方法二
+
+分母的写法小变化
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select 
+    ad_id,
+    ROUND(IFNULL(SUM(ACTION='CLICKED')/SUM(ACTION in('CLICKED','VIEWED'))*100,0),2) AS ctr
+from ADS
+GROUP BY AD_ID
+ORDER BY CTR DESC,AD_ID
+```
+
+### 方法三
+
+做中间表，算出viewed、clicked 的数量
+错误点：此处SUM(IF(条件，1,0))替换为ACV(条件)时，21样例报错，初步判断可能是AVG计算逻辑会有坟墓变化原因导致；
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select
+a.ad_id, Round(Ifnull(a.total_click/(a.total_click+a.total_view),0)*100,2) as ctr
+from
+(select
+    ad_id,
+    sum(if(ads.action="Viewed",1,0)) as total_view,
+    sum(if(ads.action="Clicked",1,0)) as total_click
+from ads
+group by ad_id) as a
+order by
+ctr desc , a.ad_id asc
+```
+
