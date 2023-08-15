@@ -1,0 +1,20 @@
+### 代码
+
+* mysql
+
+```mysql
+select 
+    username,
+    activity,
+    startDate,
+    endDate
+from (
+    select 
+        *,
+        dense_rank() over(partition by username order by startDate desc) num1,
+        count(username) over(partition by username) num2
+    from UserActivity
+)A
+where num1 = 2 or num2 = 1
+```
+

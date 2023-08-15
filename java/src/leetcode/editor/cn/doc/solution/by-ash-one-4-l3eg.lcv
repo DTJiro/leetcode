@@ -1,0 +1,84 @@
+* SQL
+
+```SQL
+select username, activity, startDate, endDate
+from (
+    select 
+        username,
+        activity,
+        startDate,
+        endDate,
+        rank() over (partition by username order by endDate desc) rk
+    from UserActivity
+) tmp where rk = 2
+union
+select username, activity, startDate, endDate
+from UserActivity
+group by username having count(*) = 1;
+```
+
+先用窗口函数根据用户分组，根据活动结束日期进行排名
+
+* SQL
+
+```SQL
+select 
+    username,
+    activity,
+    startDate,
+    endDate,
+    rank() over (partition by username order by endDate desc) rk
+from UserActivity
+```
+
+查询出每一位用户 最近第二次 的活动
+
+* SQL
+
+```SQL
+select username, activity, startDate, endDate
+from (
+    select 
+        username,
+        activity,
+        startDate,
+        endDate,
+        rank() over (partition by username order by endDate desc) rk
+    from UserActivity
+) tmp where rk = 2
+```
+
+查询出仅有一次活动的用户，返回该活动
+
+* SQL
+
+```SQL
+select username, activity, startDate, endDate
+from UserActivity
+group by username having count(*) = 1;
+```
+
+最后将两者进行联合
+
+* SQL
+
+```SQL
+select username, activity, startDate, endDate
+from (
+    select 
+        username,
+        activity,
+        startDate,
+        endDate,
+        rank() over (partition by username order by endDate desc) rk
+    from UserActivity
+) tmp where rk = 2
+union
+select username, activity, startDate, endDate
+from UserActivity
+group by username having count(*) = 1;
+```
+
+窗口函数（MySQL8.0之后支持）：在满足某些条件的记录集合上执行的特殊函数.
+
+<窗口函数> over (partition by <分组列名> order by <排序列名>)
