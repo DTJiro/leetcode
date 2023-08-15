@@ -1,0 +1,15 @@
+* 
+
+```
+# Write your MySQL query statement below
+WITH TT AS (
+    SELECT DISTINCT activity,
+    COUNT(id) OVER (PARTITION BY activity) AS times
+    FROM Friends )
+
+SELECT activity FROM TT
+WHERE times < (SELECT MAX(times) FROM TT)
+  AND times > (SELECT MIN(times) FROM TT)
+;
+```
+

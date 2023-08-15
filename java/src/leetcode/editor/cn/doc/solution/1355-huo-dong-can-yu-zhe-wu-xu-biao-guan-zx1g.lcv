@@ -1,0 +1,14 @@
+* 
+
+```
+select A.Activity
+  from (select A.Activity,
+               A.cn,
+               dense_rank() over(order by a.cn) r1,
+               dense_rank() over(order by a.cn desc) r2
+          from (select a.activity, COUNT(1) cn
+                  from Friends a
+                 group by a.activity) A) A
+ WHERE abs(A.r1 - r2) <> greatest(A.r1,a.r2) - 1
+```
+

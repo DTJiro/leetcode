@@ -1,0 +1,39 @@
+### 自己写的，一开始用limit 发现不行，会有 2,2,3,3 这种情况
+
+![a713165c22c5bb3d44a63b48e65263c.png](https://pic.leetcode-cn.com/1643361625-JhdieF-a713165c22c5bb3d44a63b48e65263c.png)
+
+### 小改动一下：
+
+* 
+
+```
+with tmp as(
+select activity,count(activity) as num from(
+select id,name,activity
+from Friends
+group by id,name,activity
+) t group by activity
+)
+select activity from tmp where num not in(
+(select max(num) from tmp)
+union all
+(select min(num) from tmp)
+);
+```
+
+### 评论区看到的好方法：把每个活动参加的人数正排序一次，反排序一次，取两个rank里都不等于1的。
+
+* 
+
+```
+SELECT b.activity ACTIVITY
+FROM
+(SELECT a.activity,dense_rank() over(order by a.attendees desc) rnk,
+       dense_rank() over(order by a.attendees asc) reverse_rnk
+FROM
+(SELECT activity, count(id) attendees
+FROM friends 
+GROUP BY activity) a) b
+WHERE b.rnk!=1 AND b.reverse_rnk!= 1;
+```
+
