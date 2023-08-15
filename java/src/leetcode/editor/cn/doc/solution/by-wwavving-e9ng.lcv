@@ -1,0 +1,15 @@
+联合查询不应该比in快么，为什么呢？
+
+### 代码
+
+* mysql
+
+```mysql
+select
+    S.id,
+    S.name
+from Students S
+left join Departments D on S.department_id = D.id
+where D.id is null
+```
+
