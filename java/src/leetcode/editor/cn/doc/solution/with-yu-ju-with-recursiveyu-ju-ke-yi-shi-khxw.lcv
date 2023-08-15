@@ -1,0 +1,46 @@
+### 解题思路
+
+一个statement可以使用多个with语句只要不在同一个leve
+https://dev.mysql.com/doc/refman/8.0/en/with.html#common-table-expressions-recursive
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+with 
+Results as  
+(
+ select transactions_count ,count(visit_date)  visits_count 
+from(
+    select  v.user_id,visit_date, count(transaction_date) transactions_count 
+    from Visits v  
+    left join Transactions  t 
+    on v.user_id = t.user_id 
+    and v.visit_date = t.transaction_date
+    group by v.user_id,visit_date
+) t 
+group by transactions_count
+)
+
+select *
+from (
+    with 
+    recursive Numbers(number) as (  
+        select 0  
+        union all  
+        select number+1 from Numbers where number < (select max(transactions_count) from Results)  
+    )
+    select number as transactions_count,ifnull(visits_count,0) as visits_count
+    from  Numbers 
+    left join Results 
+    on Numbers.number = Results.transactions_count
+) t
+
+
+
+
+```
+

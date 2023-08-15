@@ -1,0 +1,42 @@
+* 
+
+```
+select 0 as transactions_count , count(*) as visits_count 
+from 
+(
+    select user_id, visit_date from Visits 
+    where (user_id,visit_date) not in 
+    (select user_id, transaction_date from Transactions )
+) a
+union all
+select a.id as transactions_count, ifnull(b.visits_count,0) as visits_count
+from
+(
+    select id from
+    (select (@x := @x+1) as id from Transactions,(select @x := 0) b) a
+    where id <=
+    (
+        select max(transactions_count)
+        from 
+        (
+            select count(*) as transactions_count
+            from Transactions
+            group by user_id,transaction_date
+        ) a
+    )
+)a
+left join
+( 
+    select transactions_count,count(transactions_count) as visits_count
+    from
+    (
+        select count(*) as transactions_count
+        from Transactions
+        group by user_id,transaction_date
+    )a
+    group by transactions_count
+) b
+on a.id = b.transactions_count
+order by transactions_count 
+```
+

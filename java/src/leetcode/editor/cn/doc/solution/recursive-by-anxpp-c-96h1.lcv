@@ -1,0 +1,47 @@
+题目的目的是求一天的交易次数，以及这个次数总的出现的次数（次数的次数，有点绕）
+
+粗略一看很简单：只需要两层group by即可（见临时表第一个查询）
+
+本题难点：
+
+1、交易次数为0的数据：需要 Visits left join Transactions 找到仅访问但没有交易的数据
+
+2、交易次数出现0次的数据：由于交易次数可能有断层，比如出现了交易1次和3次的数据，但是没有出现交易2次的数据，这部分需要 recursive 构造
+
+3、临时表需要与递归一起用（不用也行，就是代码量大很多）：with可以出现在外层with的里层
+
+* 
+
+```
+# 临时表：交易次数的出现次数，含0次
+with trxcnt as(
+    # 交易次数的次数 交易transactions_count次的出现了visits_count次
+    select transactions_count,count(transaction_date) visits_count from (
+        # transaction_date的交易次数
+        select transaction_date,count(*) transactions_count
+        from Transactions
+        group by user_id,transaction_date
+    ) t group by transactions_count
+    union all
+    # 交易次数为0次的
+    select 0 as transactions_count, count(visit_date) visits_count
+    from Visits t1 left join Transactions t2 on t1.user_id = t2.user_id and t1.visit_date = t2.transaction_date
+    where t2.user_id is null
+)
+select * from trxcnt
+union all
+# 在子层使用外层临时表
+select * from(
+    # 递归构造交易次数的次数为0的数据
+    with recursive numbers(n) as (  
+        select 0  
+        union all  
+        select n+1 from numbers where n < (select max(transactions_count) from trxcnt)  
+    )
+    select n transactions_count, 0 visits_count 
+    from numbers
+    where n not in (select transactions_count from trxcnt)
+) t
+order by transactions_count
+```
+

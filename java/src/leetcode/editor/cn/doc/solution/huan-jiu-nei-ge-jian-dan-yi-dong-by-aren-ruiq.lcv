@@ -1,0 +1,48 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# 临时表：交易次数的出现次数，含0次
+with table1 as (
+    select transactions_count, count(*) visits_count
+    from 
+    (
+        select transaction_date, count(*) transactions_count
+        from transactions
+        group by user_id, transaction_date
+    ) t
+    group by transactions_count
+    union all
+    select 0 as transactions_count, count(*)
+    from visits v left join transactions t on v.user_id = t.user_id and v.visit_date = t.transaction_date 
+    where t.user_id is null
+)
+select * from 
+table1
+
+union all
+
+select * from 
+(
+with recursive numbers(n) as(
+    select 0
+    union all
+    select n + 1 from numbers where n < (select max(transactions_count) from table1)
+)
+select n transactions_count, 0 visits_count from numbers where n not in (
+    select transactions_count from table1
+)
+) t
+order by transactions_count
+
+# select *
+# from numbers
+
+
+```
+

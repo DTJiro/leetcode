@@ -1,0 +1,83 @@
+### 解题思路
+
+分步骤写，不要因为困难题退缩
+我先分析一下总体题目
+**需求是每天的 交易次数**
+**就是找访问没交易的 ，加上 每天访问且交易的的次数**
+题目告诉你第一个表可能会出现访问未交易的
+第二个是交易表 ，第二个表的数据不一定出现在第一个表
+我最开始的思路是 你第一个表的日期不在第二个表出现，说明你访问未交易，这是错误的思路
+我们只能左连接将第二个表交易的信息从第一个表中剔除出去
+下面就是我们的**正确思路步骤**
+**Ⅰ** 我们先将 访问未出现的查出来  因为就是左连接最简单的
+**Ⅱ** 第二个就是 找出每个用户每天交易的次数 且 和步骤I 连接 这样就能计算出 所有情况 访问未交易和交易的信息
+**Ⅲ** 第三个就是 找出 一天中交易最多次的次数 就是 一个max
+**Ⅳ** 写到这，基本上就出来了，就是你不太知道 0->max_transactions_count 怎么生成
+**Ⅴ** 利用 递归CTE生成 ,我这就将两点 ,第一点如果你with查询发现是最后一行出错，你需要查询完运行看看是否是with错误，同一个level下不能有多个with
+
+* mysql
+
+```mysql
+# CTE模板 
+WITH RECURSIVE cte (n) AS
+(
+  SELECT 1
+  UNION ALL
+  SELECT n + 1 FROM cte WHERE n < 5
+)
+SELECT * FROM cte;
+```
+
+![image.png](https://pic.leetcode.cn/1684289058-ejaloJ-image.png)
+[MYSQL官网具体地址](https://dev.mysql.com/doc/refman/8.0/en/with.html#common-table-expressions-recursive)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+# 的每一行表示 user_id 在 transaction_date 完成了一笔 amount 数额的交易
+# 我先找出每天访问的用户数
+# 实际上 第一个表就是 访问了 但是不一定 有交易 
+# 第二个表是实际交易的 次数 是 
+#需求是每天的 交易次数 
+with RECURSIVE t_c as(
+select v.user_id as user_id ,  0  c2
+from Visits v left join Transactions t
+on v.visit_date =t.transaction_date and v.user_id  = t.user_id 
+where t.amount is null 
+), t_c2 as (
+    # 我需要找出每个用户每天交易的次数
+select user_id ,count(user_id) c2
+from Transactions t 
+group by user_id,transaction_date 
+union all
+select  *from 
+t_c
+), t_c3 as (
+    select  max(c2) as max_transactions_count
+    from 
+        t_c2
+    
+    
+), t_c4(n) as (
+                #递归调用 
+                select 0 as n
+                union all 
+                select n+1 as n
+                from t_c4
+                where n < (select max_transactions_count from t_c3)
+            ) 
+
+select
+     n as transactions_count,
+     count(user_id) as visits_count
+ from 
+t_c4  t1
+left join  t_c2 
+on t1.n = t_c2.c2
+group by 1
+
+```
+

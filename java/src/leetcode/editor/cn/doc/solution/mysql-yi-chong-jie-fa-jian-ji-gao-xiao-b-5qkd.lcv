@@ -1,0 +1,38 @@
+解法一：
+
+* sql
+
+```sql
+with recursive cte as (
+    select 0 as transactions_count
+    union all
+    select transactions_count+1
+    from cte
+    where transactions_count<(
+        select count(*)
+        from transactions
+        group by user_id, transaction_date
+        order by count(*) desc
+        limit 1
+        )
+)
+select
+    cte.transactions_count as transactions_count,
+    sum(ifnull(tmp.visits_count, 0)) as visits_count
+from cte
+left join (
+    select
+        v.user_id,
+        v.visit_date,
+        1 as visits_count,
+        count(t.user_id) as transactions_count
+    from visits v
+    left join transactions t on
+        v.user_id = t.user_id and
+        v.visit_date = t.transaction_date
+    group by v.user_id, v.visit_date
+) tmp on
+    cte.transactions_count = tmp.transactions_count
+group by cte.transactions_count
+```
+

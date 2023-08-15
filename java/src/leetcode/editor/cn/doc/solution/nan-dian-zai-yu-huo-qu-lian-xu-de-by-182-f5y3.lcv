@@ -1,0 +1,52 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# # Write your MySQL query statement below
+
+-- 开启递归为了获取连续的交易次数（主要解决2次交易的没有）
+with recursive a as(
+    select 0 as n
+    union all
+    select n+1 from a where n < any(select count(1) from Transactions group by user_id,transaction_date) 
+)
+-- t1：为获取交易次数，即交易次数的客户
+,t1 as (
+    select transactions_count,count(1) as visits_count 
+    from
+        (select user_id,dt,sum(amt>0) transactions_count 
+            from
+                (
+                    select user_id,visit_date dt,0 amt from Visits
+                    union all
+                    select user_id,transaction_date dt,amount amt from Transactions
+                )tmp1
+            group by  user_id,dt
+        )tmp2
+    group by transactions_count
+)
+
+select a.n as "transactions_count",ifnull(t1.visits_count,0) as "visits_count" 
+from a left join t1 on a.n=t1.transactions_count
+order by 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+

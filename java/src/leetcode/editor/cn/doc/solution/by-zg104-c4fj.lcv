@@ -1,0 +1,52 @@
+![1336.png](https://pic.leetcode.cn/1669881906-rLDVOP-1336.png)
+
+- 公众号：鲸析
+- 小红书：鲸鲸说数据
+- SQL刷题笔记：https://docs.qq.com/sheet/DRUtTaE5wUHVLcVNN?tab=BB08J2
+
+#### 思路
+
+本题在于复杂问题的拆解
+（1）访问不一定交易，交易一定访问，所以用左连接关联2个表，以visits为左表，目标返回左表全部行，而没有交易的amount为null
+（2）通过对amount是否为null对交易次数进行计数`sum(case when amount is null then 0 else 1 end)`
+（3）`transactions_count 的值从 0 到所有用户一次访问中的 max(transactions_count) `说明我们要找到（2）里的最大交易次数，这里为3
+（4）构造连续整数序列，也就是0 1 2 3的整数序列（递归cte）
+（5）用（4）的结果集left join（2）的结果集，保证0123必须出现，从而可以处理下图的问题
+![image.png](https://pic.leetcode.cn/1669882151-UbmXJP-image.png)
+（6）计数不可以用count(1)和count(*)，因为我们不要对null计数。
+
+视频讲解：https://www.bilibili.com/video/BV1FM41167G6?t=625.9&p=12
+
+#### 答案
+
+* sql
+
+```sql
+with recursive cte1 as (
+    select v.user_id, visit_date, transaction_date, amount
+    from visits v left join transactions t on v.user_id = t.user_id and v.visit_date = t.transaction_date
+),cte2 as (
+    select user_id, visit_date, sum(case when amount is null then 0 else 1 end) as transactions_count
+    from cte1 
+    group by user_id, visit_date
+),cte3 as (
+    select max(transactions_count) as max_transactions_count
+    from cte2
+), cte4(n) as (
+    select 0 as n
+    union all
+    select n+1 as n
+    from cte4
+    where n < (select max_transactions_count from cte3)
+)
+
+
+select 
+    n as transactions_count,
+    count(user_id) as visits_count
+from cte4 t1
+left join cte2 t2
+on t1.n = t2.transactions_count
+group by 1
+```
+
