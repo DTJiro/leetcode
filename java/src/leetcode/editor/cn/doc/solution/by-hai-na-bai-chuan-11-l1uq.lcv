@@ -1,0 +1,21 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select 
+    o.customer_id customer_id,
+    c.customer_name customer_name
+ from orders o 
+ JOIN customers c ON o.customer_id = c.customer_id
+ group by o.customer_id having 
+    COUNT(IF(o.product_name='A',true,null))>0 
+    AND COUNT(IF(o.product_name='B',true,null))>0 
+    AND COUNT(IF(o.product_name='C',true,null))=0
+```
+

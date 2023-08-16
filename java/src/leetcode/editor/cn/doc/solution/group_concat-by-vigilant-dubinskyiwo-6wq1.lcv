@@ -1,0 +1,21 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+select customer_id, customer_name
+from Customers 
+where customer_id in (
+select 
+	customer_id
+from Orders
+group by customer_id
+having 
+	group_concat(distinct product_name) REGEXP '^A,B$|^A,B,[^C].*'
+)
+```
+

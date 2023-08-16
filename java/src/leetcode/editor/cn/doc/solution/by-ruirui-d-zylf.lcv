@@ -1,0 +1,24 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+
+SELECT o.customer_id customer_id,
+        c.customer_name customer_name
+FROM Orders o
+LEFT JOIN Customers c  USING(customer_id)
+GROUP BY customer_id
+HAVING 
+        SUM(IF(product_name='A',1,0))>0 AND
+        SUM(IF(product_name='B',1,0))>0 AND
+        SUM(IF(product_name='C',1,0))=0
+
+```
+

@@ -1,0 +1,15 @@
+分组查出买的A的数量>0且买的B的数量>0且买的C的数量为0的客户id，然后左连接查出客户的名字即可
+
+* sql
+
+```sql
+select o.customer_id, c.customer_name from orders o
+left join customers c
+on o.customer_id = c.customer_id
+group by customer_id
+having 
+    SUM(if(product_name = 'A', 1, 0)) > 0 and
+    SUM(if(product_name = 'B', 1, 0)) > 0 and
+    SUM(if(product_name = 'C', 1, 0)) = 0
+```
+

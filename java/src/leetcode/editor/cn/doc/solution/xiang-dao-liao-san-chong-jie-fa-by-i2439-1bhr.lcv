@@ -1,0 +1,59 @@
+【1 好理解】 直接判断是否在或不在某一组中
+
+* 
+
+```
+SELECT * FROM Customers
+WHERE customer_id IN (
+    SELECT customer_id
+    FROM Customers
+    WHERE customer_id IN (
+        SELECT customer_id FROM Orders
+        WHERE product_name = 'A' )
+    AND customer_id IN (
+        SELECT customer_id FROM Orders
+        WHERE product_name = 'B' )
+    AND customer_id NOT IN (
+        SELECT customer_id FROM Orders
+        WHERE product_name = 'C' )
+)
+```
+
+【2 巧妙】 相乘>0 都得在，加和=0 都不在
+
+* 
+
+```
+SELECT customer_id, customer_name
+FROM Orders 
+    LEFT JOIN Customers
+    USING(customer_id) 
+GROUP BY customer_id
+    HAVING SUM(product_name = 'A') * SUM(product_name = 'B') > 0
+    AND SUM(product_name = 'C') = 0
+ORDER BY customer_id
+;
+```
+
+【3 业务弹性好】 设定值加和 如A1 B10 C100 D10000，则 0110 0011 1111等各自就有了实际意义
+
+* 
+
+```
+SELECT customer_id, customer_name
+FROM Customers
+WHERE customer_id IN (
+    SELECT customer_id 
+    FROM (  SELECT customer_id,
+            (CASE WHEN product_name='A' THEN 100
+                  WHEN product_name='B' THEN 10
+                  WHEN product_name='C' THEN 1
+             END ) AS product_num
+            FROM Orders
+         ) TT
+    GROUP BY customer_id
+    HAVING SUM( DISTINCT product_num ) = 110
+    -- 注意DISTINCT，因为一个顾客可能买过多次同一产品
+);
+```
+
