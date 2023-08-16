@@ -1,0 +1,14 @@
+* 
+
+```
+select s.product_id, p.product_name, y.year report_year, s.average_daily_sales * (if(year(s.period_end) > y.year, y.days_of_year, dayofyear(s.period_end)) - if(year(s.period_start) < y.year, 1, dayofyear(s.period_start)) + 1) total_amount
+from Sales s
+inner join (
+    select '2018' year, 365 days_of_year
+    union all select '2019' year, 365 days_of_year
+    union all select '2020' year, 366 days_of_year
+) y on year(s.period_start) <= y.year and year(s.period_end) >= y.year
+inner join Product p on p.product_id = s.product_id
+order by s.product_id, y.year
+```
+

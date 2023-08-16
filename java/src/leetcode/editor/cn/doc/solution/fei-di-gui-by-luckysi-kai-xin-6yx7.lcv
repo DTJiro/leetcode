@@ -1,0 +1,105 @@
+**用到的函数：**
+YEAR(date):将日期中的年份进行提取
+DAYOFYEAR(date):求出某一天在一年中是第几天
+CAST(expr AS type):进行类型转换
+
+**求解过程**
+首先通过阅读题目，我们发现求的销售年份介于2018年到2020年之间，因此我们创建一个标尺表temp1，表的内容是三个年份：2018，2019，2020：
+
+* 
+
+```
+WITH temp1 AS (
+SELECT 2018 AS year UNION
+SELECT 2019 AS year UNION
+SELECT 2020 AS year
+)
+```
+
+之后将表temp1与表Sales进行聚合，筛选出period_start和period_end之间包含的年份（指2018，2019，2020）：
+
+* 
+
+```
+temp2 AS (
+SELECT
+    *
+FROM
+    Sales JOIN temp1
+ON
+    year BETWEEN YEAR(period_start) AND YEAR(period_end)
+)
+```
+
+然后我们考虑求日期段的问题，这时本题最大的难点所在。通过分析我们发现，所求日期区间的情况无外乎以下四种：
+- YEAR(period_start) = YEAR(period_end) = year,即在同一年开始，同一年结束，因此这种情况下销售日期为DAYOFYEAR(period_end) - DAYOFYEAR(period_start) + 1；
+- YEAR(period_start) < year 且 YEAR(period_end) > year,即开始和结束日期之间包含的整个年份，这种情况下又要分平年和闰年，故日期为IF(year = 2020,366,365)；
+- 除了以上两种情况外，YEAR(period_start) = year的情况，即从一年开始到这一年结束仍未销售结束，这种情况下销售日期为IF(year = 2020,367 - DAYOFYEAR(period_start),366 - DAYOFYEAR(period_start))，注意到日期段相减后需要加一（道理不用我说了吧），我把它省略了；
+- 最后一种情况，YEAR(period_end) = year，即不在某一年开始但在那一年结束，这种情况下销售日期即为DAYOFYEAR(period_end)
+  故可将temp2查询进行修改为如下所示：
+
+* 
+
+```
+temp2 AS (
+SELECT
+    product_id,average_daily_sales,year,
+    CASE WHEN YEAR(period_start) = year AND YEAR(period_end) = year THEN DAYOFYEAR(period_end) - DAYOFYEAR(period_start) + 1
+         WHEN YEAR(period_start) < year AND YEAR(period_end) > year THEN IF(year = 2020,366,365)
+         WHEN YEAR(period_start) = year THEN IF(year = 2020,367 - DAYOFYEAR(period_start),366 - DAYOFYEAR(period_start))
+         WHEN YEAR(period_end) = year THEN DAYOFYEAR(period_end) END AS date
+FROM
+    Sales JOIN temp1
+ON
+    year BETWEEN YEAR(period_start) AND YEAR(period_end)
+)
+```
+
+做到这里相信大家已经思路清晰了吧。接下来就是将temp2与Product连接求出题目所需的数据了
+
+* 
+
+```
+SELECT   
+    product_id,product_name,CAST(year AS CHAR) AS report_year,date * average_daily_sales AS total_amount
+FROM     
+    temp2 LEFT JOIN Product
+USING(product_id)
+ORDER BY
+    product_id,report_year  
+```
+
+注意到我们通过temp1得到的年份类型为YEAR，答案要求的类型为CHAR，故还需进行类型转换。
+
+**完整的代码**
+
+* 
+
+```
+# Write your MySQL query statement below
+WITH temp1 AS (
+SELECT 2018 AS year UNION
+SELECT 2019 AS year UNION
+SELECT 2020 AS year
+),temp2 AS (
+SELECT
+    product_id,average_daily_sales,year,
+    CASE WHEN YEAR(period_start) = year AND YEAR(period_end) = year THEN DAYOFYEAR(period_end) - DAYOFYEAR(period_start) + 1
+         WHEN YEAR(period_start) < year AND YEAR(period_end) > year THEN IF(year = 2020,366,365)
+         WHEN YEAR(period_start) = year THEN IF(year = 2020,367 - DAYOFYEAR(period_start),366 - DAYOFYEAR(period_start))
+         WHEN YEAR(period_end) = year THEN DAYOFYEAR(period_end) END AS date
+FROM
+    Sales JOIN temp1
+ON
+    year BETWEEN YEAR(period_start) AND YEAR(period_end)
+)
+
+SELECT   #执行用时446ms,在所有MySQL提交中击败81.73%的用户
+    product_id,product_name,CAST(year AS CHAR) AS report_year,date * average_daily_sales AS total_amount
+FROM     #内存消耗0B,在所有MySQL提交中击败100.00%的用户
+    temp2 LEFT JOIN Product
+USING(product_id)
+ORDER BY
+    product_id,report_year  #2022.7.13
+```
+

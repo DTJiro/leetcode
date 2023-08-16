@@ -1,0 +1,72 @@
+### 解题思路
+
+求每年的这些数据，要用CASE和where限制，例如2018年，那开始时间一定是2018年的所以where year(period_start)=2018,
+同结束时间年份要包含里面,也就是year(period_end) betweet 2018 and 2020, 之后求每个年份的时间差，需要，限制，比如开始时间如果，年份在18-20区间，当year(period_start)=2018的话，直接输出，则不是的话，不取，结束时间的话，如果，当year（period_end）=2018年则period_end,没有的话，就用"2018-12-31"
+其他年份，差不多思路，就是判断时间差这块需要限制多一个条件，需要多判断一个开始时间限定，比如，19年为例，当18年——20年都有数据时，判断开始时间年份在18-20区间，当year(period_start)=2018的话，直接输出，则不是的取"2019-01-01"结束时间还是和18年那判断一样，当year（period_end）=2019年则period_end,没有的话，就用"2019-12-31"
+datediff()+1是函数时间差 不包括开始当天那天所以要加1
+
+### 代码
+
+* mysql
+
+```mysql
+with tiaojian1 as
+(
+select
+s.Product_id,
+p.product_name,
+"2018" as "report_year", 
+(
+datediff(
+(case when year(s.period_end)=2018 then s.period_end else "2018-12-31" end),
+s.period_start)+1
+)* average_daily_sales as  total_amount 
+from Sales s left join Product p on s.Product_id=p.Product_id
+where
+year(s.period_start)=2018
+and
+year(period_end) between 2018 and 2020
+group by s.Product_id
+),
+tiaojian2 as(
+select
+s.Product_id,
+p.product_name,
+"2019" as "report_year",
+(
+datediff(
+(case when year(period_end)=2019 then period_end else "2019-12-31" end),
+(case when year(period_start)=2019 then s.period_start else "2019-01-01" end))+1)*average_daily_sales as total_amount 
+from Sales s left join Product p on s.Product_id=p.Product_id
+where
+year(s.period_start)=2019
+or
+year(period_end) between 2019 and 2020
+group by s.Product_id
+),
+tiaojian3 as(
+select
+s.Product_id,
+p.product_name,
+"2020" as "report_year",
+(
+datediff(
+(case when year(period_end)=2020 then period_end else "2020-12-31" end),
+(case when year(period_start)=2020 then s.period_start else "2020-01-01" end))+1)*average_daily_sales as total_amount 
+from Sales s left join Product p on s.Product_id=p.Product_id
+where
+year(s.period_start)=2020
+or
+year(period_end) = 2020
+group by s.Product_id
+)
+
+
+select * from tiaojian1
+union all 
+select *from tiaojian2
+union all
+select * from tiaojian3
+order by product_id,report_year
+```
+

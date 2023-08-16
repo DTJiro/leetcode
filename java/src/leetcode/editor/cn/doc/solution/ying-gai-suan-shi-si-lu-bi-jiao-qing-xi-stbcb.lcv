@@ -1,0 +1,35 @@
+借鉴了大佬的年份扩充思路，并稍微改进了一下。
+简而言之就是以年份规律判断行数扩充及天数运算的条件。
+
+* 
+
+```
+select 
+    s.product_id, 
+    p.product_name, 
+    y.year as report_year, 
+    s.average_daily_sales * 
+    case when y.year = year(period_start) and y.year = year(period_end) 
+         then datediff(period_end,period_start) + 1
+         when y.year = year(period_start) and y.year < year(period_end)
+         then datediff(y.year_end,period_start) + 1
+         when y.year = year(period_end) and y.year > year(period_start)
+         then datediff(period_end,y.year_start) + 1
+         when y.year > year(period_start) and y.year < year(period_end) 
+         then 365
+         end as total_amount
+from Sales s
+join 
+(
+  select '2018' year, '2018-01-01' as year_start , '2018-12-31' as year_end
+  union all 
+  select '2019' year, '2019-01-01' as year_start , '2019-12-31' as year_end
+  union all 
+  select '2020' year, '2020-01-01' as year_start , '2020-12-31' as year_end
+) y
+on year(s.period_start) <= y.year and year(s.period_end) >= y.year
+inner join Product p on p.product_id = s.product_id
+order by s.product_id, y.year
+;
+```
+

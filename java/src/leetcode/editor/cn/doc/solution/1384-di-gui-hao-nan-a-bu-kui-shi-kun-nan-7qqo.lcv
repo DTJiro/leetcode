@@ -1,0 +1,36 @@
+* mysql
+
+```mysql
+with recursive sales_period AS ( # 递归体声明
+    select
+        product_id,
+        period_start AS d1, 
+        if (str_to_date(concat(year(period_start),'-12-31'), '%Y-%m-%d') < period_end,
+            str_to_date(concat(year(period_start),'-12-31'), '%Y-%m-%d'), period_end) AS d2
+    from Sales
+    UNION ALL
+        select
+            t.product_id,
+            DATE_ADD(t.d2, INTERVAL 1 DAY)AS d1,
+            if (DATE_ADD(t.d2, INTERVAL 1 YEAR) < period_end,
+                DATE_ADD(t.d2, INTERVAL 1 YEAR), period_end) AS d2
+        from sales_period AS t
+        JOIN Sales USING(product_id)
+        where d2 < Sales.period_end
+)
+
+
+select
+    CAST(p.product_id AS CHAR) AS product_id,
+    p.product_name AS product_name,
+    CAST(year(sp.d1) AS CHAR) AS report_year,
+    s.average_daily_sales * (datediff(sp.d2, sp.d1) + 1) AS total_amount
+from sales_period AS sp
+JOIN Product AS p USING(product_id)
+JOIN Sales AS s USING(product_id)
+where year(sp.d1) BETWEEN 2018 and 2020
+
+# 题目要求按序返回
+order by product_id, report_year
+```
+

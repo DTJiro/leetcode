@@ -1,0 +1,33 @@
+### 要点
+
+大致思路前面的同鞋已经总结得非常完善了，只提一些要点
+
+1. 构造一个 2018~2020 的编年表，即下方的 yr_t，避免重复的SQL语句
+2. 利用 `MAKEDATE(2018, 1) = DATE("2018-01-01")`，不但使得编年表发挥其功效，而且减少了代码中硬编码的字符
+3. 利用 MySQL 的 `GREATEST` 和 `LEAST` 函数，避免冗长的 `IF` 和 `CASE`
+4. 通用法则：凡是涉及到range，默认采取“前闭后开”的原则。具体地，由于题目中输入数据的 `period_end` 被定义为包含当天（即闭区间），因此需要加1使之变为开区间 `ADDDATE(period_end, 1)`，因此，与之相对应的下界成为`yr` 次年的元旦，即 `MAKEDATE(yr+1, 1)`。
+
+### 代码
+
+* mysql
+
+```mysql
+WITH s_t AS (
+    SELECT yr,
+           product_id,  
+           (DATEDIFF(LEAST(ADDDATE(period_end, 1), MAKEDATE(yr+1, 1)), GREATEST(period_start, MAKEDATE(yr, 1)))) * average_daily_sales AS amt
+    FROM   (VALUES ROW(2018), ROW(2019), ROW(2020)) yr_t(yr), 
+           Sales
+    HAVING amt > 0
+)
+
+SELECT p.product_id, 
+       p.product_name, 
+       CONCAT("", yr) AS report_year, 
+       SUM(amt) AS total_amount
+FROM product p LEFT JOIN s_t 
+ON p.product_id = s_t.product_id
+GROUP BY 1, 3
+ORDER BY 1, 3
+```
+
