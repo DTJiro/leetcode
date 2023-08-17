@@ -1,0 +1,52 @@
+### 解题思路
+
+- 这题可以拆分为3步
+
+### 第一步找到每场考试的最高分和最低分
+
+* mysql
+
+```mysql
+select exam_id,max(score) as max_score,min(score) as min_score
+from Exam
+group by exam_id
+```
+
+### 第二步找到全部场考试至少拿过一次最高分或者最低分的学生
+
+* mysql
+
+```mysql
+select distinct student_id
+from (
+    select exam_id,max(score) as max_score,min(score) as min_score
+    from Exam
+    group by exam_id
+) t inner join Exam e
+on t.exam_id = e.exam_id
+where e.score = t.max_score or e.score = t.min_score
+```
+
+### 最后，不在第二步表里面的学生就是答案
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select distinct e.student_id,student_name
+from Exam e inner join Student s
+on e.student_id = s.student_id
+where e.student_id not in (
+    select distinct student_id
+    from (
+        select exam_id,max(score) as max_score,min(score) as min_score
+        from Exam
+        group by exam_id
+    ) t inner join Exam e
+    on t.exam_id = e.exam_id
+    where e.score = t.max_score or e.score = t.min_score
+)
+order by e.student_id
+```
+
+![屏幕截图 2023-08-03 093310.png](https://pic.leetcode.cn/1691027013-GzcrFg-%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202023-08-03%20093310.png)

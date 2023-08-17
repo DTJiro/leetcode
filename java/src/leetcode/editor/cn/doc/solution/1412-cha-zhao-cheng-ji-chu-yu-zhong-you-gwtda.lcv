@@ -1,0 +1,30 @@
+### 解题思路
+
+知识点：
+1、rank    遇重复值排序并列，然后跳跃到当前排序记录次数开始（递增或递减）排序
+2、row_number  遇重复值排序不并列，连续不间断（递增或递减）排序
+3、dense_rank  遇重复值排序并列，然后继续不间断（递增或递减）排序
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+#1.先按照实验分组分数倒序排取第一 再按照实验分组 分数倒升序排 取第一
+# dense_rank() over(partition by exam_id order by score desc) as smax,
+# dense_rank() over(partition by exam_id order by score) as smin
+# from Exam
+#2.with as 
+with t as (
+    select student_id,exam_id,
+    dense_rank() over(partition by exam_id order by score desc) as smax,
+    dense_rank() over(partition by exam_id order by score) as smin
+    from Exam
+)
+#3.连接Student 获取student_name且分数中没有最高分和最低分 排序
+select t.student_id,s.student_name from t left join Student s on s.student_id=t.student_id group by t.student_id having sum(smax=1)=0 and sum(smin=1)=0 order by student_id
+
+```
+
