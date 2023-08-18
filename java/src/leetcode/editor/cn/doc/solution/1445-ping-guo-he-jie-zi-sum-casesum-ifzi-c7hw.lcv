@@ -1,0 +1,33 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+# select sale_date,
+# sum(
+#     case
+#       when fruit='apples' then sold_num else -sold_num
+#     end
+# ) as diff
+# from Sales
+# group by sale_date
+# order by sale_date
+
+# select s1.sale_date as sale_date,
+# s1.sold_num-s2.sold_num as diff
+# from
+# (select * from Sales where fruit='apples') s1
+# join
+# (select * from Sales where fruit='oranges') s2
+# on s1.sale_date=s2.sale_date
+
+select sale_date,sum(if(fruit='apples',sold_num,-sold_num)) as diff from Sales
+group by sale_date
+order by sale_date
+```
+

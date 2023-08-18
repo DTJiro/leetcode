@@ -1,0 +1,16 @@
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select sale_date,sum(case when fruit = "oranges" then -sold_num else sold_num end)as diff
+from Sales
+group by sale_date
+order by sale_date;
+
+# Write your MySQL query statement below
+select sale_date,sum(if(fruit = "oranges",-sold_num,sold_num))as diff
+from Sales
+group by sale_date
+order by sale_date;
+```
+
