@@ -1,0 +1,76 @@
+看完题目后，我一般先看结果的样子
+从结果可以看出，是按照成绩自定义分组
+自定义分组用到 group by case when
+所以先得出
+
+* 
+
+```
+select
+case
+when duration/60<5
+then '[0-5>'
+when duration/60<10
+then '[5-10>'
+when duration/60<15
+then '[10-15>'
+else '15 or more'
+end as bin,
+count(1) as total
+from `Sessions`
+group by bin
+```
+
+得出的结果跟答案不一样
+因为对于不在判断条件内的值是不会产生记录的
+比如答案中的  [10-15>      | 0
+所以这一步我们只确保了不为0的分类
+
+分类是固定的，按照题目所给的定义
+我们可以先生成左边 bin 的一列
+通过 自定义值+union连接
+
+* 
+
+```
+select '[0-5>' as bin union
+select '[5-10>' as bin union
+select '[10-15>' as bin union
+select '15 or more' as bin
+```
+
+得出这一部分后，将两部分拼接起来，使用左连接
+使用ifnull判断为空的 total项，并将其设为0
+
+* 
+
+```
+select
+s1.bin as bin,
+ifnull(s2.total, 0) as total
+from
+(
+    select '[0-5>' as bin union
+    select '[5-10>' as bin union
+    select '[10-15>' as bin union
+    select '15 or more' as bin
+) as s1
+left join
+(
+    select
+    case
+    when duration/60<5
+    then '[0-5>'
+    when duration/60<10
+    then '[5-10>'
+    when duration/60<15
+    then '[10-15>'
+    else '15 or more'
+    end as bin,
+    count(1) as total
+    from `Sessions`
+    group by bin
+) as s2
+on s1.bin = s2.bin
+```
+

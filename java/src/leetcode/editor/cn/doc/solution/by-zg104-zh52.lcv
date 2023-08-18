@@ -1,0 +1,30 @@
+![back.png](https://pic.leetcode.cn/1666677902-stllLe-back.png)
+
+#### 思路
+
+本题的核心是【分箱】，其实就是连续数据离散化的过程，把在每个bin内的连续数据打上类别标签即可。
+
+但是你这么做的过程会发现，下图中的这种情况是满足不了的，我们必须要构造出一个包含每个bin区间的表，是join也好还是怎么样，都省略不了这一步。
+
+![image.png](https://pic.leetcode.cn/1666677770-uwHlgF-image.png)
+
+那么，我们直接可以用union，把这4行拆开算再union起来！
+
+![image.png](https://pic.leetcode.cn/1666677868-XwpKOM-image.png)
+
+#### 答案
+
+* sql
+
+```sql
+# Write your MySQL query statement below
+
+select '[0-5>' bin, sum(if(duration<300,1,0)) TOTAL from Sessions 
+union 
+select '[5-10>', sum(if(300<=duration and duration<600,1,0))  from Sessions
+union 
+select '[10-15>', sum(if(600<=duration and duration<900,1,0))  from Sessions 
+union 
+select '15 or more', sum(if(900<=duration,1,0))  from Sessions 
+```
+
