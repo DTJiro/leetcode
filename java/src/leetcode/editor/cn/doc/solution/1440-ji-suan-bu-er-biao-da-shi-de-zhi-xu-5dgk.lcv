@@ -1,0 +1,29 @@
+### 解题思路
+
+1.Expressions中left_operand，right_operand都对应Variables name
+为了区分Variables连接两次
+2.使用case when 语句判断 Result中的value
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select e.*,
+(
+    case
+        when operator = '=' and v1.value = v2.value then 'true'
+        when operator = '>' and v1.value > v2.value then 'true'
+        when operator = '<' and v1.value < v2.value then 'true'
+        else 'false'
+    end
+) value
+from Expressions e 
+left join Variables v1 
+on e.left_operand = v1.name 
+left join Variables v2
+on e.right_operand = v2.name
+
+```
+

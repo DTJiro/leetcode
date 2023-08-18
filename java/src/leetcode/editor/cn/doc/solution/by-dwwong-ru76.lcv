@@ -1,0 +1,29 @@
+### 解题思路
+
+ORACLE好像没有布尔类型的计算等等，存储过程好像有，所以就得用一些别的方法
+
+简单来说就是直接case when正确的情况，即
+((E.operator = '>' AND V1.value > V2.value) OR
+(E.operator = '=' AND V1.value = V2.value) OR
+(E.operator = '<' AND V1.value < V2.value))
+
+然后就没了
+
+### 代码
+
+* oraclesql
+
+```oraclesql
+/* Write your PL/SQL query statement below */
+SELECT 
+E.left_operand,
+E.operator,
+E.right_operand,
+CASE WHEN ((E.operator = '>' AND V1.value > V2.value) OR 
+(E.operator = '=' AND V1.value = V2.value) OR 
+(E.operator = '<' AND V1.value < V2.value)) THEN 'true' ELSE 'false' END AS value
+FROM Expressions E,Variables V1,Variables V2
+WHERE E.left_operand = V1.name
+AND E.right_operand = V2.name
+```
+

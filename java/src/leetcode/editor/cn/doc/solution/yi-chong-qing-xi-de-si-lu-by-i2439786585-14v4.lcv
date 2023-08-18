@@ -1,0 +1,28 @@
+先 LEFT JOIN 填值，再得出正确答案，再比对
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT E.left_operand AS left_operand,
+       E.operator AS operator,
+       E.right_operand AS right_operand,
+    -- ② 再判断这一行要比的大小
+    (  CASE 
+        -- ③ 若 这一组的正确答案 和 E表中对这一组的判断 一样，就返回 true
+          WHEN V1.value > V2.value AND E.operator = '>' THEN 'true'
+          WHEN V1.value = V2.value AND E.operator = '=' THEN 'true'
+          WHEN V1.value < V2.value AND E.operator = '<' THEN 'true'
+       -- ④ 其他回答则是 false
+       ELSE 'false'
+       END
+    ) AS value
+FROM Expressions E
+-- ① 先把 x、y 的值填进表中（以增广的形式）
+LEFT JOIN Variables V1
+    ON E.left_operand = V1.name
+LEFT JOIN Variables V2
+    ON E.right_operand = V2.name
+;
+```
+
