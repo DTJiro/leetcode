@@ -1,0 +1,33 @@
+* 
+
+```
+select distinct newtable.id,name from accounts join 
+(
+select l2.id,l2.login_date from logins l2
+
+join logins l1 on l1.id = l2.id 
+
+and datediff(l2.login_date,l1.login_date) between 0 and 4
+
+group by l1.id,l1.login_date
+
+having count(distinct l2.login_date)=5
+) as newtable
+
+on accounts.id = newtable.id
+
+order by newtable.id;
+
+```
+
+首先，需要提取同列的顺序（时间）信息进行定量而不是定性（比如只考虑大小）的比对，这个时候就应该想到需要自连接。
+
+我们把表logins使用join自连接，条件限制在id相等和日期差距在0到4天。
+
+（因为是l2和l1的差，0代表就是l2的日期和l1的日期相等，我一开始就漏掉0从1开始了……(￣m￣））
+
+筛选之后按照l1的id和login_date分组。login_date分组的原因是，按照id分完的组中所有的日期只是满足和相应id的任意一个日期差距在0到4之间，这些日期并不一定是连续的，所以我们再按照参考表l1的日期再次分组。
+
+最后通过count筛选，在id相同的条件下，日期相差在0到4天而且互不重复的日期合计能达到5个，这五个日期必然是连续的。
+
+最后在select环节还需要小心用户名id的重复出现(￣m￣）

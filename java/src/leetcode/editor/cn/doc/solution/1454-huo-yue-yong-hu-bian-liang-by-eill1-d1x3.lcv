@@ -1,0 +1,104 @@
+### 解题思路
+
+![image.png](https://pic.leetcode-cn.com/1632148162-PalfPm-image.png)
+
+### 先去重，留下不同的日期和id行，然后排序为了好变量遍历
+
+* mysql
+
+```mysql
+with logins as (select distinct id, login_date from logins order by id, login_date),
+```
+
+### 然后
+
+* mysql
+
+```mysql
+select 
+    id,
+    login_date,
+    # 如果id不是上一个行的id，说明需要重新cnt从0开始计算
+    # 如果id相同，且当前行的日期减去1等于上一个行的日期则，cnt保持不变
+    # 如果id相同，且当前行的日期减去1不等于上一个行的日期则，则cnt+1
+    if(id = @lid, if(date_sub(login_date,interval 1 day) = @ldate, @cnt:=@cnt, @cnt:=@cnt+1), @cnt := 0) as cnt,
+    @ldate := login_date, #记录前一个日期
+    @lid := id # 记录前一个id
+from logins, (select @ldate:='9999-12-12', @lid:=-999, @cnt:=0) as a)
+```
+
+### 最后
+
+group by id, cnt是关键
+然后查找分组后count（cnt）>=5的id
+
+### 代码
+
+* mysql
+
+```mysql
+with logins as (select distinct id, login_date from logins order by id, login_date),
+db as (
+select 
+    id,
+    login_date,
+    if(id = @lid, if(date_sub(login_date,interval 1 day) = @ldate, @cnt:=@cnt, @cnt:=@cnt+1), @cnt := 0) as cnt,
+    @ldate := login_date,
+    @lid := id
+from logins, (select @ldate:='9999-12-12', @lid:=-999, @cnt:=0) as a)
+
+select distinct ac.id, ac.name 
+from db left join accounts ac on ac.id = db.id
+group by db.id, cnt
+having count(*)>=5
+```
+
+### 方法二：只求4个间隔的日期 lead over
+
+* mysql
+
+```mysql
+select distinct t.id,a.name
+from (
+select
+    id, login_date,
+    datediff(lead(login_date, 4) over(partition by id order by login_date),login_date) as tag
+from logins
+group by id, login_date) as t
+left join accounts a using(id)
+where t.tag = 4
+```
+
+### 方法三：自连接
+
+* mysql
+
+```mysql
+select distinct a.id,a.name
+from (
+        select a.id, a.login_date as ad, b.login_date as bd
+        from logins a
+        join logins b
+        on a.id = b.id and datediff(a.login_date,b.login_date) between 0 and 4
+        group by a.id, a.login_date
+        having count(distinct b.login_date) = 5) as t 
+left join accounts a on a.id = t.id
+```
+
+### 方法四
+
+* mysql
+
+```mysql
+select distinct t.id, c.name
+from(
+    select id
+    from (
+        select id,login_date,
+            date_sub(login_date, interval dense_rank() over(partition by id order by login_date asc) day) as tag
+        from logins) a
+    group by id, tag
+    having count(distinct login_date)>=5) as t
+left join accounts c on t.id = c.id
+```
+

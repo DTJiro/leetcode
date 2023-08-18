@@ -1,0 +1,28 @@
+![WX20210604-085940@2x.png](https://pic.leetcode-cn.com/1622768391-pjxhkO-WX20210604-085940@2x.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+WITH t AS (
+		SELECT id, login_date, row_number() OVER (PARTITION BY id ORDER BY login_date) AS "n"
+		FROM (
+			SELECT DISTINCT *
+			FROM Logins
+		) t1
+	)
+SELECT t2.id, name
+FROM (
+	SELECT DISTINCT id
+	FROM t
+	WHERE (id, adddate(login_date, INTERVAL 4 DAY), n + 4) IN (
+		SELECT *
+		FROM t
+	)
+) t2
+	LEFT JOIN Accounts ON t2.id = Accounts.id
+```
+

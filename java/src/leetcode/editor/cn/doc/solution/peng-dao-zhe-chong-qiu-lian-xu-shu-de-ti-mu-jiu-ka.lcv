@@ -1,0 +1,32 @@
+### 解题思路
+
+自联结的话需要4层，比较繁琐，用定义变量更方便。
+如觉得这一题难度太大了，可参考No.180的题解，用的是同样的思路，180要更简单一些。
+
+### 代码
+
+* mysql
+
+```mysql
+SELECT
+    DISTINCT
+    b.id,
+    b.name
+FROM
+    (SELECT
+        id,
+        CASE 
+        WHEN @id = id AND @prev_date=subdate(login_date, interval 1 day) AND (@prev_date:= login_date) IS NOT NULL THEN @cnt := @cnt+1
+        WHEN @id = id AND @prev_date=subdate(login_date, interval 0 day) THEN @cnt := @cnt
+        WHEN (@id := id)IS NOT NULL AND(@prev_date:= login_date) IS NOT NULL THEN @cnt:=1 
+        END AS cnt
+    FROM 
+        (SELECT * FROM logins ORDER BY id,login_date) a,
+        (SELECT @prev_date:=NULL, @cnt:= NULL, @id:= NULL) t) a
+    LEFT JOIN
+        accounts b
+    ON a.id = b.id
+WHERE 
+    a.cnt>=5
+```
+
