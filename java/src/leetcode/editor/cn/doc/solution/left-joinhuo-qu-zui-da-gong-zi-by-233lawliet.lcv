@@ -1,0 +1,22 @@
+* 
+
+```
+# Write your MySQL query statement below
+
+select s.company_id,s.employee_id,s.employee_name,(
+    case
+        when maxSalary <1000 then salary
+        when maxSalary>=1000 and maxSalary<10000 then round(salary-salary*0.24)
+        when maxSalary>=10000 then round(salary-salary*0.49)
+    end
+) salary
+from Salaries s
+left join (
+    select company_id,max(salary) maxSalary
+    from Salaries
+    group by  company_id
+) m
+on m.company_id = s.company_id
+
+```
+
