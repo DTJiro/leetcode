@@ -1,0 +1,24 @@
+思路和心得：
+
+1.模拟
+
+2.注意去重
+
+3.日期的判断选择自己熟悉的一种
+
+4.内连即可
+
+* []
+
+```mysql
+# Write your MySQL query statement below
+SELECT DISTINCT c1.title AS 'title'
+FROM Content AS c1
+    INNER JOIN TVProgram AS t1
+    ON t1.content_id = c1.content_id
+WHERE t1.program_date BETWEEN '2020-06-01' AND '2020-06-30'
+    AND c1.Kids_content = 'Y'
+    AND c1.content_type = 'Movies'
+;
+```
+

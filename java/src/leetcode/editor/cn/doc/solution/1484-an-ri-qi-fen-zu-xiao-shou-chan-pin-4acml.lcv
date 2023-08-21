@@ -1,0 +1,50 @@
+> Problem: [1484. 按日期分组销售产品](https://leetcode.cn/problems/group-sold-products-by-the-date/description/)
+
+[TOC]
+
+# 思路
+
+- `groupby`: 这是pandas中的一个函数，用于按照指定的列对数据进行分组。在这里，`activities.groupby('sell_date')`表示按照'sell\_date'这一列对数据进行分组。
+
+- `agg`: 这是pandas中的一个函数，用于对数据进行聚合操作。在这里，`agg(['nunique', lambda x: ','.join(sorted(set(x)))])`表示对每个分组计算两个聚合结果：`nunique`表示计算唯一值的数量，`lambda x: ','.join(sorted(set(x)))`表示对产品进行去重，并将其按照逗号连接成一个字符串。
+
+- `rename`: 这是pandas中的一个函数，用于重命名列名。在这里，`result.rename(columns={'nunique': 'num_sold', '<lambda_0>': 'products'}, inplace=True)`将'ncuinque'列重命名为'num\_sold'，将'<lambda\_0>'列重命名为'products'。
+
+- `reset_index`: 这是pandas中的一个函数，用于重置索引。在这里，`result.reset_index(inplace=True)`将之前的分组结果转换为常规的数据框，并将'sell\_date'变为普通的列。
+
+- `sort_values`: 这是pandas中的一个函数，用于按照指定的列对数据进行排序。在这里，`result.sort_values(by='sell_date', inplace=True)`根据'sell\_date'列的值进行升序排序。
+
+# ps
+
+> 在 agg 函数中，lambda x: ','.join(sorted(set(x))) 是一个匿名函数，用于将分组后的产品列进行去重、排序和连接操作。
+
+> set(x) 会将产品列中的元素转换为一个集合，这样可以去除重复的产品。
+> sorted(set(x)) 对集合中的元素进行排序，确保连接后的字符串是按照字母顺序排列的。
+> ','.join(sorted(set(x))) 使用逗号将排序后的产品列表连接成一个字符串。
+> 由于该匿名函数是通过 lambda 关键字定义的，并且是第一个被应用的聚合函数，因此在代码中它被命名为 <lambda_0>。在 result.rename 中将其重命名为 'products'，使得结果数据框中的列名更符合实际含义。
+
+# Code
+
+* python
+
+```python
+
+import pandas as pd
+
+def categorize_products(activities: pd.DataFrame) -> pd.DataFrame:
+    # 按照 sell_date 进行分组，并对产品进行去重和计数
+    result = activities.groupby('sell_date')['product'].agg(['nunique', lambda x: ','.join(sorted(set(x)))])
+    
+    # 重命名列名
+    result.rename(columns={'nunique': 'num_sold', '<lambda_0>': 'products'}, inplace=True)
+    
+    # 重置索引，将 sell_date 变为普通列
+    result.reset_index(inplace=True)
+    
+    # 按照 sell_date 进行升序排序
+    result.sort_values(by='sell_date', inplace=True)
+    
+    return result
+
+```
+

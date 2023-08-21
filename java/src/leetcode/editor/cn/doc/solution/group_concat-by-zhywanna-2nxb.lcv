@@ -1,0 +1,24 @@
+group_concat([distinct] 要连接的字段 [order by 排序字段] [separator '分隔符'])
+
+另外，因为是“销售的不同产品的数量”所以要加distinct
+
+* 
+
+```
+# Write your MySQL query statement below
+select
+    sell_date,
+    count(distinct product) num_sold,
+    group_concat(
+        distinct product
+        order by product
+        separator ','
+    ) products
+from 
+    Activities
+group by sell_date
+order by sell_date
+```
+
+# 原创不易，有帮助的请点个赞！
+
