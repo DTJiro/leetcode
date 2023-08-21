@@ -1,0 +1,39 @@
+### 解题思路
+
+拆解思路，先虚拟表求出每天的交易数量，在连接另一个表求出，答案值
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+
+with tiaojian as (
+select
+item_id,
+case when weekday(order_date)=0 then ifnull(quantity,0) end as Monday,
+case when weekday(order_date)=1 then ifnull(quantity,0) end as Tuesday,
+case when weekday(order_date)=2 then ifnull(quantity,0) end as Wednesday,
+case when weekday(order_date)=3 then ifnull(quantity,0) end as Thursday,
+case when weekday(order_date)=4 then ifnull(quantity,0) end as Friday,
+case when weekday(order_date)=5 then ifnull(quantity,0) end as Saturday,
+case when weekday(order_date)=6 then ifnull(quantity,0) end as Sunday
+from Orders
+)
+
+select
+i.item_category as category,
+ifnull(sum(t.Monday),0) as Monday,
+ifnull(sum(t.Tuesday),0) as Tuesday,
+ifnull(sum(t.Wednesday),0) as Wednesday,
+ifnull(sum(t.Thursday),0) as Thursday,
+ifnull(sum(t.Friday),0) as Friday,
+ifnull(sum(t.Saturday),0) as Saturday,
+ifnull(sum(t.Sunday),0) as Sunday
+from tiaojian t right join Items i on t.item_id=i.item_id
+group by i.item_category
+order by i.item_category
+```
+
