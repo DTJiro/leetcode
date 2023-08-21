@@ -1,0 +1,44 @@
+### 解题思路
+
+- 如下面表格所示，表格里存有坐标信息，我们需要从这个表里获取两次信息
+
+* 
+
+```
+SELECT *
+FROM Points p1,Points p2
+```
+
+![20220514-111657.jpeg](https://pic.leetcode-cn.com/1652498235-DtrDuv-20220514-111657.jpeg)
+
+- 从两个表里使用 Select 语句可能会导致产生笛卡尔乘积 。我们只需要面积不为零的矩形，所以我们应该用 WHERE 语句加判断条件。
+
+* 
+
+```
+SELECT *
+FROM Points p1,Points p2
+WHERE p1.id<p2.id
+        AND ABS(p1.x_value-p2.x_value)>0 
+        AND ABS(p1.y_value-p2.y_value)>0
+```
+
+![20220514-112349.jpeg](https://pic.leetcode-cn.com/1652498668-qgVefL-20220514-112349.jpeg)
+
+- 最后输出面积
+
+### 代码
+
+* mysql
+
+```mysql
+SELECT p1.id AS p1,
+        p2.id AS p2,
+        ABS(p1.x_value-p2.x_value)*ABS(p1.y_value-p2.y_value) AS area
+FROM Points p1,Points p2
+WHERE p1.id<p2.id
+        AND ABS(p1.x_value-p2.x_value)>0 
+        AND ABS(p1.y_value-p2.y_value)>0
+ORDER BY area DESC,p1,p2
+```
+

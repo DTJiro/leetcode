@@ -1,0 +1,14 @@
+* sql
+
+```sql
+select 
+    a.id as p1,
+    b.id as p2,
+    ABS(a.x_value - b.x_value) * ABS(a.y_value - b.y_value) as area -- 计算面积
+from points a
+join points b
+-- a.id < b.id：排除两个重复的选项
+on a.id < b.id and a.x_value <> b.x_value and a.y_value <> b.y_value
+order by area desc, p1 asc, p2 asc
+```
+
