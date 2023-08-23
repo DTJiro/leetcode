@@ -1,0 +1,36 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+#1.优先通过union构造全部用户的通信时间表
+# with a as (
+#     select caller_id as caller,duration from Calls
+#     union all
+#     select callee_id as caller,duration from Calls
+# )
+#2.通过截取电话的前三位匹配国家 
+#3.通过group by 国家获取不同国家的平均通话时间并和总的平局通话时间比较
+# select c.name country from a left join Person p on p.id = a.caller left join Country c on c.country_code=left(p.phone_number,3) 
+# group by c.name
+# having avg(duration) > (select avg(duration) from Calls)
+
+#思路一样 效率高点
+select c.name country from Country c 
+left join Person p on left(p.phone_number,3) = c.country_code 
+left join 
+(
+    select caller_id as caller,duration from Calls
+    union all
+    select callee_id as caller,duration from Calls
+) a on a.caller = p.id
+group by c.name
+having avg(duration) > (select avg(duration) from Calls)
+
+```
+
