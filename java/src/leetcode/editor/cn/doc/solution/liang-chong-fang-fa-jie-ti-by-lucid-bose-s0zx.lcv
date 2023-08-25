@@ -1,0 +1,32 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+#method 1
+select customer_id, name
+from
+(select c.customer_id, name
+from customers c, orders o, product p 
+where c.customer_id = o.customer_id and p.product_id = o.product_id
+and month(order_date) in (6,7) 
+group by o.customer_id, month(order_date)
+having sum(quantity*price)>=100) a
+group by name
+having count(*)=2
+
+# method 2
+select c.customer_id, name
+from customers c, orders o, product p 
+where c.customer_id = o.customer_id and p.product_id = o.product_id
+group by c.customer_id  
+having sum(if(month(o.order_date)=6, price*quantity, 0)) >= 100 
+and sum(if(month(o.order_date)=7, price*quantity, 0)) >= 100
+
+```
+

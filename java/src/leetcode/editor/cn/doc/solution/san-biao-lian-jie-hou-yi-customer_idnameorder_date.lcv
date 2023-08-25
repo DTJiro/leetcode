@@ -1,0 +1,7 @@
+1、参考代码
+![图片.png](https://pic.leetcode-cn.com/1598828803-iQXOTy-%E5%9B%BE%E7%89%87.png)
+2、构造辅助列：IF(order_date LIKE '2020-06%',quantity * price,0)，同理7月。
+3、“SUM(IF(order_date LIKE '2020-06%',quantity * price,0))”优于“SUM(IF(order_date LIKE '2020-06%',quantity,0) * price)”，少了多余的乘0计算。
+4、两个表的关联字段名及类型相同，可用USING()连接。
+5、年月的多种表达可见：https://leetcode-cn.com/problems/friendly-movies-streamed-last-month/solution/date_formattprogram_datey-m-2020-06-by-richard-95
+
