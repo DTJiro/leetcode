@@ -1,0 +1,28 @@
+![WX20210311-105611.png](https://pic.leetcode-cn.com/1615431391-WhwhXT-WX20210311-105611.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+select
+    PRODUCT_NAME,
+    SALE_DATE,
+    count(*) as TOTAL
+from(
+        select
+            trim(lower(product_name)) as PRODUCT_NAME,
+            substr(sale_date, 1, 7) as SALE_DATE
+        from
+            sales
+    ) as a
+group by
+    sale_date,
+    product_name
+order by
+    product_name asc,
+    sale_date asc
+```
+
