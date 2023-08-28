@@ -1,0 +1,73 @@
+### 方便快速学习算法与理解~
+
+🌇 点赞 👍 收藏 ⭐留言 📝 一键三连 ~关注Jam，从你我做起！
+
+**兄弟会背叛你，女人会离开你，金钱会诱惑你，生活会刁难你，只有数学不会，不会就是不会**
+**天才与否，取决于最终达到的高度。真正的天才是那些脚踏实地的人**
+**静下心来好好做自己，走稳脚下每一步，就是最好的路，强者都是孤独的**
+
+推荐 python 算法的书籍，体系化学习算法与数据结构，用正确的方式成为offer收割机
+[leetcode](https://github.com/ls1248659692/leetcode) ——  **系统化快速学习算法，这不是内卷，这只是悄悄地努力，然后惊艳所有的人**
+![image.png](https://pic.leetcode-cn.com/1649827618-sKaaPy-image.png)
+
+---
+
+### 求解思路
+
+1. 获取每个用户的订单， 按照时间顺序逆序
+
+* 
+
+```
+SELECT  
+    order_id,
+    order_date,
+    customer_id,
+    row_number() over(partition by customer_id order by order_date DESC) as rank_tag
+FROM orders 
+```
+
+2. 找到每个用户的最近三笔订单。如果用户的订单少于 3 笔，则返回他的全部订单
+
+* 
+
+```
+LEFT JOIN customers c  
+    ON t.customer_id = c.customer_id 
+rank_tag <= 3
+```
+
+3. 按照customer_name 升序排列 ustomer_id 升序排列  order_date 降序
+
+* 
+
+```
+ORDER BY  name, customer_id, order_date DESC
+```
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT 
+    c.name customer_name,
+    c.customer_id, 
+    t.order_id, 
+    t.order_date
+FROM (
+    SELECT  
+        order_id,
+        order_date,
+        customer_id,
+        row_number() over(partition by customer_id order by order_date DESC) as rank_tag
+    FROM orders ) t
+LEFT JOIN customers c  
+    ON t.customer_id = c.customer_id    
+WHERE 
+    rank_tag <= 3
+ORDER BY 
+    name, customer_id, order_date DESC;
+```
+
