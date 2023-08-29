@@ -1,0 +1,36 @@
+# mysql
+
+Join + 聚合函数
+
+* 
+
+```
+# Write your MySQL query statement below
+SELECT W.name AS WAREHOUSE_NAME,
+       SUM(W.units*P.Width*P.Length*P.Height) AS VOLUME
+  FROM Warehouse AS W 
+  LEFT JOIN Products AS P 
+  ON W.product_id=P.product_id
+  GROUP BY W.name;
+# LEFT JOIN
+```
+
+# oracle
+
+WHERE + 聚合函数
+
+* 
+
+```
+/* Write your PL/SQL query statement below */
+SELECT W.name WAREHOUSE_NAME,
+       SUM(W.units*P.Width*P.Length*P.Height) VOLUME
+  FROM Warehouse W, Products P 
+  WHERE W.product_id=P.product_id
+  GROUP BY W.name
+  ORDER BY W.name;
+```
+
+# 通过
+
+![image.png](https://pic.leetcode.cn/1680966175-YuDkMG-image.png)
