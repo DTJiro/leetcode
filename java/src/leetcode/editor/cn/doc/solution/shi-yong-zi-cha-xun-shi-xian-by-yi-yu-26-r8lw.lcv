@@ -1,0 +1,45 @@
+1. 计算 customer_id 对应的最大的产品数量
+
+* 
+
+```
+select customer_id, max(num) as max_num
+from (
+    select customer_id, count(product_id) num
+    from Orders
+    group by customer_id, product_id) a
+group by customer_id
+```
+
+因为最大数量相同的产品都要输出，所以我们只要计算下每个产品的数量，然后等于 1. 中计算的最大产品数量即可。
+
+2. 计算 customer_id 和对应的产品id、产品数量、产品名称
+
+* 
+
+```
+select o.customer_id, o.product_id, count(o.product_id) num, p.product_name
+from Orders o left join Products p on o.product_id = p.product_id
+group by o.customer_id, o.product_id
+```
+
+3. 将1、2获取的数据进行表连接，查出产品数量=最大产品数量的产品即可
+
+* 
+
+```
+select a1.customer_id, a2.product_id, a2.product_name
+from (
+    select customer_id, max(num) as max_num
+    from (
+        select customer_id, count(product_id) num
+        from Orders
+        group by customer_id, product_id) a
+    group by customer_id
+) a1 left join (
+    select o.customer_id, o.product_id, count(o.product_id) num, p.product_name
+    from Orders o left join Products p on o.product_id = p.product_id
+    group by o.customer_id, o.product_id
+) a2 on a1.customer_id = a2.customer_id and a1.max_num = a2.num
+```
+
