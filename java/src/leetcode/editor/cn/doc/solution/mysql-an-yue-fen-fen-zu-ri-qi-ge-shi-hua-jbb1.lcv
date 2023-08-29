@@ -1,0 +1,21 @@
+思路和心得：
+
+1.日期格式化
+
+2.按月份分组
+
+3.注意顾客要去重
+
+* []
+
+```mysql
+# Write your MySQL query statement below
+SELECT DATE_FORMAT(order_date, '%Y-%m') AS 'month',
+    COUNT(order_id) AS 'order_count',
+    COUNT(DISTINCT customer_id) AS 'customer_count'     #不同顾客
+FROM Orders
+WHERE invoice > 20                                      #金额大于20
+GROUP BY DATE_FORMAT(order_date, '%Y-%m')               #按月份分组
+;
+```
+
