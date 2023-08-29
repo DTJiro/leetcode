@@ -1,0 +1,31 @@
+* 
+
+```
+with a as
+(
+select paid_to as person,sum(amount) as income from transactions 
+group by paid_to 
+union all
+select paid_by as person,-sum(amount) as income from transactions
+group by paid_by
+
+)
+
+select user_id,user_name,
+ifnull(sum(income),0)+credit as credit,
+if(ifnull(sum(income),0)+credit<0,'Yes','No') as credit_limit_breached
+from a right join users on
+a.person = users.user_id
+group by person
+
+```
+
+感觉写的有点复杂……
+思想：
+第一步，因为有收入和支出两种情况，我们按照每个人分别统计收支情况，
+使用union all连接，
+然后为了方便整洁计作一个cte a；
+
+第二部，将表a按照用户分组（表a中一个用户有两行，分别对应收支，当然也有可能有用户只有一行或者一行没有），
+然后和users表right join（因为有的用户连一次 收/支 都没有），获取用户名称；
+

@@ -1,0 +1,41 @@
+### 解题思路
+
+执行用时：690 ms, 在所有 MySQL 提交中击败了80.80%的用户
+内存消耗：0 B, 在所有 MySQL 提交中击败了100.00%的用户
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with temp as 
+(
+    select * from 
+    (
+        select paid_by as p1, paid_to as p2, amount*(-1) as amount, transacted_on from Transactions
+        UNION ALL
+        select paid_to as p1, paid_by as p2, amount, transacted_on  from Transactions
+    ) a
+    order by p1, transacted_on
+
+)
+, dat as 
+(
+    select * from
+    (
+        select *, sum(amount) over(partition by p1 order by transacted_on) as bal,
+        rank() over(partition by p1 order by transacted_on desc) as rk from temp
+    ) as t
+    where rk = 1
+)
+
+select distinct b.user_id as user_id, b.user_name, b.credit + ifnull(a.bal,0) as credit, 
+case when (b.credit + ifnull(a.bal,0)) <0 then 'Yes' else 'No' end as credit_limit_breached from 
+dat a
+right join Users b
+on a.p1 = b.user_id 
+
+
+```
+

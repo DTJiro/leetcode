@@ -1,0 +1,11 @@
+* 
+
+```
+select user_id,
+user_name,
+credit+(select ifnull(sum(amount),0) from transactions t where t.paid_to=u.user_id)-(select ifnull(sum(amount),0) from transactions t where t.paid_by=u.user_id) as credit,
+(case when (credit+(select ifnull(sum(amount),0) from transactions t where t.paid_to=u.user_id)-(select ifnull(sum(amount),0) from transactions t where t.paid_by=u.user_id))<0 then 'Yes' else 'No' end) as credit_limit_breached
+
+from Users u
+```
+
