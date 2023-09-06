@@ -1,0 +1,15 @@
+仅需一次连接
+
+* mysql
+
+```mysql
+SELECT
+    t1.seller_name
+FROM
+    Seller AS t1
+LEFT JOIN Orders AS t2 ON t1.seller_id = t2.seller_id
+AND YEAR(sale_date) = '2020'
+WHERE t2.order_id IS NULL
+ORDER BY t1.seller_name
+```
+
