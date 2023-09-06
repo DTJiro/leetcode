@@ -1,0 +1,16 @@
+* 
+
+```
+with recursive cte as(
+    select 1 as n
+    union all 
+    select n+1 from cte 
+    where n<=(select max(customer_id) from Customers)-1
+)
+select n as ids
+from cte a left join Customers b
+on a.n = b.customer_id
+where b.customer_id is null
+order by ids
+```
+

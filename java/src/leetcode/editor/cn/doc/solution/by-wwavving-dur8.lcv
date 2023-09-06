@@ -1,0 +1,16 @@
+### 代码
+
+* mysql
+
+```mysql
+with recursive table1 as (
+    select 1 num
+    union all
+    select num + 1 from table1 where num<100
+)
+select num ids
+from table1
+where num not in (select customer_id from Customers) 
+    and num <= (select max(customer_id) from Customers)
+```
+
