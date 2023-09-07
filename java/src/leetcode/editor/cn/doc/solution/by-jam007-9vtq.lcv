@@ -1,0 +1,35 @@
+### 方便快速学习算法与理解~
+
+🌇 点赞 👍 收藏 ⭐留言 📝 一键三连 ~关注Jam，从你我做起！
+
+**兄弟会背叛你，女人会离开你，金钱会诱惑你，生活会刁难你，只有数学不会，不会就是不会**
+**天才与否，取决于最终达到的高度。真正的天才是那些脚踏实地的人**
+**静下心来好好做自己，走稳脚下每一步，就是最好的路，强者都是孤独的**
+
+推荐 python 算法的书籍，体系化学习算法与数据结构，用正确的方式成为offer收割机
+[leetcode](https://github.com/ls1248659692/leetcode) ——  **系统化快速学习算法，这不是内卷，这只是悄悄地努力，然后惊艳所有的人**
+
+---
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT 
+    a.student_name member_A, 
+    b.student_name member_B, 
+    c.student_name member_C
+FROM schoola a,
+     schoolb b,
+     schoolc c
+WHERE 
+    a.student_id != b.student_id
+AND b.student_id != c.student_id
+AND a.student_id != c.student_id
+AND a.student_name != b.student_name
+AND b.student_name != c.student_name
+AND a.student_name != c.student_name
+```
+
