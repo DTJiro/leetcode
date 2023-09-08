@@ -1,0 +1,52 @@
+### 解题思路
+
+1、首先我们要求求解的是12个月份，所以先构造出12个月的t1表作为备用。
+
+2、关于active_drivers，我们很自然地想到会用sum() over() 的窗口函数！但是麻烦在于求解的是2020年每个月，那么如果进行时期的直接筛选，那么2020年之前的数据就都被过滤掉了，这该怎么办呢？
+此时，我们可以想到将2020-01-31之前的所有数据进行整个汇总，而2020-01-31之后的数据进行每个月汇总，这样的话我们就可以愉快地使用sum() over ()的窗口函数啦！代码可见t2表。
+
+3、accepted_rides就比较简单了，在此不再赘述，代码见t3表。
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with t1 as (
+    select 1 mon 
+    union select 2 union select 3 union select 4 union 
+    select 5 union select 6 union select 7 union select 8 union 
+    select 9 union select 10 union select 11 union select 12
+    )
+,t2 as (
+    select 1 mon
+        ,count(driver_id) active_drivers 
+    from Drivers
+    where datediff('2020-01-31',join_date)>=0
+    union all
+    select month(join_date) mon
+        ,count(driver_id) active_drivers 
+    from Drivers
+    where datediff('2020-01-31',join_date)<0
+    and datediff('2020-12-31',join_date)>=0
+    group by 1
+    )
+,t3 as (
+    select month(requested_at) mon 
+        ,count(t4.ride_id) accepted_rides
+    from Rides t4 
+    inner join AcceptedRides t5 
+    on t4.ride_id = t5.ride_id
+    where left(requested_at,4) = '2020'
+    group by 1
+    )
+select t1.mon `month`
+   ,sum(ifnull(active_drivers,0)) over (order by t1.mon) active_drivers
+   ,ifnull(accepted_rides,0) accepted_rides
+from t1
+left join t2 on t1.mon = t2.mon 
+left join t3 on t1.mon = t3.mon
+
+```
+

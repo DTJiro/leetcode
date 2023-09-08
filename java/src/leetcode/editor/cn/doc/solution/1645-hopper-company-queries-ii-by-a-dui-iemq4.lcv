@@ -1,0 +1,38 @@
+最后9道难题啦
+
+* 
+
+```
+# Write your MySQL query statement below
+#1.构建连续月份数列
+with recursive m(n) as(
+    select 1
+    union all 
+    select n+1 from m 
+    where n<12
+)
+#4.将两表按month merge，做计算
+select n month,
+ifnull(round(acceptDrivers/availDrivers*100,2),0) as working_percentage
+from(
+    #2.表1——统计每月available的司机
+select m.n,
+sum(year(join_date)<=2019)+
+sum(year(join_date)=2020 and month(join_date)<=m.n) as availDrivers
+from m join drivers d 
+group by m.n) temp1 
+left join
+    #3.表2——统计每月有accept的不同司机id数量
+(select m.n,
+count(distinct driver_id) as acceptDrivers
+from rides r left join acceptedrides a 
+using(ride_id)
+right join m 
+on year(requested_at)=2020
+and month(requested_at) = m.n
+group by m.n) temp2 
+using(n)
+order by n
+
+```
+

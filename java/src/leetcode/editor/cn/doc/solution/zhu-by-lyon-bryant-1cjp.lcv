@@ -1,0 +1,52 @@
+### 解题思路
+
+上一题是accepted_rides！！！
+这一题是accepted_drivers！！！
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with t1 as (
+    select 1 mon 
+    union select 2 union select 3 union select 4 union 
+    select 5 union select 6 union select 7 union select 8 union 
+    select 9 union select 10 union select 11 union select 12
+    )
+,t2 as (
+    select 1 mon
+        ,count(driver_id) active_drivers 
+    from Drivers
+    where datediff('2020-01-31',join_date)>=0
+    union all
+    select month(join_date) mon
+        ,count(driver_id) active_drivers 
+    from Drivers
+    where datediff('2020-01-31',join_date)<0
+    and datediff('2020-12-31',join_date)>=0
+    group by 1
+    )
+,t3 as (
+    select month(requested_at) mon 
+        ,count(distinct t5.driver_id) accepted_drivers 
+    from Rides t4 
+    inner join AcceptedRides t5 
+    on t4.ride_id = t5.ride_id
+    where left(requested_at,4) = '2020'
+    group by 1
+    )
+select t1.mon `month`
+   ,round(
+   ifnull(
+    ifnull(accepted_drivers,0)
+    /sum(ifnull(active_drivers,0)) over (order by t1.mon) * 100
+    ,0
+   ),2
+   ) working_percentage
+from t1
+left join t2 on t1.mon = t2.mon 
+left join t3 on t1.mon = t3.mon
+```
+

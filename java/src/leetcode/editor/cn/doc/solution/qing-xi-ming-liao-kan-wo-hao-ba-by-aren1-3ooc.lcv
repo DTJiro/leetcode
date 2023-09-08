@@ -1,0 +1,52 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with t1 as (
+    select 1 month
+    union all
+    select 2 month
+    union all
+    select 3 month
+    union all
+    select 4 month
+    union all
+    select 5 month
+    union all
+    select 6 month
+    union all
+    select 7 month
+    union all
+    select 8 month
+    union all
+    select 9 month
+    union all
+    select 10 month
+    union all
+    select 11 month
+    union all
+    select 12 month
+), t2 as (
+    select if(year(join_date) < '2020', 1, month(join_date)) month, count(*) cnt
+    from drivers
+    where year(join_date) <= '2020'
+    group by month
+), t3 as (
+    select month(requested_at) month, count(ifnull(a.ride_id, null)) cnt
+    from rides r left join acceptedRides a on r.ride_id = a.ride_id
+    where year(requested_at) = '2020'
+    group by month
+)
+# select * from t3;
+select t1.month, sum(ifnull(t2.cnt, 0)) over(order by t1.month) active_drivers, ifnull(t3.cnt, 0) as accepted_rides
+from t1 
+left join t2 on t1.month = t2.month
+left join t3 on t1.month = t3.month
+```
+

@@ -1,0 +1,2 @@
+注意加层IFNULL,包含分母为0的情况。
+![图片.png](https://pic.leetcode-cn.com/1604713971-GHHYRI-%E5%9B%BE%E7%89%87.png)
