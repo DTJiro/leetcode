@@ -1,0 +1,27 @@
+![image.png](https://pic.leetcode-cn.com/1664375848-jOtgLb-image.png)
+
+### 解题思路
+
+1. 递归CTE生成1-10数列表t；
+2. t左连接Rides，以t.n between month(Rides.requested_at) -2 and month(Rides.requested_at)为条件选出t.n月及向下两个月的数据(注意年份也要加上)；
+3. 继续左连接AcceptedRides，以Rides.ride_id = Accepted Rides.ride_id为条件筛选接受订单，ifnull(round(sum()))完成计算。
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with recursive t(n) as(
+    select 1 n 
+    union all
+    select n+1 from t where n<10
+)
+
+select t.n as month, ifnull(round(sum(AcceptedRides.ride_distance)/3,2),0) as average_ride_distance, ifnull(round(sum(AcceptedRides.ride_duration)/3,2),0) as average_ride_duration
+from t
+left join Rides on t.n between month(Rides.requested_at)-2 and month(Rides.requested_at) and year(Rides.requested_at) = 2020
+left join AcceptedRides on Rides.ride_id = AcceptedRides.ride_id
+group by t.n
+```
+

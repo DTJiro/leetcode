@@ -1,0 +1,22 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with recursive g as (
+    select 1 as 'month'
+    union all
+    select g.month+1 from g where g.month<12)
+select g.month,
+round(avg(ifnull(sum(e.ride_distance),0))over(order by g.month range between current row and 2 following ),2) as average_ride_distance,
+round(avg(ifnull(sum(e.ride_duration),0))over(order by g.month range between current row and 2 following),2) as average_ride_duration
+ from g left join (
+select b.month,a.ride_distance,a.ride_duration
+from AcceptedRides a join (select c.ride_id, month(c.requested_at)  as month from Rides c where year(c.requested_at)='2020') b on a.ride_id=b.ride_id) e using(month) group by g.month order by 1 asc limit 10
+```
+

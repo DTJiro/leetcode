@@ -1,0 +1,26 @@
+这个系列里面比较简单的一道题了
+
+* 
+
+```
+# Write your MySQL query statement below
+with recursive m(n) as(
+select 1 
+union all 
+select n+1 from m 
+where n<12
+)
+
+select m.n month,
+ifnull(round(sum(ride_distance)/3,2),0) as average_ride_distance,
+ifnull(round(sum(ride_duration)/3,2),0) as average_ride_duration
+from acceptedrides a left join rides r 
+using(ride_id)
+right join m 
+on year(requested_at)=2020 
+and month(requested_at) between m.n and m.n+2 #这样写不错哦！
+group by m.n
+order by m.n
+limit 10 #用limit控制
+```
+
