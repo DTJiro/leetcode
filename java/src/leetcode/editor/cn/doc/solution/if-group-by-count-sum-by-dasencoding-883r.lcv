@@ -1,0 +1,20 @@
+这里拐了一个弯儿，需要将反过来的童话调转回去，然后就可以按照正常的分组，然后组内计算统计即可，具体做法：
+1. 使用IF 语句判断from_id/to_id的大小，第一个IF找到两个值中比较小的一个，第二个IF找到两个值中比较大的一个即可；
+2. 处理好的字段，按照维度字段 person1 person2 进行分组，然后组内统计个数以及求和即可。
+
+* 
+
+```
+-- 先将 from_id，to_id 转换为 person_1 person_2
+-- 再嵌套外层循环，按照维度字段 person1 person2 分组，然后组内计数，组内求和
+
+SELECT
+    IF(from_id > to_id,to_id,from_id) person1,
+    IF(from_id < to_id,to_id,from_id) person2,
+    COUNT(*) call_count,
+    SUM(duration) total_duration
+FROM Calls
+GROUP BY person1,person2
+
+```
+
