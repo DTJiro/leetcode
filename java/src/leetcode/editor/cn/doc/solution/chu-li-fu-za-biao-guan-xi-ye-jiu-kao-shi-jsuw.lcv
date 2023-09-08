@@ -1,0 +1,57 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+
+select month(concat(a.month,'-01')) as month,a.active_drivers,ifnull(b.cnt,0) as accepted_rides
+from (
+    select a.month,sum(a.cnt) over (order by a.month) as active_drivers
+    from 
+    (
+        with recursive cte as (
+            select (
+                select case when min_dt > '2020-01-01' 
+                            then str_to_date('2020-01-01','%Y-%m-%d')
+                            else min_dt end
+                from (
+                select min(join_date) as min_dt from Drivers) a) as m
+            union all
+            select m + interval 1 month from cte where m < str_to_date('2020-12-01','%Y-%m-%d')
+        ) 
+        select date_format(a.m,'%Y-%m') as month,
+            ifnull(b.cnt,0) as cnt
+        from cte a
+        left join (
+            select date_format(join_date,'%Y-%m') as join_date,
+            count(driver_id) as cnt
+            from Drivers
+            group by date_format(join_date,'%Y-%m')
+        ) b
+        on date_format(a.m,'%Y-%m') = b.join_date
+    ) a
+) a
+left join (
+# 接受数量
+          select date_format(a.requested_at,'%Y-%m') as month,
+          count(a.ride_id) as cnt
+          from (
+            select a.ride_id,b.requested_at
+            from AcceptedRides a
+            left join Rides b
+            on a.ride_id = b.ride_id
+          ) a
+          group by date_format(b.requested_at,'%Y-%m')
+) b
+on a.month = b.month
+where str_to_date(concat(a.month,'-01'),'%Y-%m-%d') >= '2020-01-01'
+and    str_to_date(concat(a.month,'-01'),'%Y-%m-%d') <  '2021-01-01'
+```
+
+这样的狗屎sql，要是出现在生产系统上，无法想象了。

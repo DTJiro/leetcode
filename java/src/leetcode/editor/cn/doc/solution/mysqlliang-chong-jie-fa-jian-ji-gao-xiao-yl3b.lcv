@@ -1,0 +1,110 @@
+解法一：
+
+* sql
+
+```sql
+with recursive
+    cte_month as (
+        select 1 as month
+        union all
+        select month+1 as month
+        from cte_month
+        where month<12
+    ),
+    init as (
+        select
+            @n:= (
+                select count(*)
+                from drivers
+                where year(join_date)<2020
+            )
+    )
+
+select 
+    a.month,
+    a.active_drivers,
+    coalesce(b.accepted_rides, 0) as accepted_rides
+from
+(
+    select
+        tmp.month,
+        max(@n:=@n+if(driver_id is null, 0, 1)) as active_drivers
+    from (
+        select
+            c.month,
+            d.driver_id
+        from cte_month c
+        left join drivers d on
+            c.month=month(d.join_date) and
+            year(d.join_date)=2020
+    ) tmp, init
+    group by month
+) a
+left join
+(
+    select
+        month(r.requested_at) as month,
+        count(ar.ride_id) as accepted_rides
+    from rides r
+    left join acceptedrides ar
+    using(ride_id)
+    where year(r.requested_at)=2020
+    group by month
+) b using(month)
+```
+
+解法二：
+
+* sql
+
+```sql
+with recursive
+    cte_month as (
+        select 1 as month
+        union all
+        select month+1 as month
+        from cte_month
+        where month<12
+    ),
+    init as (
+        select
+            @n:= (
+                select count(*)
+                from drivers
+                where year(join_date)<2020
+            )
+    )
+
+select 
+    a.month,
+    a.active_drivers,
+    coalesce(b.accepted_rides, 0) as accepted_rides
+from
+(
+    select
+        c.month,
+        @n:=@n + coalesce(d.active_drivers, 0) as active_drivers
+    from cte_month c
+    left join
+    (
+        select
+            month(join_date) as month,
+            count(*) as active_drivers
+        from drivers
+        where year(join_date)=2020
+        group by month
+    ) d using(month), init
+) a
+left join
+(
+    select
+        month(r.requested_at) as month,
+        count(ar.ride_id) as accepted_rides
+    from rides r
+    left join acceptedrides ar
+    using(ride_id)
+    where year(r.requested_at)=2020
+    group by month
+) b using(month)
+```
+

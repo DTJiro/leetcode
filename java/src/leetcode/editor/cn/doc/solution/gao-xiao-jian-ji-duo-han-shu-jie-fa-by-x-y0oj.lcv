@@ -1,0 +1,31 @@
+**# 解题思路**
+兜兜转转的，这道题我做的方法非常考验对mysql时间日期函数的了解和搭配，我自己在使用的过程中也发现了很多自己这方面的漏洞，比如：
+1.递归函数中的n必须在显示字段中，n可以进行运算，但是不能加引号，一般和其他字段组合使用时要用concat连接；
+2.datediff或者timestampdiff中如果用嵌套产生的日期，他不会被识别，会返回null，所以我把每个月月底的时间放到通用表表达式的递归函数里产生，下面再直接用别名引用的时候，就不会产生错误；
+3.计算司机人数时，使用笛卡尔进行不等值连接的条件不足，会计算出错误的数值，所以用的left join；
+4.group by 遇到多表连接有同名字段时要特别注意，虽然可以但不要直接引用最后的列别名month，因为会因为连接字段也存在同名month的原因产生错误
+**# 代码**
+
+* 
+
+```
+with recursive cte(n,lastday) as (
+select 1,last_day(str_to_date(concat(2020,1),'%Y%c')) as lastday
+union
+select n+1,last_day(str_to_date(concat(2020,n+1),'%Y%c')) as lastday from cte where n<12)
+select a.n as month,
+ifnull(count(b.driver_id),0) as active_drivers,
+ifnull(accepted_rides,0) as accepted_rides
+from cte a left join Drivers b on datediff(lastday,join_date)>=0 
+           left join 
+(select month(requested_at) as month,
+        count(driver_id) as accepted_rides
+from Rides c left join AcceptedRides d using(ride_id)
+where year(requested_at)=2020
+group by month(requested_at) ) e on a.n=e.month
+group by a.n;
+```
+
+![1639514609(1).jpg](https://pic.leetcode-cn.com/1639514628-HWIbNf-1639514609(1).jpg)
+执行效率还行
+
