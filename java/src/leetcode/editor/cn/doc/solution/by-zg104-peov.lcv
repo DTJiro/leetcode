@@ -1,0 +1,35 @@
+![1747.png](https://pic.leetcode.cn/1669881155-MGtlcS-1747.png)
+
+公众号：鲸析
+小红书：鲸鲸说数据
+SQL刷题笔记：https://docs.qq.com/sheet/DRUtTaE5wUHVLcVNN?tab=BB08J2
+
+#### 思路
+
+首先，本题目不好找突破口，乍一看看不出来用的什么方法。
+
+那么，根据题意，我们要寻找同一个账户id里面的不同ip地址下的登录和登出时间是否有交集。
+
+也就等于我们要用相同列，但是不同行的login或者logout来去比较大小。
+
+这个是典型的【自连接】的题目！
+
+- 613. 直线上的最近距离
+- 612. 平面上的最近距离
+
+这两道题的思路是一样的！
+
+视频解析：https://www.bilibili.com/video/BV1gR4y1y7sm?t=3.2
+
+#### 答案
+
+* sql
+
+```sql
+select distinct a.account_id
+from LogInfo a,LogInfo b
+where a.account_id = b.account_id
+and a.ip_address != b.ip_address
+and a.logout between b.login and b.logout 
+```
+

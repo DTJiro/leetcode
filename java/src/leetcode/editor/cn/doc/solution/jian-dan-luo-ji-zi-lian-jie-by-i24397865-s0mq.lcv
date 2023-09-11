@@ -1,0 +1,14 @@
+该方法的逻辑十分简单直接
+
+* 
+
+```
+SELECT DISTINCT a.account_id AS account_id  -- 封他！
+FROM LogInfo a, LogInfo b
+WHERE a.account_id = b.account_id  -- 某个用户
+    AND a.ip_address != b.ip_address -- 异地登陆
+    AND a.logout <= b.logout  -- 其中一个还没下线
+    AND b.login <= a.logout  -- 另一个就登上来了
+;
+```
+
