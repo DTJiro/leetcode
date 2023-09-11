@@ -1,0 +1,126 @@
+![back.png](https://pic.leetcode.cn/1683706022-gTyGPc-back.png)
+
+# [1709. 访问日期之间最大的空档期](https://leetcode.cn/problems/biggest-window-between-visits/)
+
+## 思路
+
+这道题的核心是相邻日期相减，那么这个首先想到的就是lead或者lag，这里我们用lead，lead就是将现在的列错位向上一个格
+
+当给定的数据为：
+
+* 
+
+```
+UserVisits 表：
++---------+------------+
+| user_id | visit_date |
++---------+------------+
+| 1       | 2020-11-28 |
+| 1       | 2020-10-20 |
+| 1       | 2020-12-3  |
+| 2       | 2020-10-5  |
+| 2       | 2020-12-9  |
+| 3       | 2020-11-11 |
++---------+------------+
+```
+
+我们直接使用lead向上调整一个格数据变为
+
+* 
+
+```
++---------+------------+-----------------+
+| user_id | visit_date | next_visit_date |
++---------+------------+-----------------+
+| 1       | 2020-10-20 | 2020-11-28      |
+| 1       | 2020-11-28 | 2020-12-03      |
+| 1       | 2020-12-03 | NULL            |
+| 2       | 2020-10-05 | 2020-12-09      |
+| 2       | 2020-12-09 | NULL            |
+| 3       | 2020-11-11 | NULL            |
++---------+------------+-----------------+
+```
+
+发现这里有null，但是人家说了最后的默认值是 **'2021-01-01'**。
+
+所以我们想得到
+
+![image.png](https://pic.leetcode.cn/1683706809-YVaCdR-image.png)
+
+**如何实现？**
+
+很简单！先介绍下`LEAD()` 函数的基本语法
+
+* sql
+
+```sql
+LEAD (expression, offset, default) 
+OVER (PARTITION BY partition_expression ORDER BY sort_expression)
+```
+
+其中，参数的含义如下：
+
+- `expression`：指定要获取下一行值的表达式或列。
+- `offset`：指定相对于当前行的偏移量，表示要获取的下一行的位置。默认为 1，表示下一行。
+- `default`：可选参数，指定当下一行不存在时要返回的默认值。如果未提供默认值，则默认为 NULL。
+- `PARTITION BY`：可选子句，用于指定分区表达式，以便在每个分区内对结果集进行分组。如果省略该子句，则不进行分区。
+- `ORDER BY`：指定排序表达式，以确定结果集中行的顺序。
+
+这里的default参数写为2021-01-01即可！
+
+然后就是日期相减，不能直接用减号，用`datediff()`即可！
+
+## 答案
+
+* sql
+
+```sql
+-- Select user_id and calculate the maximum difference in days between next_visit_date and visit_date as biggest_window
+SELECT
+    user_id,
+    max(datediff(next_visit_date,visit_date)) biggest_window
+FROM (
+  -- Select user_id, visit_date, and use LEAD function to get the next_visit_date with a default value of '2021-01-01' within each user_id partition, ordered by visit_date
+  SELECT
+    user_id,
+    visit_date,
+    LEAD(visit_date, 1, '2021-01-01') OVER (PARTITION BY user_id ORDER BY visit_date) AS next_visit_date
+  FROM
+    UserVisits
+) AS subquery
+-- Group the result by user_id
+GROUP BY user_id
+-- Order the result by user_id
+ORDER BY user_id;
+```
+
+## 补充
+
+==DATEDIFF() 用法：==
+
+DATEDIFF() 函数用于计算两个日期之间的天数差值。它接受两个日期作为参数，并返回它们之间的天数差。
+
+以下是 DATEDIFF() 函数的语法：
+
+* 
+
+```
+DATEDIFF(end_date, start_date)
+```
+
+- `end_date`：结束日期，较晚的日期。
+- `start_date`：开始日期，较早的日期。
+
+函数返回值为一个整数，表示结束日期和开始日期之间的天数差值。
+
+以下是一个使用 DATEDIFF() 函数的示例：
+
+* sql
+
+```sql
+SELECT DATEDIFF('2023-05-10', '2023-04-30');
+```
+
+我们计算了从 '2023-04-30' 到 '2023-05-10' 之间的天数差值。函数返回值为 10，表示这两个日期之间相隔了 10 天。
+
+DATEDIFF() 函数对于计算两个日期之间的天数差值非常方便，但它只计算日期之间的天数，不考虑时间部分!

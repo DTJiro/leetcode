@@ -1,0 +1,35 @@
+### 解题思路
+
+知识点：
+向上窗口函数lead：取出字段名所在的列，向上N行的数据，作为独立的列
+向下窗口函数lag：取出字段名所在的列，向下N行的数据，作为独立的列
+
+lag(字段名,N,默认值) over(partion by …order by …)
+lead(字段名,N,默认值) over(partion by …order by …)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+#For example, by using the LEAD() function, from the current row, you can access data of the next row, or the second row that follows the current row, or the third row that follows the current row, and so on  使用lead函数可以在当前行访问第二行，第三行数据。。
+#1.使用lead将当前行后面visit_date数据 往前 放置一行 作为单独的列 
+#按照用户id分组按照visit_date 升序排序
+#select user_id,visit_date,lead(visit_date,1,'2021-01-01') over(partition by user_id order by visit_date) ld from UserVisits
+#放 with as 
+ with t as (
+     select user_id,visit_date,lead(visit_date,1,'2021-01-01') over(partition by user_id order by visit_date) ld from UserVisits
+ )
+#2.计算各个日期之间的差距，注意！不是使用-，而是使用datediff函数 函数第一个是大的日期，第二个是小的日期
+#select user_id,datediff(ld,visit_date) as df from t
+#3.结果 按照用户分组 选择差最大的即可
+select user_id,max(df) as biggest_window from (
+  select user_id,datediff(ld,visit_date) as df from t
+) tmp group by user_id
+
+
+
+
+```
+

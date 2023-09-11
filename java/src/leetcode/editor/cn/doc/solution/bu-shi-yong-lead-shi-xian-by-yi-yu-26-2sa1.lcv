@@ -1,0 +1,41 @@
+看到这个题 我们很容易就能想到下面的写法，求出所有的可能
+
+* 
+
+```
+select 
+        u1.user_id, 
+        u1.visit_date as visit_date1, 
+        ifnull(u2.visit_date, "2021-1-1") as visit_date2, 
+        datediff(ifnull(u2.visit_date, "2021-1-1"), u1.visit_date) as gap
+    from UserVisits u1 left join UserVisits u2 on u1.user_id = u2.user_id and u1.visit_date < u2.visit_date
+```
+
+![image.png](https://pic.leetcode.cn/1673702819-VstIbV-image.png)
+
+结果中包含了正确的答案，但是也有错误的数据，怎么过滤掉错误的数据？
+
+本题求的是空档期天数，即两个日期之间的间隔天数，结果中的 `2020-10-20` 有两个 gap， 时间段为 `2020-10-20` ~ `2020-11-28`, `2020-10-20` ~ `2020-12-03`, 第二个时间段包含了第一个时间段的时间，而我们要求的空档期，是两个相邻时间的间隔天数，所以如果对于 user_id、visit_date 维度下，存在多个 gap，那么其中最小的一个 gap 便是符合题意的间隔天数。
+
+* 
+
+```
+with temp as 
+(
+    select 
+        u1.user_id, 
+        u1.visit_date as visit_date1, 
+        ifnull(u2.visit_date, "2021-1-1") as visit_date2, 
+        datediff(ifnull(u2.visit_date, "2021-1-1"), u1.visit_date) as gap
+    from UserVisits u1 left join UserVisits u2 on u1.user_id = u2.user_id and u1.visit_date < u2.visit_date
+)
+
+select user_id, max(biggest_window) biggest_window
+from (
+    select user_id, visit_date1, min(gap) biggest_window 
+    from temp
+    group by user_id, visit_date1
+) a group by user_id
+
+```
+
