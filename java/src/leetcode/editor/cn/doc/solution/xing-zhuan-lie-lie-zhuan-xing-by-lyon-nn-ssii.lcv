@@ -1,0 +1,41 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select product_id
+    ,max(case when store = 'store1' then price else null end) store1 
+    ,max(case when store = 'store2' then price else null end) store2 
+    ,max(case when store = 'store3' then price else null end) store3
+from Products
+group by 1
+```
+
+【小结】行专列，列转行
+行列转换就是如下图所示两种展示形式的互相转换：
+（上表/行表：student1；下表/列表：student2）
+![未命名图片.png](https://pic.leetcode-cn.com/1627439649-gtpArU-%E6%9C%AA%E5%91%BD%E5%90%8D%E5%9B%BE%E7%89%87.png)
+
+【行转列——MAX/SUM+CASE WHEN+GROUP BY】
+SELECT name,
+MAX(CASE WHEN subject='语文' THEN score ELSE 0 END) AS "语文",
+MAX(CASE WHEN subject='数学' THEN score ELSE 0 END) AS "数学",
+MAX(CASE WHEN subject='英语' THEN score ELSE 0 END) AS "英语"
+FROM student1
+GROUP BY name
+
+【列转行——MAX+UNION+GROUP BY】
+SELECT NAME,'语文' AS subject,MAX("语文") AS score
+FROM student2 GROUP BY NAME
+UNION
+SELECT NAME,'数学' AS subject,MAX("数学") AS score
+FROM student2 GROUP BY NAME
+UNION
+SELECT NAME,'英语' AS subject,MAX("英语") AS score
+FROM student2 GROUP BY NAME
+

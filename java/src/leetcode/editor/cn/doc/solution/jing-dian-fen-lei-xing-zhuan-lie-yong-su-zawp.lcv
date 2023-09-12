@@ -1,0 +1,60 @@
+题目如下：
+![1777.jpg](https://pic.leetcode-cn.com/1617253744-QPXpGw-1777.jpg)
+
+两种解法：
+
+第一种行转列，如果product没有在对应的商店出现，则记为null值。注意这里用group by做聚合时，sum会把每个product的price相加，sum中加入if的作用就是限定对应store的price可以被加，如果不符合条件就输出null，而在sum中如果含有null值则会直接输出Null
+
+* sql
+
+```sql
+select
+    product_id,
+    sum(if(store='store1',price,null)) store1,
+    sum(if(store='store2',price,null)) store2,
+    sum(if(store='store3',price,null)) store3
+from
+    Products
+group by
+    1
+```
+
+第二种解法是穷举所有的store记录，用left join联立Products表
+
+* sql
+
+```sql
+select
+    distinct p.product_id, a.price store1, b.price store2, c.price store3
+from
+    Products p
+left join 
+    (select * from Products where store = 'store1') a on p.product_id = a.product_id
+left join
+    (select * from Products where store = 'store2') b on p.product_id = b.product_id
+left join
+    (select * from Products where store = 'store3') c on p.product_id = c.product_id
+```
+
+这里用group by去重会比distinct更快一点：
+
+* sql
+
+```sql
+select
+    p.product_id,
+    a.price store1,
+    b.price store2,
+    c.price store3
+from
+    Products p
+left join 
+    (select * from Products where store = 'store1') a on p.product_id = a.product_id
+left join
+    (select * from Products where store = 'store2') b on p.product_id = b.product_id
+left join
+    (select * from Products where store = 'store3') c on p.product_id = c.product_id
+group by
+    1
+```
+
