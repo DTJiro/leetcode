@@ -1,0 +1,32 @@
+### 解题思路
+
+题目不考虑年份，只考虑总计的得奖数，先将不同比赛的得奖记录汇集在一列,作为临时表t
+![image.png](https://pic.leetcode-cn.com/1637387854-AupXbA-image.png)
+指定连接键为 player_id = wimbledon 将两表内连接
+![image.png](https://pic.leetcode-cn.com/1637388038-KTCTQv-image.png)
+分组计数即可
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select 
+    p.player_id,p.player_name,count(*) as grand_slams_count 
+from
+    players as p inner join 
+    (select wimbledon from championships
+    union all
+    select fr_open from championships
+    union all 
+    select us_open from championships
+    union all
+    select au_open from championships) as t
+on 
+    p.player_id = t.wimbledon
+group by 
+    p.player_id
+
+```
+

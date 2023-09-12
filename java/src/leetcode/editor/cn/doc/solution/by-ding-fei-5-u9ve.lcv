@@ -1,0 +1,12 @@
+![image.png](https://pic.leetcode-cn.com/1663085919-RjunWb-image.png)
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT p.player_id, p.player_name, SUM(p.player_id = c.Wimbledon) + SUM(p.player_id = c.Fr_open) + SUM(p.player_id = c.US_open) + SUM(p.player_id = c.Au_open) grand_slams_count 
+FROM Championships c, Players p
+GROUP BY p.player_id
+HAVING grand_slams_count > 0
+```
+

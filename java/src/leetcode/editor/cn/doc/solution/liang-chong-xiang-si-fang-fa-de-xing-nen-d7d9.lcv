@@ -1,0 +1,64 @@
+### **仔细体会两种方法的性能差异，面试中应尽量写出高性能的代码**
+
+1、
+
+* 
+
+```
+# Write your MySQL query statement below
+SELECT temp.player_id AS player_id
+      ,p.player_name AS player_name
+      ,COUNT(1) AS grand_slams_count
+FROM (
+    SELECT Wimbledon AS player_id
+    FROM Championships
+        UNION ALL
+    SELECT Fr_open AS player_id
+    FROM Championships
+        UNION ALL
+    SELECT US_open AS player_id
+    FROM Championships
+        UNION ALL
+    SELECT Au_open AS player_id
+    FROM Championships    
+) AS temp
+LEFT JOIN Players p
+ON temp.player_id = p.player_id
+GROUP BY temp.player_id
+```
+
+![image.png](https://pic.leetcode.cn/1685543155-mScgkd-image.png)
+
+2、
+
+* 
+
+```
+# Write your MySQL query statement below
+SELECT temp1.player_id AS player_id
+      ,temp1.grand_slams_count AS grand_slams_count
+      ,p.player_name AS player_name
+FROM (
+    SELECT player_id
+          ,COUNT(1) AS grand_slams_count
+    FROM (
+        SELECT Wimbledon AS player_id
+        FROM Championships
+            UNION ALL
+        SELECT Fr_open AS player_id
+        FROM Championships
+            UNION ALL
+        SELECT US_open AS player_id
+        FROM Championships
+            UNION ALL
+        SELECT Au_open AS player_id
+        FROM Championships    
+    ) AS temp
+    GROUP BY temp.player_id    
+) AS temp1
+LEFT JOIN Players p
+ON temp1.player_id = p.player_id
+```
+
+![image.png](https://pic.leetcode.cn/1685543178-VIBGbP-image.png)
+
