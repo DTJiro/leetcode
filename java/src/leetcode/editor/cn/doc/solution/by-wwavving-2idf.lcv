@@ -1,0 +1,25 @@
+![image.png](https://pic.leetcode.cn/1672496347-TGpbGM-image.png)
+
+### 解题思路
+
+1. with recursive循环生成完整表
+2. 剔除已经存在的对
+
+### 代码
+
+* mysql
+
+```mysql
+with recursive table1 as (
+    select task_id, subtasks_count subtask_id from Tasks
+    union all
+    select task_id, subtask_id-1 from table1 where subtask_id > 1
+)
+select 
+    task_id, 
+    subtask_id
+from table1
+left join Executed E using(task_id, subtask_id)
+where E.task_id is null
+```
+

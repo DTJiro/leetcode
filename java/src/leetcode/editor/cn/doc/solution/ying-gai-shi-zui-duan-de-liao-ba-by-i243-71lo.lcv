@@ -1,0 +1,46 @@
+### 解题思路
+
+    首先用递归构建一个包含所有元素的临时表，
+    再用 NOT IN 筛选出未在完成列表里的任务队
+
+### 纯享版代码
+
+* 
+
+```
+WITH RECURSIVE TT(task_id, subtask_id) AS (
+    SELECT task_id, subtasks_count FROM Tasks
+        UNION
+    SELECT task_id, (subtask_id-1) AS subtasks_count 
+    FROM TT 
+    WHERE subtask_id >= 2
+)
+
+SELECT * FROM TT
+WHERE (task_id, subtask_id) NOT IN ( SELECT * FROM Executed )
+```
+
+### 讲解版代码
+
+* 
+
+```
+-- 为了让临时表实现自增长，
+-- 首先声明其需要存在的列名(task_id, subtask_id)
+WITH RECURSIVE TT(task_id, subtask_id) AS (
+    -- 先引入一行数据作为自增长的基础
+    SELECT task_id, subtasks_count FROM Tasks
+        -- 再让新形成的行加入到现有的表中
+        UNION
+    -- 新加入的行的逻辑是上一个形成的 id-1
+    -- 因为最初的一行是以最大值给出的
+    SELECT task_id, (subtask_id-1) AS subtasks_count 
+    FROM TT --（引用自身）
+    -- 这样就会截至在 id=1
+    WHERE subtask_id >= 2 
+)
+
+SELECT * FROM TT
+WHERE (task_id, subtask_id) NOT IN ( SELECT * FROM Executed )
+```
+

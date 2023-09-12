@@ -1,0 +1,21 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+#1.使用recursive递归列出每个主task的subtask_id,subtasks_count代表最大的subtask_id，然后每次递归subtask_id减去1 直到subtask_id为1
+with recursive t(task_id,subtask_id) as(
+    select task_id,subtasks_count from Tasks
+    union all
+    select task_id,subtask_id-1 from t where subtask_id-1>0
+)
+#2.连接Executed 获取 没有执行任务对
+select t.task_id,t.subtask_id from t left join Executed e using(task_id,subtask_id) where e.subtask_id is null
+```
+
