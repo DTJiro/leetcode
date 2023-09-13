@@ -1,0 +1,54 @@
+![back.png](https://pic.leetcode.cn/1669190411-XMBpel-back.png)
+
+#### 思路
+
+从"Playback"表中选择了在每个"customer_id"的指定时间范围内没有广告（ad_id为NULL）的不重复"session_id"值即可
+
+#### 答案
+
+* sql
+
+```sql
+select
+     session_id
+from Playback t1
+left join ads t2
+using(customer_id)
+group by 1
+having sum(case when timestamp between start_time and end_time then 0 else 1 end) = count(1);
+```
+
+* sql
+
+```sql
+
+<!-- 错误答案 -->
+select distinct session_id
+from playback as p left join ads as a using(customer_id)
+where and a.timestamp<p.start_time or a.timestamp>p.end_time
+<!-- 这个错误点在于：比如Ads中有一条记录满足了a.timestamp<p.start_time or a.timestamp>p.end_time这个条件，那么这个session_id就会出现在结果集中，即使Ads中有另一条记录说明这个session_id存在广告 -->
+
+
+select
+    distinct session_id
+from Playback t1
+left join ads t2
+on
+    t1.customer_id = t2.customer_id and t2.timestamp between t1.start_time and t1.end_time
+where
+    ad_id is null;
+```
+
+* sql
+
+```sql
+select session_id
+from playback
+where session_id not in (
+    select distinct session_id
+    from playback p join ads a 
+    on p.customer_id=a.customer_id 
+    where timestamp between start_time and end_time
+)
+```
+

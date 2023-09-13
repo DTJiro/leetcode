@@ -1,0 +1,17 @@
+### 解题思路
+
+因为有`P.customer_id = A.customer_id and timestamp between start_time and end_time`限制，但凡该customer_id有一次是有广告的都会被收进去，而没有广告的会被排除在外，因此最终的联合表中字段ad_id、timestamp是null的数据都是一次广告都没有出现的
+
+### 代码
+
+* mysql
+
+```mysql
+select distinct 
+    session_id 
+from Playback P
+left join Ads A 
+on P.customer_id = A.customer_id and timestamp between start_time and end_time
+where timestamp is null
+```
+

@@ -1,0 +1,22 @@
+思路和心得：
+
+1.先找出有广告的剧集
+
+2.not in
+
+* []
+
+```mysql
+# Write your MySQL query statement below
+SELECT session_id
+FROM Playback
+WHERE session_id NOT IN(
+    SELECT session_id           #有广告的剧集id
+    FROM Playback AS p1
+        INNER JOIN Ads AS a1
+            ON p1.customer_id = a1.customer_id
+    WHERE a1.timestamp BETWEEN p1.start_time AND p1.end_time
+)
+;
+```
+

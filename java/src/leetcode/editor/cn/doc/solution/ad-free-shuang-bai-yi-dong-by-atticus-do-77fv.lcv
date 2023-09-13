@@ -1,0 +1,23 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+-- select session_id
+-- from Playback p join ads a
+-- where p.customer_id=a.customer_id and timestamp between start_time and end_time
+
+select session_id
+from Playback
+where session_id not in (
+    select session_id
+    from Playback p join ads a
+    where p.customer_id=a.customer_id and timestamp between start_time and end_time
+)
+```
+
