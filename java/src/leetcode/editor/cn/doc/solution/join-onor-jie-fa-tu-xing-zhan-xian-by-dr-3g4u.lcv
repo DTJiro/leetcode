@@ -1,0 +1,7 @@
+* 
+
+```
+FROM Teams JOIN Matches ON team_id=home_team_id OR team_id=away_team_id
+```
+
+![屏幕截图 2021-12-12 232541.png](https://pic.leetcode-cn.com/1639322813-DkYVYE-%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202021-12-12%20232541.png)
