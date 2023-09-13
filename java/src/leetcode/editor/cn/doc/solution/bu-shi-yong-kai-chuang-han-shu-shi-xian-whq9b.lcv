@@ -1,0 +1,26 @@
+1. 因为我们返回的每天最大交易金额数据可能有多条，所以需要先查出每天最大的交易金额，方便后面进行比对
+
+* 
+
+```
+select date_format(day, '%Y-%m-%d'), max(amount)
+from Transactions 
+group by date_format(day, '%Y-%m-%d')
+```
+
+2. 查出每天交易金额等于最大金额的订单id：只要日期和金额对得上最大的就可以了
+
+* 
+
+```
+select transaction_id
+from Transactions
+where (date_format(day, '%Y-%m-%d'), amount) in (
+    select date_format(day, '%Y-%m-%d'), max(amount)
+    from Transactions 
+    group by date_format(day, '%Y-%m-%d')
+)
+group by transaction_id
+order by transaction_id
+```
+

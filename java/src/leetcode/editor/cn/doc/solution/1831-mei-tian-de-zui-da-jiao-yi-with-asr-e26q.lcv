@@ -1,0 +1,17 @@
+### 解题思路
+
+注意点就是：分组的时候不能直接 partition by day 需要使用 day()函数 或者 date_format（）转一下格式
+1.先获取按时间天分组的金额由大到小的排名表
+2.查询排名第一的
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with a as(
+select transaction_id,amount,day,rank() over(partition by date_format(day,'%Y-%m-%D') order by amount desc) as rk from Transactions)
+select transaction_id from a where rk=1 order by transaction_id
+```
+

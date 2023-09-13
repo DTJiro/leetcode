@@ -1,0 +1,15 @@
+这道题应该是直接用in效率最高，毕竟只需要top1就行且不需要去重
+
+* 
+
+```
+SELECT
+    transaction_id
+FROM transactions
+WHERE (DATE(day), amount) in (
+    SELECT DATE(day), MAX(amount)
+    FROM transactions GROUP BY DATE(day)
+)
+ORDER BY 1;
+```
+
