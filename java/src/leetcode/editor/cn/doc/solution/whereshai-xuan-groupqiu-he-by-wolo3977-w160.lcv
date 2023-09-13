@@ -1,0 +1,25 @@
+> Problem: [1821. 寻找今年具有正收入的客户](https://leetcode.cn/problems/find-customers-with-positive-revenue-this-year/description/)
+
+[TOC]
+
+# 思路
+
+WHERE筛选出year=2021的记录，对筛选记录中id相等记录进行求和
+
+# Code
+
+* []
+
+```MySQL
+
+SELECT
+    customer_id
+FROM
+    customers
+WHERE
+    year = 2021
+GROUP BY
+    customer_id
+HAVING sum(revenue)>0
+```
+

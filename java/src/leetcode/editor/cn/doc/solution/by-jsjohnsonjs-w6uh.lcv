@@ -1,0 +1,15 @@
+### 解题思路
+
+简单判断
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select t.customer_id
+    from customers t
+        where t.year = '2021' and t.revenue > 0;
+```
+
