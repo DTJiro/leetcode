@@ -1,0 +1,32 @@
+* 
+
+```
+WITH TT AS ( -- 构建一个看每人每年是否得奖的表格
+    SELECT Users.user_id AS user_id, 
+           Contests.contest_id AS contest_id, 
+           1 AS got_medal
+    FROM Users, Contests
+    WHERE gold_medal = Users.user_id
+     OR silver_medal = Users.user_id
+     OR bronze_medal = Users.user_id
+    ORDER BY Users.user_id, Contests.contest_id )
+
+SELECT name, mail
+FROM Users
+WHERE user_id IN (
+    -- 查询得过三次金奖的人
+    SELECT gold_medal
+    FROM Contests
+    GROUP BY gold_medal
+    HAVING COUNT(*) >= 3
+        UNION
+    -- 查询连续三年得奖的人
+    SELECT DISTINCT a.user_id
+    FROM TT a, TT b, TT c
+    WHERE a.user_id = b.user_id
+      AND b.user_id = c.user_id
+      AND a.contest_id + 1 = b.contest_id
+      AND b.contest_id + 1 = c.contest_id  )
+;
+```
+

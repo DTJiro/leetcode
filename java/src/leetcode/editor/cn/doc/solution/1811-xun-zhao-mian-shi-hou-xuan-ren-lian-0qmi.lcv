@@ -1,0 +1,41 @@
+### 解题思路
+
+这道题的解决方法参考这里
+https://leetcode-cn.com/problems/consecutive-numbers/solution/180-lian-xu-chu-xian-de-shu-zi-chuang-ko-zc9k/
+
+本质上是要构造新的一列，这一列的数据和日期/比赛场次相减以后，如果连续，那么会得到相同的结果
+
+步骤：
+按照 user_id分区，在分区内按照 contest_id 排序，得到新的一列 rr。这样做的目的是，如果一个人在比赛中连续得奖，那么 (contest_id - r + 1) 对于这几场连续的比赛的值应该是相同的。 这一步是整件事情的核心，找到这样一个“只要连续，那么数值相同”的值，就可以用它进行 gorup by，然后 having count。
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with cte1 as (select gold_medal as user_id
+              from Contests
+              group by gold_medal
+              having count(gold_medal)>=3),
+     cte2 as (select contest_id, user_id,
+                     row_number() over(partition by user_id order by contest_id) as r
+              from(
+                  select contest_id, gold_medal as user_id from Contests
+                  union all
+                  select contest_id, silver_medal from Contests
+                  union all
+                  select contest_id, bronze_medal from Contests) as temp)
+
+select name, mail
+from (
+    select user_id
+    from cte2
+    group by (contest_id-r+1), user_id
+    having count(contest_id-r+1)>=3
+    union
+    select * from cte1) as tem
+left join Users
+using(user_id)
+```
+
