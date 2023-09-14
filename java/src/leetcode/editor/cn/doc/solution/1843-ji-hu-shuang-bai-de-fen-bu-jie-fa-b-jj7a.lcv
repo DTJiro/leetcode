@@ -1,0 +1,24 @@
+![WX20210504-092030@2x.png](https://pic.leetcode-cn.com/1620091282-MMOZlJ-WX20210504-092030@2x.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+WITH base AS (
+		SELECT account_id, DATE_FORMAT(day, '%Y%m') AS yearmonth
+		FROM Transactions
+			JOIN Accounts USING (account_id)
+		WHERE type = 'Creditor'
+		GROUP BY account_id, DATE_FORMAT(day, '%Y%m')
+		HAVING SUM(amount) > AVG(max_income)
+	)
+SELECT DISTINCT account_id
+FROM base
+WHERE (account_id, PERIOD_ADD(yearmonth, 1)) IN (
+	SELECT account_id, yearmonth
+	FROM base
+)
+```
+
