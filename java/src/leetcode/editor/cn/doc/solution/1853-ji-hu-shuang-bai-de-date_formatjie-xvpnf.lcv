@@ -1,0 +1,11 @@
+![WX20210514-084204.png](https://pic.leetcode-cn.com/1620952954-cQPhfv-WX20210514-084204.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT date_format(day, '%W, %M %e, %Y') AS day FROM days
+```
+
