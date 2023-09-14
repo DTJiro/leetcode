@@ -1,0 +1,20 @@
+* 
+
+```
+# Write your MySQL query statement below
+select user_id,page_id,count( frid) as friends_likes from (
+select user1_id as user_id,page_id,user_id as frid  from Friendship a,
+Likes b
+where user2_id=user_id or user1_id=user_id
+union 
+select user2_id as user_id,page_id,user_id as frid from Friendship a,
+Likes b
+where user1_id=user_id or user2_id=user_id
+) c
+group by user_id,page_id
+having 
+count(if(user_id=frid,1,null))=0
+order by user_id
+```
+
+是不是因为用了having的问题，很卡。。。

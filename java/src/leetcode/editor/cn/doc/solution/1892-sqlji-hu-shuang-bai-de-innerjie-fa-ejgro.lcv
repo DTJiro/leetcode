@@ -1,0 +1,27 @@
+![WX20210622-230500@2x.png](https://pic.leetcode-cn.com/1624374331-eZFoRQ-WX20210622-230500@2x.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT f.user1_id AS user_id, l.page_id, COUNT(*) AS friends_likes
+FROM (
+	SELECT user1_id, user2_id
+	FROM Friendship
+	UNION
+	SELECT user2_id, user1_id
+	FROM Friendship
+) f
+	INNER JOIN Likes l ON f.user2_id = l.user_id
+WHERE NOT EXISTS (
+	SELECT *
+	FROM Likes
+	WHERE user_id = f.user1_id
+		AND page_id = l.page_id
+)
+GROUP BY f.user1_id, l.page_id
+
+```
+

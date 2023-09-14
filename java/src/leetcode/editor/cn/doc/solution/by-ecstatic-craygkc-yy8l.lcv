@@ -1,0 +1,32 @@
+![image.png](https://pic.leetcode-cn.com/1664462582-VGJfzH-image.png)
+
+### 解题思路
+
+第一次遇见优化的问题，学习到了in/not in 和exists/not exists的一些用法。
+看了上面很多大神的分享，在not in和not exists的选择上面基本奉行一个逻辑：
+
+如果子查询所在表大于本表，使用exists/not exists比较高效。反之亦然。
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+select a.user_id, l.page_id, count(distinct a.friend_id) as friends_likes
+from 
+    (select user1_id as user_id, user2_id as friend_id from Friendship
+    union all
+    select user2_id as user_id, user1_id as friend_id from Friendship) a 
+inner join Likes l
+on a.friend_id = l.user_id
+where not exists (
+    select * 
+    from likes 
+    where a.user_id = likes.user_id and l.page_id = likes.page_id
+)
+group by a.user_id, l.page_id
+
+```
+

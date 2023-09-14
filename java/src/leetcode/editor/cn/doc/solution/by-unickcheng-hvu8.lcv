@@ -1,0 +1,63 @@
+CASE 1 NOT EXISTS 方法（推荐）
+
+* SQL
+
+```SQL
+SELECT T1.u1 user_id, T2.page_id, COUNT(1) friends_likes
+FROM (
+    SELECT user1_id u1, user2_id u2 FROM Friendship
+    UNION 
+    SELECT user2_id u1, user1_id u2 FROM Friendship
+) T1
+INNER JOIN Likes T2 ON T2.user_id = T1.u2
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM Likes
+    WHERE user_id = T1.u1 AND page_id = T2.page_id
+)
+GROUP BY T1.u1, T2.page_id
+ORDER BY T1.u1
+```
+
+CASE 2
+
+* SQL
+
+```SQL
+SELECT T1.user_id, T1.page_id, T1.friends_likes
+FROM (
+    SELECT TA.u1 user_id, TB.page_id, COUNT(distinct TA.u2) friends_likes
+    FROM (
+        SELECT user1_id u1, user2_id u2 FROM Friendship
+        UNION 
+        SELECT user2_id u1, user1_id u2 FROM Friendship 
+    ) TA
+    INNER JOIN Likes TB ON TB.user_id = TA.u2
+    GROUP BY TA.u1, TB.page_id
+) T1
+LEFT JOIN Likes T2 ON (T1.user_id, T1.page_id) = (T2.user_id, T2.page_id)
+WHERE T2.page_id IS NULL
+```
+
+CASE 3 字符串拼接和查找 group_concat+INSTR 方法
+
+* SQL
+
+```SQL
+SELECT T1.u1 user_id, T2.page_id, COUNT(1) friends_likes
+FROM (
+    SELECT user1_id u1, user2_id u2 FROM Friendship
+    UNION 
+    SELECT user2_id u1, user1_id u2 FROM Friendship
+) T1 
+INNER JOIN Likes T2 ON T2.user_id = T1.u2
+INNER JOIN (
+    -- 以 userid='user_id' 这种格式替代 user_id 直接拼接，避免混淆类似 user_id = 1 和 user_id = 11 的情况
+    SELECT page_id, group_concat(CONCAT("userid='", user_id, "'")) all_user_id
+    FROM Likes
+    GROUP BY page_id
+) T3 ON T3.page_id = T2.page_id AND INSTR(T3.all_user_id, CONCAT("userid='", T1.u1, "'")) = 0
+GROUP BY T1.u1, T2.page_id
+ORDER BY T1.u1
+```
+
