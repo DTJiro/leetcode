@@ -1,0 +1,31 @@
+### 解题思路
+
+1. 子标求出所有存在相同金额的员工数据
+2. 主表通过salary关联子标，得到所有存在相同金额的员工数据
+3. 利用dense_rank函数求出排序，起别名为team_id（dense_rank的排名结果是并列的，例如，1,2,2,3）
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT
+	e1.*, dense_rank () over (ORDER BY e1.salary) team_id
+FROM
+	employees e1
+JOIN (
+	SELECT
+		salary
+	FROM
+		employees
+	GROUP BY
+		salary
+	HAVING
+		count(*) > 1
+) e2 ON e1.salary = e2.salary
+ORDER BY
+	team_id,
+	employee_id
+```
+

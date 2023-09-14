@@ -1,0 +1,19 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+SELECT e1.employee_id,e1.name,e1.salary, e2.team_id
+FROM employees e1
+JOIN (
+SELECT salary,row_number() OVER(ORDER BY salary) team_id FROM employees GROUP BY salary  HAVING COUNT(1)>1 
+) e2 ON e1.salary=e2.salary
+ORDER BY e2.team_id,e1.employee_id
+```
+
