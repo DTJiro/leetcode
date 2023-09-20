@@ -1,0 +1,28 @@
+请大佬们看下问下not exists这种写法不对呢？
+
+* 
+
+```
+with f as (
+select * from friendship
+union all 
+select user2_id,user1_id from friendship)
+
+select distinct l1.user_id user1_id,l2.user_id user2_id
+from listens l1 join listens l2 
+on l1.day = l2.day 
+and l1.song_id = l2.song_id 
+and l1.user_id <>l2.user_id
+where exists (select * 
+            from f 
+            where l1.user_id = f.user1_id 
+            and l2.user_id = f.user2_id)
+#不知道为什么not exists这种写法不对
+# where not exists (select * from f 
+#                 where l1.user_id = f.user1_id 
+#                 and l2.user_id<>f.user2_id)
+and l1.user_id<l2.user_id
+group by l1.user_id,l2.user_id,l1.day
+having count(distinct l1.song_id)>=3
+```
+

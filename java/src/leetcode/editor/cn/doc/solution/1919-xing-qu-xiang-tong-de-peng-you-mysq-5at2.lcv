@@ -1,0 +1,13 @@
+* 
+
+```
+select distinct a.user1_id, a.user2_id
+  from Friendship a, Listens b, Listens c
+ where a.user1_id = b.user_id
+   AND a.user2_id = c.user_id
+   AND b.song_id = c.song_id
+   AND b.day = c.day
+ group by a.user1_id, a.user2_id, b.day
+having COUNT(distinct b.song_id) >= 3
+```
+

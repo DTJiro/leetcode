@@ -1,0 +1,29 @@
+### 解题思路
+
+以Friendship为主表，
+先将user1_id为键连接一张Listens表
+先将user2_id为键连接一张Listens表
+在where子句中找到同一天，同一首歌的条件
+以user1_id、user2_id，并且在同一天为分组
+having统计在最小分组song_id中大于三的组
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+
+select distinct user1_id,user2_id
+from Friendship f
+left join Listens l1
+on user1_id=l1.user_id
+left join Listens l2
+on user2_id=l2.user_id
+where l1.song_id=l2.song_id
+and l1.day=l2.day
+group by user1_id,user2_id,l1.day
+having count(distinct l2.song_id)>=3
+```
+
