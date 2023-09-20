@@ -1,0 +1,33 @@
+这个题的难点在于表如何连接，记录如何过滤。我们根据题目要求来一步一步拆解。
+
+题目要求是存在一个双向推荐，如果有$x \to y$必须也有$y \to x$。由这里我们想到对朋友表进行一个union的操作，使得表Friend的记录存在一个双向关系，另外，我们也需要用到听歌记录Listen表进行自连接，才能够出现这样的双向关系。
+
+其次，题目还要求必须是相同的日期，听了三首及以上相同的歌曲才能进行推荐。根据这一点，可以想到用Listen表进行自连接的时候，需要使得日期相同（在同一天听歌），用户不同（不同的用户才能互相推荐）。连接后再用相同歌曲id进行过滤（听了相同的歌曲），接着再按日期，用户1，用户2进行分组，过滤掉相同歌曲数量低于3首的记录。
+
+最后的时候，需要去除掉存在朋友关系的记录，这里只需要用f表跟前面的结果做一个连接，过滤掉是朋友的记录再用distinct去重即可。
+
+完整代码如下：
+
+* 
+
+```
+with f as (
+    select user1_id u1, user2_id u2 from Friendship
+    union
+    select user2_id u1, user1_id u2 from Friendship
+),
+l as (
+     select distinct * from Listens
+),
+t as (
+    select l1.day,l1.user_id user_id,l2.user_id recommended_id
+    from l l1 left join l l2 on l1.day = l2.day and l1.user_id != l2.user_id
+    where l1.song_id = l2.song_id
+    group by l1.day,l1.user_id, l2.user_id
+    having sum(l1.song_id=l2.song_id) >= 3
+)
+select distinct user_id,recommended_id
+from t left join f on t.user_id = f.u1 and t.recommended_id = f.u2
+where u1 is null and u2 is null
+```
+

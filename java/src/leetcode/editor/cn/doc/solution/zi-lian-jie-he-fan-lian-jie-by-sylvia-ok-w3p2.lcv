@@ -1,0 +1,32 @@
+### 解题思路
+
+1.先将listens表自连接，条件为user_id不相等day和song_id相等，可以得到在同一天听了同一首歌的不同一对客户，count() over()可以直接计算得到每一对客户在同一天听的歌数cnt，这里注意得去重
+2.得到的上述结果筛选出歌数cnt大于等于3的客户对，但是要剔除已经是朋友的记录，所以和Friendship反连接，因为Firendship的user1_id和user2_id是严格1小于2的，但是我们结果表一对客户会有两条记录，user1_id可能在左也可能在有右，所以反连接两次剔除两种情况
+
+方法不算简单，抛砖引玉~
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT DISTINCT t.user1_id AS user_id,t.user2_id AS recommended_id
+  FROM 
+(SELECT a.user_id AS user1_id
+       ,b.user_id AS user2_id
+       ,a.song_id
+       ,a.day
+       ,COUNT(a.song_id) OVER (PARTITION BY a.day,a.user_id,b.user_id) AS cnt 
+  FROM (SELECT DISTINCT * FROM Listens) a 
+ INNER JOIN (SELECT DISTINCT * FROM Listens) b  
+    ON a.user_id <> b.user_id
+   AND a.song_id = b.song_id 
+   AND a.day = b.day) t  
+  LEFT JOIN Friendship t1 
+    ON t.user1_id = t1.user1_id AND t.user2_id = t1.user2_id
+  LEFT JOIN Friendship t2
+    ON t.user1_id = t2.user2_id AND t.user2_id = t2.user1_id
+ WHERE t.cnt >= 3 AND t1.user1_id IS NULL AND t2.user1_id IS NULL 
+```
+

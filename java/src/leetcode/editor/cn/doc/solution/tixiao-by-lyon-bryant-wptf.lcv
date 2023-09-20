@@ -1,0 +1,45 @@
+### 解题思路
+
+途径一：
+少用not in,"left/right join + xx is null"进行取而代之。
+
+途径二：
+Union因为要进行重复值扫描，所以效率低。
+如果合并没有刻意要删除重复行，那么就使用Union All
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with t3 as (
+    select  t1.user_id
+        ,t2.user_id recommended_id
+    from Listens t1 
+    inner join Listens t2
+    on t1.day = t2.day
+    and t1.song_id = t2.song_id 
+    and t1.user_id != t2.user_id
+    group by t1.day,t1.user_id,t2.user_id 
+    having count(distinct t1.song_id) >= 3
+    )
+,t4 as (
+    select user1_id user_id
+        ,user2_id recommended_id
+    from Friendship 
+    union all
+    select user2_id
+        ,user1_id
+    from Friendship 
+    )
+select t3.user_id
+    ,t3.recommended_id
+from t3
+left join t4 
+on t3.user_id = t4.user_id
+and t3.recommended_id = t4.recommended_id
+where t4.user_id is null
+group by 1,2
+```
+

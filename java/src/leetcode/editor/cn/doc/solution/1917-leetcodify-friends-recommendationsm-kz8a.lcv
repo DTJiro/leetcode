@@ -1,0 +1,20 @@
+* 
+
+```
+select distinct a.user_id, b.user_id recommended_id
+  from Listens a, Listens b
+ where a.user_id <> b.user_id
+   AND a.song_id = b.song_id
+   ANd a.day = b.day
+   AND not exists
+ (select 1
+          from (select a.user1_id, a.user2_id
+                  from Friendship a
+                union all
+                select b.user2_id, b.user1_id from Friendship b) C
+         WHERE a.user_id = C.User1_Id
+           AND b.user_id = C.User2_Id)
+ GROUP BY a.user_id, b.user_id, a.day
+having count(distinct b.song_id) >= 3
+```
+
