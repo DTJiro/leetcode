@@ -1,0 +1,55 @@
+- 小红书：鲸鲸说数据
+- 公众号：鲸析
+- 课程咨询vx：datoujinggzj
+
+## 思路
+
+1. signup没用上
+2. 这里不能用group by having判定最大减去最小的时间差在不在24h内，因为存在2次以上的confirm，其中包含在24h内的，这样就找不到了
+3. 直接self join，典型的同一列数据不同行运算的题目
+4. TimeStampDiff函数判定两个时间戳的秒数差
+
+## 答案
+
+* sql
+
+```sql
+select 
+    distinct c1.user_id 
+from 
+    Confirmations c1 
+inner join
+    Confirmations c2 
+on  
+    c1.time_stamp<c2.time_stamp
+and 
+    c1.user_id=c2.user_id 
+and 
+    TimeStampDiff(second,c1.time_stamp,c2.time_stamp)<=86400
+```
+
+## 解释（英文）
+
+The given SQL query selects distinct `user_id` values from the `Confirmations` table based on the following conditions:
+
+- `c1` and `c2` are aliases for the `Confirmations` table, representing two separate instances of the table in the query.
+- The join condition is `c1.time_stamp < c2.time_stamp`, which ensures that we are comparing confirmations with earlier timestamps (`c1`) to confirmations with later timestamps (`c2`).
+- The join condition `c1.user_id = c2.user_id` matches the confirmations with the same `user_id`.
+- The `TimeStampDiff` function is used to calculate the time difference in seconds between `c1.time_stamp` and `c2.time_stamp`. The condition `TimeStampDiff(second, c1.time_stamp, c2.time_stamp) <= 86400` checks if the time difference is less than or equal to 86400 seconds (equivalent to 24 hours).
+
+By applying these conditions, the query retrieves distinct `user_id` values for confirmations where there is at least one other confirmation by the same user within a 24-hour period.
+
+## 解释（中文）
+
+给定的 SQL 查询根据以下条件从 Confirmations 表中选择不重复的 user_id 值：
+
+- c1 和 c2 是 Confirmations 表的别名，在查询中表示该表的两个单独实例。
+- 连接条件是 c1.time_stamp < c2.time_stamp，这确保我们将较早时间戳（c1）的确认与较晚时间戳（c2）的确认进行比较。
+- 连接条件 c1.user_id = c2.user_id 匹配具有相同 user_id 的确认。
+- TimeStampDiff 函数用于计算 c1.time_stamp 和 c2.time_stamp 之间的时间差（以秒为单位）。条件 TimeStampDiff(second, c1.time_stamp, c2.time_stamp) <= 86400 检查时间差是否小于或等于 86400 秒（相当于 24 小时）。
+
+通过应用这些条件，查询检索出在 24 小时内同一用户至少有另一次确认的不重复的 user_id 值。
+
+## 其他
+
+https://blog.csdn.net/m0_37479246/article/details/79005454
