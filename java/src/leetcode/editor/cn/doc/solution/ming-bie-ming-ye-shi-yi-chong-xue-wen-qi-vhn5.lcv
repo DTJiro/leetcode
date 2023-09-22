@@ -1,0 +1,63 @@
+### 解题思路
+
+【题外话】
+这道题很棒！必须记下来！
+我曾经面试快手的时候，有过类似的题目（要求筛选出互相关注的用户），只不过没有这个复杂。
+
+【解题】
+**1）建立好友表t：**
+这表里面会反映每个用户他的id和他的好友的id
+即运行代码如下：
+
+* 
+
+```
+(select user1_id user_id,user2_id friend_id
+from Friendship
+union all
+select user2_id,user1_id
+from Friendship)
+order by 1,2
+```
+
+输出结果：
+{"headers": ["user_id", "friend_id"], "values": [[1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [2, 1], [2, 3], [2, 4], [2, 5], [2, 6], [3, 1], [3, 2], [3, 6], [3, 7], [4, 1], [4, 2], [5, 1], [5, 2], [6, 1], [6, 2], [6, 3], [7, 1], [7, 3]]}
+
+如上，得出我们想要的结果。
+先建立好，待会用。
+
+**2）寻找共同好友：**
+对于上面的好友表，我们同时命别名，使之称为两张表，这两张表连接时，用user_id进行连接，前表的id < 后表的id。这样的话我们就得到，我们的所有组合啦！！！
+现在要把两张表后面的friend_id进行等值匹配，这样我们不就找到这些组合里面的哪些friend_id是相同的！
+那么接下来，按照这个组合，对共同好友进行数理求和，那不就很简单了吗？
+
+**【关键/要点】**
+1）建立好友表
+2）注意命成：user_id和friend_id，这样想象成一个是标识一个是属性，这样更容易解决这个问题，以不至于绕晕。
+*（这样命名的话，那么相当于一次考试中：user_id——学生姓名；friend_id——考试成绩）*
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with t as (
+    (select user1_id user_id,user2_id friend_id
+    from Friendship
+    union all
+    select user2_id,user1_id
+    from Friendship)
+    order by 1,2
+    )
+select t1.user_id user1_id
+    ,t2.user_id user2_id
+    ,count(distinct t1.friend_id) common_friend 
+from t t1,t t2
+where (t1.user_id,t2.user_id) in (select * from t)
+and t1.friend_id = t2.friend_id
+and t1.user_id < t2.user_id
+group by 1,2
+having count(distinct t1.friend_id) >=3
+```
+

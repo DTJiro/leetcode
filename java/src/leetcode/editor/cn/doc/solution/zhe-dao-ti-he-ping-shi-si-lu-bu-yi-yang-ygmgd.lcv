@@ -1,0 +1,24 @@
+#这道题和平时思路不一样哦
+#关键：
+#（1）:u1 u2是friend
+#(2):他们的common friend>=3个
+
+* 
+
+```
+
+with a as (
+select * from friendship 
+union 
+select user2_id,user1_id from friendship)
+
+select f.user1_id,f.user2_id,count(*) as common_friend
+from friendship f join a a1 
+on f.user1_id = a1.user1_id 
+join a a2 
+on f.user2_id = a2.user1_id 
+and a2.user2_id = a1.user2_id 
+group by f.user1_id,f.user2_id
+having count(*)>=3
+```
+

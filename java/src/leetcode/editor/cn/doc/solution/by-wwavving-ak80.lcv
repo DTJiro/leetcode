@@ -1,0 +1,36 @@
+![image.png](https://pic.leetcode.cn/1673085470-dQdHLi-image.png)
+
+第一次可能是抄的，第二次做又忘记了，又回去参考了之前通过的，在此留个题解记录
+
+### 解题思路
+
+1. 我们先统一把id抽象为user_id(人)和friend(人对应的朋友)；
+2. user1_id、user2_id都是user_id，我们将合成一张大表table1，包括所有user_id和ta对应的朋友friend
+3. 对table1交叉连接，如此连接后我们将得到一张user_id自笛卡尔积的表（覆盖了所有成为朋友的可能）
+4. 对连接的限制条件为（t1.user_id < t2.user_id）题目要求，和**（t1.friend = t2.friend）**【重点】，第二个条件的目的是把有共同friend的user_id对拿出来
+5. 再判断得出的user_id对是否存在于table1，因为table1存在的user_id对才是真实存在的
+6. 最后再分组判断即可
+
+### 代码
+
+* mysql
+
+```mysql
+with table1 as (
+    select user1_id user_id, user2_id friend from Friendship
+    union
+    select user2_id, user1_id from Friendship
+)
+
+select 
+    t1.user_id user1_id,
+    t2.user_id user2_id,
+    count(t1.user_id) friend 
+from table1 t1
+cross join table1 t2
+    on t1.user_id < t2.user_id and t1.friend = t2.friend
+where (t1.user_id, t2.user_id) in (select * from table1)
+group by t1.user_id, t2.user_id
+having friend > 2
+```
+
