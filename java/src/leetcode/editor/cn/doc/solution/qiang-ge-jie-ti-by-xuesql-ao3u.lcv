@@ -1,0 +1,62 @@
+(个人微信公众号：xuesql)
+**解题思路：**
+从67.40%的通过率上来看，这道题确实只能算是个中等题。
+但是再一看提交次数，截至目前，只有区区3656个。
+与之前的题目，动辄上万，甚至上十万的提交次数相比，真的是少的可怜。
+不知道是不是因为有部分小伙伴，看到这道题就直接放弃了。
+从难度上来说，确实还是有一些的。强哥也思考了5分钟没有头绪。
+最后从题目描述“两两结对的所有组队的最大共同关注者”里的“两两结对”的描述，才找到灵感。
+什么叫两两结对？无非就是两两对比。两两怎么对比？最简单的理解，就是把两边的数据，拉到同一行，再进行对比。
+看完这个描述，是不是觉得很眼熟？这不就是笛卡尔嘛！
+如果把表Relations做自关联，不带关联条件的话，那么就实现了两两结对，然后分别算出每一对的共同关注数，并取出共同关注数最大的那一对，是不是就可以了？
+比如，1的关注者（1，3），（1，4），（1，5）与2的关注者（2，3），（2，4），（2，6）的共同关注数怎么计算呢？
+直接看，可能不直观，我们使用表格看一下。
+![image.png](https://pic.leetcode-cn.com/1662647218-GVJDKY-image.png)
+这样看，是不是就很直观了？
+把1和2的笛卡尔积的结果，过滤出相同的follower_id，然后以a.user_id和b.user_id分组计数就可以了。
+
+* sql
+
+```sql
+select
+    a.user_id,
+    b.user_id,
+    count(*) cn
+from Relations a
+inner join Relations b
+on a.follower_id = b.follower_id
+group by a.user_id,b.user_id;
+```
+
+上面的SQL，可以计算出两两用户之间的共同关注数，有了这个结果，相信再排序得出共同关注数最多的组合，就不是什么难事了。
+当然，如果你执行过上面的SQL，可能会发现返回了一些奇怪的结果。比如，用户1与它自身的共同关注数；再比如，用户1和2的结果会出现（1，2）和（2，1）两个组合，而两个组合的共同关注数是一样的。
+不过，简单分析一下，做个过滤，相信很容易就可以把这些数据剔除了。
+**参考SQL：**
+
+* sql
+
+```sql
+select 
+    user1_id,
+    user2_id 
+from (
+    select 
+        user1_id,
+        user2_id,
+        rank() over(order by cn desc) rk
+    from 
+    (
+        select
+            a.user_id user1_id,
+            b.user_id user2_id,
+            count(*) cn
+        from Relations a
+        inner join Relations b
+        on a.user_id < b.user_id
+        and a.follower_id = b.follower_id
+        group by a.user_id,b.user_id
+    )a
+)b
+where b.rk = 1;
+```
+

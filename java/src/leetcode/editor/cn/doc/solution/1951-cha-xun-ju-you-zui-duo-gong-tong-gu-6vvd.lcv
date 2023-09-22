@@ -1,0 +1,32 @@
+### 解题思路
+
+自连接指定连接键为follower_id,找到相同的关注者
+rank函数对分组后的计数排序,即粉丝最多的排第一
+WHERE t.rn = 1 找到第一
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select 
+  t.user1_id,t.user2_id
+from (
+  select 
+    r1.user_id as user1_id,
+    r2.user_id as user2_id,
+    rank() over(order by COUNT(*) desc) rn #排序降序
+  from 
+    Relations as r1 inner join Relations as r2 
+	on 
+    r1.follower_id = r2.follower_id
+	where 
+    r1.user_id < r2.user_id #防止出现(7,1)
+  group by 
+    r1.user_id, r2.user_id) as t
+ WHERE 
+  t.rn = 1;
+
+```
+

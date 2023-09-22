@@ -1,0 +1,30 @@
+### 解题思路
+
+1. 自连接using(follower_id)
+2. group by R1.user_id, R2.user_id之后已基本完成
+3. 根据条件筛选数据
+
+### 代码
+
+* mysql
+
+```mysql
+with table1 as(
+    select distinct
+        R1.user_id user1_id, 
+        R2.user_id user2_id,
+        count(follower_id) num
+    from Relations R1
+    inner join Relations R2 using(follower_id)
+    where R1.user_id < R2.user_id 
+    group by R1.user_id, R2.user_id
+)
+
+select 
+    user1_id,
+    user2_id
+from table1
+where num = (select max(num) from table1)
+
+```
+
