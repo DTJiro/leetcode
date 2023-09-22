@@ -1,0 +1,43 @@
+### 解题思路
+
+看了好几遍才理解题目，需要我们求的是在每一个日期下，对于每一个客户，如果ta在当天第一个电话和最后一个电话都在同一个人通话，则这个人就是我们要找的user_id，则有两种情况：
+1.如果一个人一天就通话一次，那么ta的第一次和最后一次都是这个通话则ta符合条件；
+2.如果一个人一天通话两次以上，那么要按照时间排序找到当天的第一次和最后一次通话，看看和这个人通话的id是不是同一个人，要注意的是ta可能在recipent_id上也可能在caller_id
+
+详细说明见代码注释
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+WITH t AS (
+SELECT caller1
+       ,caller2
+       ,call_time
+       ,call_dt
+       ,ROW_NUMBER() OVER (PARTITION BY caller1,call_dt ORDER BY call_time) AS rnk --先按照日期和caller1时间正序排列，找到每天每个客户的第一次通话
+       ,ROW_NUMBER() OVER (PARTITION BY caller1,call_dt ORDER BY call_time desc) AS rnk_desc  --按照日期和caller1时间倒序排列，找到每天每个客户最后一次通话
+  FROM 
+(SELECT caller_id AS caller1   --所有通话过的user_id
+        ,recipient_id AS caller2  --和所有user_id通过的caller2
+        ,call_time 
+        ,date(call_time) AS call_dt   --算出时间对应的日期，我们需要看每个日期下的第一次和最后一次
+   FROM Calls  
+  UNION ALL   --这一步是为了把所有通话过的客户都放在caller1字段下，不然同一个user有时出现在caller_id有时出现在recipent_id不好统计
+ SELECT recipient_id AS caller1
+        ,caller_id AS caller2
+        ,call_time 
+        ,date(call_time) AS call_dt
+   FROM Calls) t )
+
+SELECT DISTINCT t1.caller1 AS user_id  --记得去重，不然会有重复的
+  FROM t t1 
+ INNER JOIN t t2   --自连接，找到同一组caller正序1和倒序1的
+    ON t1.caller1 = t2.caller1  
+   AND t1.caller2 = t2.caller2 
+   AND t1.rnk = t2.rnk_desc
+ WHERE t1.rnk = 1 
+```
+

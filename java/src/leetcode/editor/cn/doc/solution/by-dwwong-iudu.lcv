@@ -1,0 +1,50 @@
+### 解题思路
+
+理解可以看评论的大佬
+就是先将全部情况都放出来，然后子查询开窗查第一个和最后一个的情况，然后进行join，不符合情况的join不出来值，最后去重一下
+
+### 代码
+
+* oraclesql
+
+```oraclesql
+/* Write your PL/SQL query statement below 
+评论的理解
+A 第一个通话的人是 B, 最后一个是C, 不是同一个人，A不满足
+B 第一个通话的人是 A, 最后一个是A, 是同一个人，B满足
+C 第一个通话的人是 A, 最后一个是D, 不是同一个人，C不满足
+D 第一个通话的人是 C, 最后一个是C, 是同一个人，D满足
+所以今天满足的人是 B、D*/
+WITH TT AS(
+    SELECT T.caller_id,
+T.recipient_id,
+TO_CHAR(T.call_time,'YYYY-MM-DD') AS call_time,
+RANK() OVER(partition by TO_CHAR(T.call_time,'YYYY-MM-DD'),T.caller_id ORDER BY T.call_time) AS DR1,--最小
+RANK() OVER(partition by TO_CHAR(T.call_time,'YYYY-MM-DD'),T.caller_id ORDER BY T.call_time DESC) AS DR2--最大
+FROM 
+(SELECT 
+C.caller_id,
+C.recipient_id,
+C.call_time 
+FROM Calls C 
+UNION ALL
+SELECT 
+C.recipient_id AS caller_id,
+C.caller_id AS recipient_id,
+C.call_time 
+FROM Calls C) T
+)
+
+SELECT DISTINCT
+T1.caller_id AS USER_ID
+FROM TT T1 
+JOIN 
+TT T2
+ON T1.caller_id = T2.caller_id 
+AND T1.recipient_id = T2.recipient_id 
+AND T1.call_time = T2.call_time
+WHERE T1.DR1 = 1 
+AND T2.DR2 = 1
+ORDER BY T1.caller_id
+```
+
