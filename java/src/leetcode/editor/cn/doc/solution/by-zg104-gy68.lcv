@@ -1,0 +1,30 @@
+![back.png](https://pic.leetcode-cn.com/1661928601-ZsDPAG-back.png)
+
+#### 视频讲解
+
+![SQL1990(1).mp4](https://leetcode.cn/problems/count-the-number-of-experiments/solution/by-zg104-gy68/2509bb90-beba-403e-9260-e9e51104d8ca)
+
+#### 思路
+
+本题关键是构造笛卡尔积，从而构建出下图红框的内的结构
+1. 采用union的方法枚举（注意：不能用distinct，因为可能例子中含有platform或者experiment_name少于3个的情况，从而丢失枚举）
+
+![image.png](https://pic.leetcode-cn.com/1661928361-CpxwgF-image.png)
+
+2. 上面得到的结构再去left join Experiments表，using(platform,experiment_name)即可保全左表所有结构，这里不需要ifnull，因为count对null计数就会返回0。
+
+#### 答案
+
+* sql
+
+```sql
+select 
+    platform,experiment_name,count(experiment_id) as num_experiments
+from (select 'Android' platform union select 'IOS' union select 'Web') t1
+join (select 'Reading' experiment_name union select 'Sports' union select 'Programming') t2
+left join Experiments
+using(platform,experiment_name)
+group by 1,2
+order by 1,2
+```
+

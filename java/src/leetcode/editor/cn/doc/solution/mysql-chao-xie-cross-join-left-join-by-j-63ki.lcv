@@ -1,0 +1,29 @@
+* 
+
+```
+# Write your MySQL query statement below
+with pe as
+(   select * from
+    (
+        select 'IOS' platform
+        union all
+        select 'Android' platform
+        union all
+        select 'Web' platform
+    )p
+cross join
+    (
+        select 'Programming' experiment_name
+        union all
+        select 'Sports' experiment_name
+        union all
+        select 'Reading' experiment_name
+    )e
+)
+select pe.platform,pe.experiment_name,count(w.platform) as num_experiments 
+from pe 
+left join Experiments  as w
+using(platform,experiment_name)
+group by platform,experiment_name
+```
+
