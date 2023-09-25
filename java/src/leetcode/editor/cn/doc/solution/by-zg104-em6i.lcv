@@ -1,0 +1,37 @@
+![back.png](https://pic.leetcode.cn/1666682365-ibxwkE-back.png)
+
+#### 思路
+
+首先，我们用left join找到所有capacity>student_count的情况
+
+* sql
+
+```sql
+{"headers": ["school_id", "capacity", "score", "student_count"], "values": 
+[[11, 151, 744, 100], 
+[11, 151, 749, 76], 
+[11, 151, 844, 76], 
+[11, 151, 966, 60], 
+[11, 151, 975, 10], 
+[5, 48, 975, 10], 
+[9, 9, null, null], 
+[10, 99, 749, 76], 
+[10, 99, 844, 76], 
+[10, 99, 966, 60], 
+[10,99, 975, 10]]}
+```
+
+然后再根据school_id分组，找到每个组的最小score，然后注意，score为null时，要ifnull成-1。
+
+#### 答案
+
+* sql
+
+```sql
+select 
+    school_id, ifnull(min(score),-1) score 
+from schools 
+left join exam 
+on capacity>=student_count
+```
+

@@ -1,0 +1,20 @@
+因为这个学校无论是否可以有学生都需要在结果中展示，所以使用左连接
+左连接，取得学校容量大于某个分数线内学生的学校（如果没有，则该学校的右侧为null）
+分组统计
+
+* sql
+
+```sql
+select 
+    s.school_id,
+    ifnull(
+        min(e.score),
+        -1
+    ) as score
+from schools s
+left join exam e
+on s.capacity >= e.student_count
+group by s.school_id
+order by score desc
+```
+
