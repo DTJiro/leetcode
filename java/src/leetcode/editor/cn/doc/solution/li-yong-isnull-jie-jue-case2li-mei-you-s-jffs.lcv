@@ -1,0 +1,23 @@
+* 
+
+```
+WITH s AS (
+    SELECT 70000 - SUM(salary) OVER (ORDER BY salary ROWS UNBOUNDED PRECEDING) AS cum_sum
+    FROM Candidates
+    WHERE experience = 'Senior'
+),
+j AS (
+    SELECT ISNULL((SELECT MIN(cum_sum) FROM s WHERE cum_sum >= 0), 70000) - SUM(salary) OVER (ORDER BY salary ROWS UNBOUNDED PRECEDING) AS cum_sum
+    FROM Candidates
+    WHERE experience = 'Junior'
+)
+SELECT 'Senior' AS experience, COUNT(1) AS accepted_candidates
+FROM s
+WHERE cum_sum >= 0
+UNION
+SELECT 'Junior' AS experience, COUNT(1) AS accepted_candidates
+FROM j
+WHERE cum_sum >= 0;
+
+```
+

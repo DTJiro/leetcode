@@ -1,0 +1,29 @@
+# 创建一个临时表算出选完高级员工后剩余的预算，注意如果第一个高级员工的薪资大于公司预算这种情况
+
+with table1 as (
+select employee_id, experience, salary, 70000-sum(salary) over(order by salary, employee_id) as rk1 from Candidates where experience = 'Senior'
+)
+
+# 获取高级员工的个数   没有返回0
+
+select experience
+, sum(case when rk1 >=0 then 1 else 0 end) as accepted_candidates
+from table1
+group by experience
+
+# 拼接高级员工和初级员工
+
+union all
+
+# 获取初级员工个数
+
+select experience
+, sum(case when rk2 <= rk1 then 1 else 0 end) as accepted_candidates
+from (
+select employee_id
+, experience
+, salary
+, sum(salary) over(order by salary, employee_id) as rk2
+from Candidates                #  判断选完高级员工时第一个员工工资高于公司预算          
+where  experience = 'Junior') as t1, (select if(min(rk1)>=0,min(rk1),70000) as rk1 from table1 where rk1 >=0) as t2
+group by experience

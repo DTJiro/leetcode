@@ -1,0 +1,32 @@
+### 解题思路
+
+1.查出每个级别按照薪水升序且按照员工ID升序时的累计薪水值，查询结果作为T表
+2.从T表中筛选累计薪水<=70000且经验为高级的员工数量和最大累计薪水值，作为TS表
+3.从T表中查出经验为Junior且累计薪水值<=70000减去高级所有人薪水之后的数据，查出符合要求的员工数量
+4.第2步和第3步的查询数据UNION ALL起来就是两种级别的人的雇佣数量
+
+### 代码
+
+* oraclesql
+
+```oraclesql
+/* Write your PL/SQL query statement below */
+WITH T AS (SELECT C.experience ,SUM(C.SALARY) OVER(PARTITION BY C.EXPERIENCE ORDER BY C.SALARY,C.employee_id ) SA
+FROM Candidates C),
+TS AS
+(SELECT 'Senior' EXPERIENCE,COUNT(0) CNT,NVL(MAX(T.SA),0) SSA
+FROM T 
+WHERE T.SA<=70000
+AND T.EXPERIENCE='Senior'
+) 
+SELECT TS.EXPERIENCE,TS.CNT accepted_candidates
+FROM TS
+UNION ALL
+SELECT 'Junior' EXPERIENCE,COUNT(0) accepted_candidates
+FROM T 
+WHERE T.EXPERIENCE='Junior'
+AND T.SA <=70000-(SELECT SSA FROM TS)
+
+
+```
+
