@@ -1,0 +1,47 @@
+思路 : 先建 s 表尽可能找到所有从低到高薪资的资深员工
+再建 j 表， 尽可能找到聘完尽可能多的资深员工以后剩下的钱还能聘的初级员工
+
+注意 : 当使用了聚合窗口函数以后， 如
+
+* 
+
+```
+70000 - sum(salary) over(order by salary) cum_sum  # 详细见下方完整代码
+```
+
+会按照over里面给定的顺序， 按 salary 来排序， 并且每一列都有 70000 - sum(salary) over(order by salary) 这一整个数据作为整体， 命名为 cum_sum
+
+那么在筛选出了资深员工以后， 可以用资深员工表的 cum_sum 字段， 取大于 0 的最小值， 也就是取了“聘请完尽可能多的资深员工以后剩余的钱”， 然后再对初级员工进行相同的操作
+
+最后合并的时候， 过滤条件为 cum_sum > 0 也是同理， 大于 0 的每一行都对应着一个 employee_id, （这里可能比较难理解... 自己再数据库里写一遍就好懂了）
+
+比如总共有 70000, 聘请了id是11, 价格是 16000 的资深员工以后， 这一行的 employee_id 就是 11, cum_sum 就是 54000
+同理， 再聘请了id 为 2， 价格为 20000 的资深员工以后， 这一行的 employee_id 就是 2, cum_sum 就是 34000
+以此类推， 如果 cum_sum 还大于0就说明还有钱还可以聘请， 如果小于0了就说明当前的钱不足以聘请当前这位员工了
+（注意 : 我们员工是按薪水从低到高排序， 所以按顺序聘请的就是依照题目要求的， 薪水从低到高的员工 ）
+
+最后直接将过滤完的数据用 union all 合并就好了
+
+贴一下评论区里 @折纸飞机比赛第二名 的代码
+
+* 
+
+```
+with s as(
+    select employee_id, 70000 - sum(salary) over(order by salary) cum_sum
+    from Candidates
+    where experience = 'Senior'
+),
+     j as(
+    select employee_id, ifnull((select min(cum_sum) from s where cum_sum >= 0),70000)
+            - sum(salary) over(order by salary) cum_sum
+    from Candidates
+    where experience = 'Junior'
+)
+select employee_id from s where cum_sum >= 0
+union all
+select employee_id from j where cum_sum >= 0
+
+```
+
+打了挺长时间的字， 希望有帮到你一点点(ﾟ▽ﾟ*)
