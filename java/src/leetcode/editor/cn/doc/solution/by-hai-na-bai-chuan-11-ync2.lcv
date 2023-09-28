@@ -1,0 +1,23 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+WITH c as (
+    SELECT interview_id FROM rounds group by interview_id having SUM(score)>15
+)
+select candidate_id from candidates
+inner join c on candidates.interview_id=c.interview_id 
+where candidates.years_of_exp>=2
+
+
+
+
+
+```
+

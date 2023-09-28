@@ -1,0 +1,21 @@
+![image.png](https://pic.leetcode-cn.com/1634465087-cFrwVI-image.png)
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+SELECT candidate_id
+FROM Candidates c
+WHERE years_of_exp >= 2
+AND interview_id IN (
+    SELECT interview_id
+    FROM Rounds
+    GROUP BY interview_id
+    HAVING SUM(score) >= 16
+)
+
+```
+
