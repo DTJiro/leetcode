@@ -1,0 +1,13 @@
+查出来订阅表中开始日期或者结束日期存在2021的
+然后再连表，查询会话中没有2021的，就是答案
+过于简单
+
+* 
+
+```
+/* Write your PL/SQL query statement below */
+select count(1) as accounts_count from Streams s,
+(select * from Subscriptions s where s.start_date like '2021%' or s.end_date like '2021%') t
+where s.account_id = t.account_id and s.stream_date not like '2021%'
+```
+

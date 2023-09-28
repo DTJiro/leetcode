@@ -1,0 +1,3 @@
+select count(*) as accounts_count from Subscriptions,Streams
+where Subscriptions.account_id=Streams.account_id and
+year(end_date)=2021 and year(stream_date)=2020
