@@ -1,0 +1,26 @@
+### 解题思路
+
+要点：使用开窗函数保留所有数据后过滤
+1.按照客户id分组分别对订单号计数`order_num`，对订单类型`order_type`求和`type_sum`
+2.如果客户至少有一个类型为0的订单，那么order_num != type_sum，反之则反
+3.使用where过滤满足2的条件
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+
+select order_id, customer_id, order_type
+from
+(
+    select order_id, customer_id, order_type, 
+    count(1) over(partition by customer_id) as order_num,
+    sum(order_type) over(partition by customer_id) as type_sum
+from orders
+) a
+where a.order_num=a.type_sum or a.order_type=0;
+```
+
