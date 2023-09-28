@@ -1,0 +1,18 @@
+![image.png](https://pic.leetcode.cn/1673068205-pMZjTm-image.png)
+
+### 解题思路
+
+a/(a+b) < 0.6 既 a/b < 1.5
+
+### 代码
+
+* mysql
+
+```mysql
+select
+    problem_id
+from Problems
+where likes/dislikes < 1.5
+order by problem_id
+```
+
