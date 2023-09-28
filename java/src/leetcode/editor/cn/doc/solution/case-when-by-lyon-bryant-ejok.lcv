@@ -1,0 +1,31 @@
+### 解题思路
+
+case when
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with t2 as (
+    select member_id
+        ,100*count(charged_amount)/count(1) rate
+    from Visits t1
+    left join Purchases t2 
+    on t1.visit_id = t2.visit_id
+    group by 1
+    )
+select t1.member_id
+    ,t1.name 
+    ,(case when t2.rate is null then 'Bronze'
+    when t2.rate>=80 then 'Diamond'
+    when t2.rate>=50 and t2.rate<80 then 'Gold'
+    else 'Silver'
+    end) category
+from Members t1 
+left join t2 
+on t1.member_id = t2.member_id
+order by 1
+```
+

@@ -1,0 +1,25 @@
+### 解题思路
+
+要算比率，所以先把分子和分母算出来
+1.Members与Visits通过member_id关联，注意是外连接；Visits与Purchases通过VISIT_ID外连接；按照member_id和name分组计算visit_id的数量和Purchases表里ID的数量，也就查出了分母、分子。把该查询结果作为T表
+2.从T表中查出所需字段，通过CASE WHEN判断等级。注意要先判断分母为零的(即从未进入商店)，然后再根据分子/分母的计算结果判断属于哪个区间，显示对应的等级。
+
+### 代码
+
+* oraclesql
+
+```oraclesql
+/* Write your PL/SQL query statement below */
+WITH T AS (SELECT M.member_id,M.NAME,COUNT(V.VISIT_ID) VCNT,COUNT(P.VISIT_ID) PCNT
+ FROM Members M ,Visits V ,Purchases P 
+ WHERE M.member_id=V.member_id(+)
+ AND V.VISIT_ID=P.VISIT_ID(+)
+ GROUP BY M.member_id,M.NAME)
+ SELECT T.member_id,T.NAME,(CASE WHEN T.VCNT=0 THEN 'Bronze'
+ WHEN T.PCNT/T.VCNT>=0.8 THEN 'Diamond'
+  WHEN T.PCNT/T.VCNT>=0.5 AND T.PCNT/T.VCNT<0.8 THEN 'Gold'
+  WHEN T.PCNT/T.VCNT<0.5 THEN 'Silver'
+  END) category
+ FROM T 
+```
+

@@ -1,0 +1,14 @@
+三张表左连结保证第一张表所有member id全部考虑在内，接下来按照第一张表出现的所有member id进行分组计算conversion_rate，最后case when进行分类
+Select t. member_id, t.name, (
+case when conversion_rate >=80 then "Diamond"
+when conversion_rate >=50 and conversion_rate <80 then "Gold"
+when conversion_rate <50 then "Silver"
+else "Bronze" end
+) as category
+From (Select m. member_id, m.name, (100*count(distinct p.visit_id))/count(distinct v.visit_id) as conversion_rate
+From Members m Left Join Visits v
+ON m.member_id = v.member_id
+Left Join Purchases p
+ON v.visit_id = p.visit_id
+Group By m.member_id) as t
+Order By t.member_id
