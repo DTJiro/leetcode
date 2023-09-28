@@ -1,0 +1,21 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with v1(c) as (
+    select count(*) from NewYork where score >= 90
+),v2(c) as (
+    select count(*) from California where score >= 90
+)
+select case when v1.c>v2.c then 'New York University'
+when v1.c<v2.c then 'California University'
+else 'No Winner' end as winner
+from v1,v2
+```
+
