@@ -1,0 +1,27 @@
+### 解题思路
+
+要点：
+1.这题不要join连表，只会麻烦且很可能得到错误的结果
+2.对起飞和到达机场分别分组求流量，union all连接再计算总的流量
+3.使用dense_rank排名
+
+### 代码
+
+* mysql
+
+```mysql
+select airport_id
+from (select departure_airport as airport_id, dense_rank() over (order by sum(de_sum) desc) as ranking
+      from (select *
+            from (select departure_airport, sum(flights_count) as de_sum
+                  from `flights`
+                  group by departure_airport) a
+            union all
+            select arrival_airport, sum(flights_count) as arr_sum
+             from `flights`
+             group by arrival_airport) r
+      group by departure_airport) r1
+where ranking = 1;
+
+```
+

@@ -1,0 +1,21 @@
+先用union生成临时表
+with T as (select departure_airport as id1,arrival_airport as id2,flights_count from Flights
+union
+select arrival_airport as id1,departure_airport as id2,flights_count from Flights)
+
+方法一：使用窗口函数rank()，或者dense_rank()
+select id1 as airport_id
+from (select id1,rank() over (order by sum(flights_count) DESC) as rnk
+from T
+group by id1) TT
+where TT.rnk=1
+
+方法二：嵌套
+select id1 as airport_id
+from (select id1,sum(flights_count)
+from T
+group by id1
+having sum(flights_count)>=all(select sum(flights_count)
+from T
+group by id1)
+) TT
