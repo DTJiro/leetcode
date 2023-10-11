@@ -1,0 +1,18 @@
+![image.png](https://pic.leetcode-cn.com/1664636201-gLeHGq-image.png)
+
+### 解题思路
+
+就是group_concat的method，一个是order by，一个是separator
+
+### 代码
+
+* mysql
+
+```mysql
+select concat(group_concat(term order by power desc SEPARATOR ''), '=0') as equation
+from
+    (select power,
+        concat(if(factor>0,'+',''), factor, case power when 1 then 'X' when 0 then '' else concat('X^',power) end) as term
+    from Terms)a 
+```
+

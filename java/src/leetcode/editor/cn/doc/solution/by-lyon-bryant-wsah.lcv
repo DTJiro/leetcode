@@ -1,0 +1,24 @@
+### 解题思路
+
+浅析MySQL中concat以及group_concat的使用
+[链接]
+https://blog.csdn.net/mary19920410/article/details/76545053
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with t as (
+    select power
+        ,case 
+        when power = 0 then if(factor>0,concat('+',factor),factor)
+        when power = 1 then if(factor>0,concat('+',factor,'X'),concat(factor,'X'))
+        else if(factor>0,concat('+',factor,'X','^',power),concat(factor,'X','^',power)) end term
+    from Terms
+    )
+select concat(group_concat(term order by power desc separator ''),'=0') equation 
+from t 
+```
+
