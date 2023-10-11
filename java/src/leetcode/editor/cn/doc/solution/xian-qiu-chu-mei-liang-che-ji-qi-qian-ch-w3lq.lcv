@@ -1,0 +1,24 @@
+### 解题思路
+
+以每个bus_id为例 其能载客的总数等于所有小于该车始发时间的乘客总数 - 上一班载客总数
+具体思路：
+1. 先用左连接 得到每班bus及其之前bus的载客总数
+2. 然后用IFNULL + lag 减去前行数（也就是上一班车搭载总人数）
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT bus_id, passenger_cnt_total - IFNULL(lag(passenger_cnt_total) over (order by arrival_time), 0) AS passengers_cnt
+FROM
+(SELECT bus_id, a.arrival_time, IFNULL(COUNT(DISTINCT passenger_id), 0) AS passenger_cnt_total
+FROM Buses a
+LEFT JOIN Passengers b
+ON b.arrival_time <= a.arrival_time
+GROUP BY bus_id
+ORDER BY a.arrival_time) c
+ORDER BY bus_id
+```
+

@@ -1,0 +1,15 @@
+select
+t1.bus_id,
+sum(if(t2.passenger_id is null,0,1)) as passengers_cnt
+from buses t1
+left join
+(
+select
+t2.passenger_id,
+min(t1.arrival_time) as arrival_time
+from Buses t1
+left join Passengers t2 on t1.arrival_time>=t2.arrival_time
+group by t2.passenger_id
+) t2 on t1.arrival_time=t2.arrival_time
+group by t1.bus_id
+order by t1.bus_id

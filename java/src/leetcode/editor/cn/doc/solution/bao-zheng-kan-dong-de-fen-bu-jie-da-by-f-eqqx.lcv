@@ -1,0 +1,28 @@
+先找到对于每个乘客来说最合适的时间, 即bus_arrivalTime >= passenger_arrivalTime, 找到其中最小的bus_arrivalTime
+
+* SQL
+
+```SQL
+SELECT passenger_id, MIN(B.arrival_time) AS bus_time
+FROM Buses AS B, Passengers AS P
+WHERE B.arrival_time >= P.arrival_time
+GROUP BY passenger_id
+```
+
+然后和Buses进行right join（保证每个bus都被计算到），对应关系为Buses.arrival_time = 上面找到的符合条件的bus_arrivalTime
+
+* SQL
+
+```SQL
+SELECT bus_id, SUM(IF(ISNULL(bus_time),0,1)) AS passengers_cnt
+FROM (SELECT passenger_id, MIN(B.arrival_time) AS bus_time
+FROM Buses AS B, Passengers AS P
+WHERE B.arrival_time >= P.arrival_time
+GROUP BY passenger_id) AS temp
+RIGHT JOIN Buses
+ON temp.bus_time = Buses.arrival_time
+GROUP BY bus_id
+ORDER BY bus_id ASC
+```
+
+大功告成!
