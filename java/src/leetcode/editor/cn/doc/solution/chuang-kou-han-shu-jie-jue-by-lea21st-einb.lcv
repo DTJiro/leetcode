@@ -1,0 +1,51 @@
+1. 先判断当前行是否连续，跟上一行比较,is_continuity=0 表示与连续，1表示不连续。这里面连续的概念是当前行与上一行`result`一致。
+
+* 
+
+```
+select *, if(result != lag(result) over (partition by player_id order by match_day), 1, 0) as is_continuity
+from Matches
+```
+
+![image.png](https://pic.leetcode-cn.com/1644915741-WPAGJW-image.png)
+
+2. 给他们分组，将每一个连续区间的数据放到同一个组里面，这种分组方法在大数据统计中很常用。
+
+* 
+
+```
+select *, sum(is_continuity) over (partition by player_id order by match_day) as logic_group
+from (select *, if(result != lag(result) over (partition by player_id order by match_day), 1, 0) as is_continuity from Matches) t1
+```
+
+![image.png](https://pic.leetcode-cn.com/1644915824-JakDyB-image.png)
+
+3. (player_id,logic_group) 为一个唯一的组。同一组内，是连续赢或者连续输的行。统计每组的行数，即该组练习赢（或者输）了多少局。
+
+* 
+
+```
+select player_id, logic_group,result, count(1) as longest_streak
+from (select *, sum(is_continuity) over (partition by player_id order by match_day) as logic_group
+      from (select *, if(result != lag(result) over (partition by player_id order by match_day), 1, 0) as is_continuity from Matches) t1) t2
+group by player_id, logic_group,result
+```
+
+![image.png](https://pic.leetcode-cn.com/1644917032-DtPwEL-image.png)
+
+4. 然后取`Win`的最大值，为啥不过滤，因为没赢过的要显示0，所以就不过滤了。
+
+* 
+
+```
+select t3.player_id, max(if(result = 'Win', longest_streak, 0)) as longest_streak
+from (select player_id, logic_group, result, count(1) as longest_streak
+      from (select *, sum(is_continuity) over (partition by player_id order by match_day) as logic_group
+            from (select *, if(result != lag(result) over (partition by player_id order by match_day), 1, 0) as is_continuity from Matches) t1) t2
+      group by player_id, logic_group, result) t3
+group by t3.player_id
+order by t3.player_id
+```
+
+![image.png](https://pic.leetcode-cn.com/1644917370-KcfTuh-image.png)
+

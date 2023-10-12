@@ -1,0 +1,25 @@
+* 
+
+```
+with t as(
+    select player_id, match_day, 
+    row_number() over(partition by player_id order by match_day) as r
+    from Matches
+), t1 as(
+    select player_id, match_day, 
+    row_number() over(partition by player_id order by match_day) as r1
+    from Matches
+    where result = 'win'
+), t2 as(
+    select t.player_id, r-r1 as gap
+    from t left join t1 on t.player_id=t1.player_id and t.match_day=t1.match_day
+), t3 as(
+    select player_id, count(gap) as consecutive
+    from t2
+    group by player_id, gap
+)
+select player_id, max(consecutive) as longest_streak
+from t3
+group by player_id
+```
+
