@@ -1,0 +1,27 @@
+这道题比较走入的误区就是很容易陷进上一道类似的median题目的做法里面想解法（悲痛的教训
+
+* 
+
+```
+WITH total AS (
+    SELECT
+        bus_id,
+        b.arrival_time,
+        capacity,
+        COUNT(passenger_id) AS total
+    FROM Buses AS b
+    LEFT JOIN Passengers AS p ON b.arrival_time >= p.arrival_time
+    GROUP BY bus_id
+)
+
+SELECT bus_id, 
+       CONVERT(passengers_cnt, UNSIGNED INTEGER) passengers_cnt 
+FROM (
+    SELECT bus_id, 
+    @go:= IF(capacity >= total - @gone, total - @gone, capacity) passengers_cnt, 
+    @gone:= @go + @gone
+    FROM total, (SELECT @go:= 0, @gone:= 0) t
+) tmp
+ORDER BY 1
+```
+

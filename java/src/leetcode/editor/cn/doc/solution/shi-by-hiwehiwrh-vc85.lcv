@@ -1,0 +1,39 @@
+分为四步：
+1、按照到达时间顺序对bus进行排序
+2、确定每个乘客最早遇见的bus，并按乘客到达时间和乘客id排序
+3、确定每个乘客实际上的bus ID
+4、统计每个bus的乘客数量
+
+* sql
+
+```sql
+with t0 as(
+    select row_number() over(order by arrival_time) as order_id, 
+    bus_id, arrival_time, capacity from Buses order by arrival_time
+), --按照到达时间顺序对bus进行排序
+t1 as(
+    select passenger_id, min(order_id) as order_id from Passengers, 
+    t0 where Passengers.arrival_time <= t0.arrival_time 
+    group by passenger_id order by Passengers.arrival_time, passenger_id
+), --确定每个乘客最早遇见的bus
+acl as(
+select case when @od_id < order_id
+       then (@a:= 1) & (@od_id:= order_id)
+       else case when @od_id is not null 
+            and @a + 1 > (select capacity from t0 where order_id = @od_id)
+                then (@od_id:=  @od_id + 1) & (@a := 1) 
+                else @a := @a + 1
+                end
+        end as tmp, passenger_id, 
+        (select bus_id from t0 where order_id = @od_id) as bs_id
+ from t1, (select @a:= 0, @od_id := 0) t2)
+--确定每个乘客实际上的bus
+select bus_id, count(passenger_id) as passengers_cnt from Buses 
+    left join acl on bs_id = bus_id group by bus_id order by bus_id
+--统计每个bus的乘客数量
+```
+
+注：
+1、每个变量赋值语句用&连接, and具有惰性求值的特性
+2、由于复制语句的优先级最低，所以需要加括号
+3、select c1, c2, c3 from ... 中的 c1, c2, c3存在执行顺序

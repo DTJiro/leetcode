@@ -1,0 +1,57 @@
+> Problem: [2153. 每辆车的乘客人数 II](https://leetcode.cn/problems/the-number-of-passengers-in-each-bus-ii/description/)
+
+[TOC]
+
+# 思路
+
+> 在 https://leetcode.cn/problems/the-number-of-passengers-in-each-bus-i/ 基础上使用变量对乘客进行重新分配
+
+# 解题方法
+
+> 引入变量tt表示在上一班车到达前已经到达站点但未上车的人数，@tt:=0
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+with  tmp as (
+select *,row_number() over(order by arrival_time) as id  from 
+  Buses ),
+  tmp1 as (
+    select a.capacity,a.bus_id,coalesce(b.arrival_time,0) `after`,a.arrival_time `before` from 
+      tmp a
+    left join 
+      tmp b 
+    on 
+      a.id=b.id+1
+  
+  )
+select bus_id,passengers_cnt   from 
+(
+  select
+  bus_id,@tt,if((@tt+passengers_cnt)>=capacity,capacity,@tt+passengers_cnt) as passengers_cnt,@tt:= if(@tt+passengers_cnt-capacity>0,@tt+passengers_cnt-capacity,0)  t  
+from 
+(
+  select 
+    bus_id 
+    ,max(capacity) as capacity 
+    ,sum(if(B.passenger_id is null,0,1)) as passengers_cnt
+
+    from  
+    tmp1 
+  left join 
+    Passengers B 
+  on 
+    B.arrival_time > tmp1.after and B.arrival_time <=tmp1.before
+  group by 
+    bus_id
+  order by tmp1.before 
+) a,
+(select @tt:=0) t  
+) a 
+order by bus_id
+```
+

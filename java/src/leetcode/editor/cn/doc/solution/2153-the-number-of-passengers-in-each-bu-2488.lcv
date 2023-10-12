@@ -1,0 +1,31 @@
+### 解题思路
+
+- 理论上来说：来一个人，left_passengers+1,上车走n个人left_passengers-n,由于公交车有capacity不是所有人都能上车，故通过left_passengers-capacity判断，如果小于0说明上一辆车来时，所有人都上车了，车站没有人，故更新left_passengers为当前capacity，如果大于0说明上一辆车开走后有人没能上车，故left_passengers=上一次剩余的人数+后面来的人数
+  `IF(@left_passengers < 0, @left_passengers:= capacity, @left_passengers:= @left_passengers+capacity)`
+- 如果left_passengers<0,证明这一波人全上车了，总容量capacity-剩余的人left_passengers=上车的人数，如果left_passengers>0,证明这一波人有部分人因为位子不够只能在车站，故上车人数为公交车剩余的位子数capacity，由于计算时将capacity取负，故这里要加负号
+  `IF(left_num < 0, -capacity+left_num, -capacity)`
+
+### 代码
+
+* mysql
+
+```mysql
+SELECT
+    bus_id, 
+    IF(left_num < 0, -capacity+left_num, -capacity) AS passengers_cnt
+FROM(
+    SELECT
+        bus_id, arrival_time, capacity, 
+        IF(@left_passengers < 0, @left_passengers:= capacity, @left_passengers:= @left_passengers+capacity) AS left_num,,
+        COUNT(1) OVER() nums
+    FROM
+        (SELECT bus_id, arrival_time, -capacity capacity FROM Buses
+        UNION ALL
+        SELECT -passenger_id, arrival_time, 1 capacity FROM Passengers)a,
+        (SELECT @left_passengers:= 0)b
+    ORDER BY arrival_time, bus_id 
+    )c
+WHERE bus_id > 0
+ORDER BY 1
+```
+

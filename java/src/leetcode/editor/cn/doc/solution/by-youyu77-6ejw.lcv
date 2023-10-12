@@ -1,0 +1,29 @@
+首先将bus表扩充几列
+people表示到bus开车的时候累计来了多少人
+seats就是capacity列的cumsum
+
+* sql
+
+```sql
+with t as(
+SELECT B.*,count(passenger_id) people
+,sum(capacity) over(order by arrival_time rows unbounded preceding) seats
+from Buses B LEFT JOIN Passengers P
+ON B.arrival_time >= P.arrival_time 
+group by bus_id)
+```
+
+之后用临时变量即可
+q记录的是在这辆bus之前一共上车了多少人
+p记录的是当前bus能上车多少人
+
+* sql
+
+```sql
+SELECT bus_id, CONVERT(temp, UNSIGNED INTEGER) passengers_cnt from
+(SELECT bus_id,
+@p:=if(capacity >= people-@q,people-@q,capacity) temp, @q:=@q+@p
+from t,(SELECT @p:=0,@q:=0) init) T
+order by bus_id
+```
+

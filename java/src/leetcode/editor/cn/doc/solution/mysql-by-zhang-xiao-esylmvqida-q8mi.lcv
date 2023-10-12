@@ -1,0 +1,45 @@
+### 解题思路
+
+![image.png](https://pic.leetcode.cn/1672221840-YzYxYl-image.png)
+
+### 代码
+
+* mysql
+
+```mysql
+/* Write your T-SQL query statement below */
+-- 参考吧,这题整的不会了
+-- 用逻辑进行功能性开发，用魔法打败魔法
+
+with c as(
+    select bus_id ,arrival_time , lag(arrival_time) over(order by arrival_time asc) as nxat from Buses 
+),d as(
+    select bus_id,arrival_time,if(nxat is null,0,nxat) as nxat from c
+),e as(
+    select a.bus_id,b.passenger_id  from d a cross join Passengers b
+    where b.arrival_time > a.nxat and b.arrival_time <= a.arrival_time
+),f as(
+    select bus_id,count(*) as ct from e
+    group by bus_id
+),g as(
+    select a.bus_id,b.ct as passengers_cnt ,a.capacity,a.arrival_time  from Buses a left join f b on a.bus_id = b.bus_id 
+),h as(
+    select bus_id,if(passengers_cnt is null,0,passengers_cnt) as passengers_cnt,capacity from g
+),i as(
+    select bus_id,passengers_cnt,capacity,
+    convert(@fy ,UNSIGNED INTEGER) as lf,
+    case when
+        @fy + passengers_cnt <= capacity
+    then
+        @fy:=0
+    else
+        @fy:=@fy+passengers_cnt - capacity
+    end
+    as fy
+    from h
+),j as(
+    select bus_id, case when capacity <= lf + passengers_cnt  then capacity else lf + passengers_cnt end as passengers_cnt from i
+)
+select bus_id,passengers_cnt from j ,(select @fy := 0 ) a  order by bus_id
+```
+

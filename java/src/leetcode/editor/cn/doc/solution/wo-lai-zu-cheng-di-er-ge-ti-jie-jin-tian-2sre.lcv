@@ -1,0 +1,96 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select
+table6.bus_id,
+cast(table6.passengers_cnt as signed) as passengers_cnt
+from
+(
+select
+table4.bus_id,
+case
+when table4.sum+@p<=table4.capacity then
+table4.sum+@p
+else
+table4.capacity
+end
+as passengers_cnt,
+@p:=table4.sum+@p-if(table4.sum+@p<=table4.capacity,table4.sum+@p,table4.capacity)
+as p
+from
+(
+select
+table3.bus_id,
+table3.en,
+table3.capacity,
+sum(table3.count1) as sum
+from
+(
+select
+table2.bus_id,
+table2.en,
+table2.capacity,
+case 
+when isnull(tb3.arrival_time)=1 then
+0
+else
+1
+end
+as count1
+from
+(
+select
+table1.bus_id,
+max(table1.t2) as st,
+table1.t1 as en,
+table1.capacity
+from
+(
+select
+tb1.bus_id,
+tb1.arrival_time as t1,
+tb2.arrival_time as t2,
+tb1.capacity
+from
+Buses as tb1
+left join
+Buses as tb2
+on
+tb2.arrival_time<tb1.arrival_time
+)
+as table1
+group by
+table1.bus_id
+)
+as table2
+left join
+Passengers as tb3
+on
+(
+isnull(table2.st)=1 
+or
+table2.st<tb3.arrival_time
+)
+and
+table2.en>=tb3.arrival_time
+)
+as
+table3
+group by table3.bus_id
+order by table3.en
+)
+as table4
+,(select @p:=0)table5
+)
+as
+table6
+order by table6.bus_id
+```
+
