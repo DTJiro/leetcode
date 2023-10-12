@@ -1,0 +1,24 @@
+> Problem: [2159. 分别排序两列](https://leetcode.cn/problems/order-two-columns-independently/description/)
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+# 分开然后连接在一起就好了，重点是连接的条件，因此利用正序，降序排名相等做条件
+with t1 as (
+  select first_col, row_number() over (order by first_col) as t_rank
+  from Data
+),
+t2 as (
+  select second_col, row_number() over (order by second_col DESC ) as t_rank
+  from Data
+)
+select t1.first_col, t2.second_col
+from t1
+left join t2
+on t1.t_rank = t2.t_rank;
+```
+
