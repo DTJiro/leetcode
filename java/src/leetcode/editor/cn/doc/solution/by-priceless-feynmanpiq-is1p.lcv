@@ -1,0 +1,24 @@
+提供一个其它思路：
+1. 先用recursive把content表扩展成每个单词为一ROW
+2. 再和topic表进行匹配和聚合
+   好处是思路比较直接。。。不用对ambiguous情况特殊判断
+
+* sql
+
+```sql
+# Write your MySQL query statement below
+with recursive A as (
+    select post_id, content, 1 as n, substring_index(content, ' ', 1) as content_split from Posts
+    union all 
+    select post_id, content, n+1 as n, substring_index(substring_index(content, ' ',  n), ' ', -1) as content_split
+    from A 
+    where n < char_length(content)
+)
+select 
+C.post_id, 
+COALESCE(GROUP_CONCAT(distinct B.topic_id order by B.topic_id SEPARATOR ','), 'Ambiguous!') as topic
+from (select distinct post_id, lower(content_split) as content_split  from A) C  
+left join (select topic_id, lower(word) as word from Keywords ) B on C.content_split = B.word
+group by 1
+```
+

@@ -1,0 +1,24 @@
+### 解题思路
+
+-- 编写一个SQL查询，报告有资格获得折扣的用户数量。
+
+-- 如果一个用户在包含的时间段内（startDate,endDate)内存在购买行为，
+-- 并且有大于minAmount数量的金额，那么就有资格获得相应折扣
+
+### 代码
+
+* mysql
+
+```mysql
+CREATE FUNCTION getUserIDs(startDate DATE, endDate DATE, minAmount INT) RETURNS INT
+BEGIN
+  RETURN (
+      # Write your MySQL query statement below.
+      SELECT COUNT(DISTINCT user_id) AS user_cnt
+      FROM Purchases
+      WHERE time_stamp BETWEEN startDate AND endDate
+          AND amount >= minAmount
+  );
+END
+```
+

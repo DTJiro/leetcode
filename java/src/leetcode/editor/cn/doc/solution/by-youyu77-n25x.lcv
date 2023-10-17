@@ -1,0 +1,17 @@
+需要考虑的问题就俩：
+1. 如何判断句子包含某个单词
+   本人用了偷懒写法，将句子前后加上空格然后用instr()处理，类似的用locate()也行（都是百度搜的）
+2. 注意group_concat的时候需要排序，然后加上Ambiguous!那几列，union即可
+
+* sql
+
+```sql
+with t as(
+select distinct post_id,topic_id from Keywords,Posts 
+where instr(concat(' ',content,' '),concat(' ',word,' '))>0)
+
+select post_id, group_concat(topic_id order by topic_id,'') topic from t group by post_id
+union
+select P.post_id,'Ambiguous!' from Posts P left join t on P.post_id = t.post_id group by P.post_id having count(t.topic_id)=0
+```
+

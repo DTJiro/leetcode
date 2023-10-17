@@ -1,0 +1,21 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+CREATE FUNCTION getUserIDs(startDate DATE, endDate DATE, minAmount INT) RETURNS INT
+BEGIN
+  RETURN (
+      # Write your MySQL query statement below.
+      select ifnull(count(distinct user_id),0) as user_cnt
+        from Purchases
+       where time_stamp between startDate and endDate
+         and amount >= minAmount      
+  );
+END
+```
+

@@ -1,0 +1,33 @@
+总的逻辑其实就是先找到符合条件的情况
+
+使用instr去查询句子中有没关键字，注意，因为单个单词前后都是空格，所以要多用个空格去处理，大于0的说明就有值
+
+但是因为可能没有值，所以要用左连接
+
+然后直接对结果进行listagg，如果是空值就取一个不会出现的关键字，这里我懒得想了，就直接写了999上去
+
+然后直接decode，如果结果是这个999的，说明就是空的，其余的输出原来的内容
+
+其实没有很麻烦
+
+# Code
+
+* []
+
+```Oracle
+
+/* Write your PL/SQL query statement below */
+with maina as ( 
+    select distinct p.post_id,k.topic_id
+    from Posts p left join Keywords k
+     on 
+    instr(lower(' '||p.content||' '), lower(' '||k.word||' ')) > 0 order by p.post_id,k.topic_id
+),
+mainb as (
+    select b.post_id,listagg(nvl(b.topic_id,'999'),',') within group(order by b.topic_id) as list from maina b group by b.post_id
+)
+
+select c.post_id,decode(c.list,'999','Ambiguous!',c.list) as topic from mainb c 
+
+```
+
