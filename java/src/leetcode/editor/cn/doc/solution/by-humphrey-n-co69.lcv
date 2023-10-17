@@ -1,0 +1,19 @@
+去重后自连接计数，也可以使用sum（）来计数
+
+* 
+
+```
+with tmp AS (
+    SELECT DISTINCT
+        driver_id
+    FROM Rides
+)
+
+SELECT
+    t.driver_id,
+    COUNT(passenger_id) AS cnt
+FROM tmp as t
+LEFT JOIN Rides as r ON t.driver_id = r.passenger_id
+GROUP BY driver_id
+```
+

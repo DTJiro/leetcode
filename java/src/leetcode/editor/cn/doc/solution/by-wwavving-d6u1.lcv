@@ -1,0 +1,21 @@
+![image.png](https://pic.leetcode.cn/1674885166-EozRWV-image.png)
+
+### 代码
+
+* mysql
+
+```mysql
+select
+    driver_id,
+    ifnull(cnt, 0) cnt
+from Rides R1
+left join (
+    select
+        passenger_id,
+        count(*) over(partition by passenger_id) cnt 
+    from Rides 
+)R2 on R1.driver_id = R2.passenger_id 
+group by driver_id
+
+```
+

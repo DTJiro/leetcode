@@ -1,0 +1,19 @@
+![image.png](https://pic.leetcode-cn.com/1664802180-VlZCWm-image.png)
+
+### 解题思路
+
+1. 左连接确保所有没有当过passenger的driver也能包括在内；
+2. 连接条件r1.driver_id = r2.passenger_id
+
+### 代码
+
+* mysql
+
+```mysql
+select r1.driver_id, count(distinct r2.ride_id) as cnt 
+from Rides r1 
+left join Rides r2
+on r1.driver_id = r2.passenger_id
+group by r1.driver_id
+```
+
