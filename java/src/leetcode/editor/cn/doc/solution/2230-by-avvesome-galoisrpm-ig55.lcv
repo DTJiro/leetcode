@@ -1,0 +1,25 @@
+# 题目解析：
+
+-- 编写一个SQL查询，报告有资格获得折扣的用户id
+-- 可以获得折扣的用户定义：
+1）在时间在[startDate, endDate]之间
+2）消费的金额大于等于minAmount
+**3）按照user_id进行排序
+4) 主要加上分号，不然会报错**
+
+* 
+
+```
+CREATE PROCEDURE getUserIDs(startDate DATE, endDate DATE, minAmount INT)
+BEGIN
+	# Write your MySQL query statement below.
+	SELECT DISTINCT user_id
+    FROM Purchases
+    WHERE amount >= minAmount
+         AND time_stamp BETWEEN startDate AND endDate
+    ORDER BY user_id;
+END
+
+
+```
+
