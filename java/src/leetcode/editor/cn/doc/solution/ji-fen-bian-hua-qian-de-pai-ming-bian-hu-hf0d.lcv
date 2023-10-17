@@ -1,0 +1,26 @@
+### 解题思路
+
+此题要算的是每个队伍在积分改变前后 排名的变动情况。
+1.先查出积分改变之前每个队伍的排名。从TeamPoints表中查出队伍id，名称，用ROW_NUMBER() OVER(ORDER BY TP.points DESC,TP.NAME)函数来查出按照积分降序且按照名称升序 来排序之后的每个队伍的排名。查询结果作为BEF表，表示积分改变之前的排名情况。
+2.TeamPoints通过team_id关联PointsChange表，按照队伍id和名称分组，SUM计算出每个队伍积分变化之后的分数，查询结果作为T表。然后对T表的分数降序排序且对名称升序排序之后，就是积分变化之后每个队伍的排名情况。查询结果作为AFT表。
+3.通过team_id关联BEF表与AFT表，查询出队伍id和名称，用BEF表的排名-AFT表的排名，得出的就是每个队伍排名变化情况。
+
+### 代码
+
+* oraclesql
+
+```oraclesql
+/* Write your PL/SQL query statement below */
+WITH BEF AS (SELECT TP.team_id,TP.name,TP.points,ROW_NUMBER() OVER(ORDER BY TP.points DESC,TP.NAME) RK
+FROM TeamPoints TP ),
+AFT AS (SELECT T.team_id,T.NAME,T.PO,ROW_NUMBER() OVER(ORDER BY T.PO DESC,T.NAME) RK 
+FROM (
+SELECT TP.team_id,TP.NAME,SUM(TP.points+PC.points_change) PO 
+FROM TeamPoints TP,PointsChange PC 
+WHERE TP.team_id=PC.team_id
+GROUP BY TP.team_id,TP.NAME) T)
+SELECT BEF.team_id,BEF.name,(BEF.RK-AFT.RK) rank_diff
+FROM BEF,AFT 
+WHERE BEF.team_id=AFT.team_id
+```
+

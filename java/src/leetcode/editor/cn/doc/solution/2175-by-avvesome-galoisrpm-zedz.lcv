@@ -1,0 +1,26 @@
+# 题目解析：
+
+-- 一个国家队的全球排名是将所有球队的积分按降序排序后的排名。如果两支球队的积分相同，我们通过按名字的词性顺序排序来打破平局。
+-- 每个国家队的积分应该根据其相应的points_change值来更新。
+-- 编写一个SQL查询，计算出更新每个球队的积分后全球排名的变化。
+
+# 解题思路
+
+**-- 原来的排名（根据point降序排列）- 新的排名（ 加上point_change) = 排名变化**
+-- CAST()函数，强制数据转换类型
+**-- CAST(data as signed) 转换为int**
+
+* 
+
+```
+SELECT team_id,name,
+       (CAST(rank1 AS signed) - CAST(rank2 AS signed)) AS rank_diff
+FROM(
+    SELECT t.team_id,name,
+           RANK() OVER(ORDER BY points DESC,name) AS rank1,
+           RANK() OVER(ORDER BY points + points_change DESC,name) AS rank2
+    FROM TeamPoints t 
+    LEFT JOIN PointsChange p ON p.team_id = t.team_id
+) temp 
+```
+

@@ -1,0 +1,68 @@
+> Problem: [2175. 世界排名的变化](https://leetcode.cn/problems/the-change-in-global-rankings/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+
+with prev_points as(
+    select *,row_number() over(order by points desc,name asc) as rn
+    from TeamPoints 
+)
+,
+PointsChange1 as (
+    select team_id,sum(points_change ) as points_change 
+    from  PointsChange 
+    group by team_id
+)
+,
+t1 as(
+    select pp.*, pc.points_change 
+    from prev_points pp 
+    left join PointsChange1 pc 
+    on pp.team_id = pc.team_id 
+)
+,
+t2 as (
+    select team_id,name,sum(points+points_change) as points
+    from t1
+    group by team_id,name
+)
+,
+now_points as(
+    select *,row_number() over(order by points desc,name asc) as rn1
+    from t2 
+)
+
+
+select np.team_id , np.name , ((cast( rn as signed))-(cast( rn1 as signed)) ) as rank_diff 
+from  now_points np 
+join prev_points pp 
+on np.team_id=pp.team_id
+
+
+```
+

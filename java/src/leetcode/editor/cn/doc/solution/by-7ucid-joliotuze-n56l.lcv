@@ -1,0 +1,31 @@
+### 解题思路
+
+此处撰写解题思路
+这道题理解不难就是row开窗函数，难点在于相减为负数会报错！这个问题用 cast（expression AS data_type）/convet（expression AS data_type)解这个问题，MySQL 对于没有标记符号 用castcast 可以进行转换！
+二进制，同带binary前缀的效果 : BINARY    
+字符型，可带参数 : CHAR()     
+日期 : DATE     
+时间: TIME     
+日期时间型 : DATETIME     
+浮点数 : DECIMAL      
+整数 : SIGNED     
+无符号整数 : UNSIGNED
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+
+select c.team_id,c.name, 
+cast(c.berk as signed) - cast(c.afrk as signed) as rank_diff 
+from (
+    select a.team_id,a.name, 
+row_number()over(order by a.points desc,a.name asc) as berk,
+row_number()over(order by (a.points + b.points_change) desc,a.name asc  ) as afrk
+from TeamPoints a left join PointsChange b on a.team_id=b.team_id
+) c 
+
+
+```
+
