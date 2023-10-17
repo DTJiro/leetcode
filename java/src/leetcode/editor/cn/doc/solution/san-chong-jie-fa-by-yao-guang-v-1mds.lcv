@@ -1,0 +1,31 @@
+* 
+
+```
+# Write your MySQL query statement below
+# method 1: join
+select distinct a.user_id from Purchases a, Purchases b 
+where a.purchase_id <> b.purchase_id
+and a.user_id = b.user_id
+and abs(datediff(b.purchase_date,a.purchase_date)) <= 7
+order by 1
+
+# method 2: lead lag
+select distinct user_id
+from
+(select user_id,
+       purchase_date,
+       lead(purchase_date,1) over (partition by user_id order by purchase_date) as next_date
+from purchases) as t1
+where next_date is not null
+and datediff(next_date,purchase_date)<=7
+order by user_id
+
+# method 3: range between
+select distinct user_id from(
+    select user_id, count(1) 
+    over(partition by user_id order by purchase_date 
+              range between interval 7 day preceding and current row)
+                as rk from Purchases) t 
+where t.rk > 1 order by user_id
+```
+

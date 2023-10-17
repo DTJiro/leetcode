@@ -1,0 +1,9 @@
+* 
+
+```
+with cte as (select *, row_number() over (partition by user_id order by purchase_date) rnk from Purchases)
+select distinct a.user_id
+from cte a, cte b where a.user_id = b.user_id and cast(b.rnk as signed) - cast(a.rnk as signed) >=1
+and datediff(b.purchase_date, a.purchase_date) <8;
+```
+

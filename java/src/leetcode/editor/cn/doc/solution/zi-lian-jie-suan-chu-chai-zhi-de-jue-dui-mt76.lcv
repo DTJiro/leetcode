@@ -1,0 +1,16 @@
+自连接算出差值的绝对值在七天内的
+然后将结果order by 一下
+
+* 
+
+```
+/* Write your PL/SQL query statement below */
+select user_id from 
+(select distinct a.user_id 
+from Purchases a, Purchases b 
+where a.purchase_id <> b.purchase_id
+and a.user_id = b.user_id
+and abs(b.purchase_date - a.purchase_date) <= 7
+) t order by user_id 
+```
+
