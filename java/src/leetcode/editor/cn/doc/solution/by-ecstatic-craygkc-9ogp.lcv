@@ -1,0 +1,15 @@
+![image.png](https://pic.leetcode-cn.com/1664865892-NpYWSZ-image.png)
+
+### 解题思路
+
+dayofweek函数，return的是1-7整数，1代表Sunday，7代表Saturday
+
+### 代码
+
+* mysql
+
+```mysql
+select sum(dayofweek(submit_date) in (1,7)) as weekend_cnt, sum(dayofweek(submit_date) between 2 and 6) as working_cnt
+from Tasks
+```
+

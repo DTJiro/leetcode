@@ -1,0 +1,17 @@
+### 解题思路
+
+WEEKDAY 是个好tool
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with a as (SELECT WEEKDAY(submit_date) DD FROM Tasks)
+
+SELECT SUM(IF(DD<5, 0, 1)) weekend_cnt, SUM(IF(DD>=5, 0, 1)) working_cnt
+FROM a
+
+```
+

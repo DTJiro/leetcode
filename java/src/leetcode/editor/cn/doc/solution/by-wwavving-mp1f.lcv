@@ -1,0 +1,24 @@
+### 代码
+
+* mysql
+
+```mysql
+一、
+select 
+    sum(dayofweek(submit_date) in (1,7)) working_cnt,
+    sum(dayofweek(submit_date) not in (1,7)) weekend_cnt
+from Tasks
+
+二、
+select 
+    working_cnt,
+    (select count(*) from Tasks)-working_cnt weekend_cnt
+from (
+    select
+        count(*) working_cnt
+    from Tasks
+    where dayofweek(submit_date) = 1 or dayofweek(submit_date) = 7
+)A
+
+```
+
