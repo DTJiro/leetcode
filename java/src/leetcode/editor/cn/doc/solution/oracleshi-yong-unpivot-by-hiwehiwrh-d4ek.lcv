@@ -1,0 +1,23 @@
+* sql
+
+```sql
+CREATE FUNCTION UnpivotProducts
+RETURN SYS_REFCURSOR IS result SYS_REFCURSOR;
+    sql0 varchar2(1000) := 'select "product_id", store, price from Products unpivot  (price for store in(';
+    sql2 varchar2(1000) := '))';
+    sql1 varchar2(1000) := '';
+    sqls varchar2(1000) := '';
+BEGIN
+    /* Write your PL/SQL query statement below */
+    SELECT LISTAGG(concat(concat('"', column_name), '"'), ',') 
+      WITHIN GROUP(ORDER BY column_name) into sql1 FROM user_tab_cols 
+         WHERE table_name=UPPER('Products') and column_name <> 'product_id';
+    sqls := concat(concat(sql0, sql1), sql2);
+    open result for sqls;
+    RETURN result;
+END;
+```
+
+参考：
+[Oracle列转行unpivot函数的使用](https://blog.csdn.net/shammy_feng/article/details/111921416)
+[如何从Oracle数据库中的表中获取列名（字段名）列表](https://blog.csdn.net/zhongkeyuanchongqing/article/details/120836386?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_utm_term~default-1-120836386-blog-116315065.pc_relevant_blogantidownloadv1&spm=1001.2101.3001.4242.2&utm_relevant_index=3)

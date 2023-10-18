@@ -1,0 +1,116 @@
+# (1)获取表格中每列（商店）的名字
+
+这是本题难点之一，可以用以下语句查询除‘product_id’以外所有商店的名称：
+
+* 
+
+```
+SELECT 
+    column_name 
+FROM 
+    information_schema.columns 
+WHERE 
+    table_schema = DATABASE() AND table_name = 'Products' 
+    AND column_name <> 'product_id'
+```
+
+本查询语句具体解析可以搜索度娘。
+
+# （2）动态拼接所需要的SQL语句
+
+由于查询所需SQL语句随着商店名称的变化而变化，故应用GROUP_CONCAT函数对其进行拼接，需要用到上一步所生成的表：
+
+* 
+
+```
+SELECT 
+        GROUP_CONCAT('SELECT product_id, \'',
+        column_name,'\' AS store, ',
+        column_name,
+        ' AS price FROM Products WHERE ',
+        column_name,
+        ' IS NOT NULL'
+        SEPARATOR ' UNION '
+    ) INTO @sql FROM (SELECT 
+            column_name 
+        FROM 
+            information_schema.columns 
+        WHERE 
+            table_schema = DATABASE() AND table_name = 'Products' 
+            AND column_name <> 'product_id') t;
+```
+
+拼接出的语句大致如下：
+
+* 
+
+```
+    SELECT
+        product_id,'...' AS store,... AS price
+    FROM
+        Products
+    WHERE
+        ... IS NOT NULL
+UNION
+    SELECT
+        product_id,'...' AS store,... AS price
+    FROM
+        Products
+    WHERE
+        ... IS NOT NULL
+```
+
+# (3)修改GROUP_CONCAT函数的最大可识别长度
+
+由于GROUP_CONCAT在默认情况下生成的字符串最长为1024，多余的部分会被自动截取。而题目中提到：
+**at most 30 stores**
+故必须扩展GROUP_CONCAT函数的最大可识别长度。故在前一步的代码块前加入一句：
+
+* 
+
+```
+SET group_concat_max_len = 10240;
+```
+
+# (4)准备与运行拼接好的SQL语句
+
+* 
+
+```
+PREPARE statement FROM @sql;
+EXECUTE statement;
+```
+
+无需多言，有疑惑请自行询问度娘。
+
+# (5)完整的代码
+
+* 
+
+```
+CREATE PROCEDURE UnpivotProducts()  #dynamic:动态 unpivoting:取消旋转
+BEGIN
+	# Write your MySQL query statement below.
+    SET group_concat_max_len = 10240;
+    
+    SELECT 
+        GROUP_CONCAT('SELECT product_id, \'',
+        column_name,'\' AS store, ',
+        column_name,
+        ' AS price FROM Products WHERE ',
+        column_name,
+        ' IS NOT NULL'
+        SEPARATOR ' UNION '
+    ) INTO @sql FROM (SELECT 
+            column_name 
+        FROM 
+            information_schema.columns 
+        WHERE 
+            table_schema = DATABASE() AND table_name = 'Products' 
+            AND column_name <> 'product_id') t;
+
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+END
+```
+

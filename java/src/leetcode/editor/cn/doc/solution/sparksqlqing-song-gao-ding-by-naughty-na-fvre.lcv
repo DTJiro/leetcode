@@ -1,0 +1,7 @@
+SELECT product_id,
+store,
+price
+FROM Products
+LATERAL VIEW explode(map('LC_Store', LC_Store, 'Nozama', Nozama, 'Shop', Shop, 'Souq', Souq)) tb AS store, price
+WHERE price IS NOT NULL
+;
