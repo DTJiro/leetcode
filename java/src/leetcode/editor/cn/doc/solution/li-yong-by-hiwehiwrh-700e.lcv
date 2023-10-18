@@ -1,0 +1,25 @@
+oracle不能直接利用pivot进行动态行转列，因为生成的是xml格式
+参阅：[oracle行转列](https://blog.csdn.net/x2145637/article/details/103787604)
+所以利用存储过程来生成静态行转列的语句
+
+* sql
+
+```sql
+CREATE FUNCTION PivotProducts
+RETURN SYS_REFCURSOR IS result SYS_REFCURSOR;
+     sql0 varchar2(1000) := '';
+     sql1 varchar2(1000) := '';
+     sql2 varchar2(1000) := '';
+     sqls varchar2(1000) := '';
+BEGIN
+    sql0 := 'select * from Products pivot (SUM(price)  FOR store IN(';
+    sql1 := ')) ORDER BY product_id';
+    select (LISTAGG(concat(concat(concat('''', store), ''' as '), store), ',')  
+        WITHIN GROUP(ORDER BY store)) into sql2 
+             from (select distinct store from Products) t;
+    sqls := concat(concat(sql0, sql2), sql1);
+    open result for sqls;
+    RETURN result;
+END;
+```
+

@@ -1,0 +1,109 @@
+分析题目我们可以发现，题目考察的是表格格式化中的行转列问题，对于这个问题可以使用诸如
+
+* 
+
+```
+MAX(CASE WHEN ... THEN ... END) AS ...
+GROUP BY
+```
+
+的语句进行转换。（更详细的大佬题解请关注**618. 学生地理信息报告**的题解）
+由于题目中store字段是变化的，故我们必须使用动态生成的SQL语句。具体的方法如下：
+
+# （1）生成一个包含所有store名称的基础表
+
+* 
+
+```
+WITH temp AS (
+    SELECT DISTINCT
+        store
+    FROM
+        Products
+    ORDER BY
+        store
+)
+```
+
+即获取Products表中所有出现过的store名称，并将其按字典序进行排序
+
+# （2）拼接所要执行的SQL语句
+
+这里我们使用CONCAT函数以及GROUP_CONCAT函数，将所需要的SQL语句拼接到变量@sql之中
+
+* 
+
+```
+SELECT CONCAT('SELECT product_id, ',
+GROUP_CONCAT('MAX(CASE WHEN store = \'',store,'\' THEN price END) AS ',store),
+' FROM Products GROUP BY product_id'
+) INTO @sql FROM temp;
+```
+
+拼接出来的SQL语句即为
+
+* 
+
+```
+SELECT
+    product_id,
+    MAX(CASE WHEN store = ... THEN price END) AS ...,
+    ...
+FROM
+    Products
+GROUP BY
+    product_id
+```
+
+**划重点**
+这里有一点很容易被忽略，就是MySQL中GROUP_CONCAT函数有长度限制，默认为1024，而题目中提到
+**“There will be at most 30 different stores in the table”**
+故如果不修改默认长度的话所拼接的SQL语句会被自动截断，所以在WITH语句前需要加入
+
+* 
+
+```
+SET group_concat_max_len = 10240;
+```
+
+进行默认长度修改
+
+# （3）准备和执行生成的SQL语句
+
+* 
+
+```
+PREPARE statement FROM @sql;
+EXECUTE statement;
+```
+
+这里无需多言，想进一步了解的可以去问问度娘。
+
+# （4）完整的代码
+
+* 
+
+```
+CREATE PROCEDURE PivotProducts() 
+BEGIN
+	# Write your MySQL query statement below.
+    SET group_concat_max_len = 10240;
+    WITH temp AS (
+        SELECT DISTINCT
+            store
+        FROM
+            Products
+        ORDER BY
+            store
+    )
+    
+    SELECT CONCAT('SELECT product_id, ',
+    GROUP_CONCAT('MAX(CASE WHEN store = \'',store,'\' THEN price END) AS ',store),
+    ' FROM Products GROUP BY product_id'
+    ) INTO @sql FROM temp;
+
+    PREPARE statement FROM @sql;
+    EXECUTE statement;
+END
+```
+

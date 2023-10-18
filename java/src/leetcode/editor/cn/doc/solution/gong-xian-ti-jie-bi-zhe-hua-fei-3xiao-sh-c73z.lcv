@@ -1,0 +1,53 @@
+> Problem: [2252. 表的动态旋转](https://leetcode.cn/problems/dynamic-pivoting-of-a-table/description/)
+
+[TOC]
+
+# 思路
+
+> 需要让我们使用存储过程动态做这个事儿
+
+# 解题方法
+
+> 使用存储过程，动态拼接SQL并执行
+
+# Code
+
+* []
+
+```MySQL
+
+create procedure PivotProducts()
+begin
+    declare columnName varchar(255);
+    declare done int default false;
+    declare cur cursor for select distinct
+                               store
+                           from Products
+                           order by store;
+    declare continue handler for not found set done = true;
+
+    set @sql = '';
+
+    open cur;
+
+    read_loop:
+    loop
+        fetch cur into columnName;
+
+        if done then leave read_loop; end if;
+
+        set @columns = concat(@columns, ', "', columnName, '"');
+
+        set @sql = concat(@sql, ', MAX(IF(store = "', columnName, '", price, NULL)) AS "', columnName, '"');
+    end loop;
+
+    close cur;
+
+    set @sql = concat('SELECT product_id', @sql, ' FROM Products GROUP BY product_id');
+
+    prepare stmt from @sql;
+    execute stmt;
+    deallocate prepare stmt;
+end;
+```
+

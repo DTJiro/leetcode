@@ -1,0 +1,25 @@
+### 解题思路
+
+![image.png](https://pic.leetcode.cn/1672281427-JaUFmS-image.png)
+
+### 代码
+
+* mssql
+
+```mssql
+CREATE PROCEDURE PivotProducts AS
+BEGIN
+    /* Write your T-SQL query statement below. */
+    -- 提示好评,冲冲冲
+    declare @stores varchar(1000);
+    declare @sql nvarchar(4000);
+    select @stores =STUFF((select ','+store from (select distinct store from products) a  for xml path('')),1,1,'');
+    select @sql =  'WITH C AS(
+        SELECT product_id ,store ,price  FROM Products  
+    )
+    SELECT * FROM C
+    PIVOT(SUM(price) FOR store IN('+@stores+')) AS P'
+    exec(@sql)
+END
+```
+
