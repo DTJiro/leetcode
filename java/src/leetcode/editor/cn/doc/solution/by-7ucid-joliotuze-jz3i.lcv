@@ -1,0 +1,22 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+
+select distinct b.product_id
+from (
+select
+a.product_id,year(a.purchase_date) as year ,
+dense_rank()over(partition by a.product_id order by year(a.purchase_date)) as rk 
+from Orders as a group by a.product_id,year(a.purchase_date) having count(a.order_id)>2 ) as b 
+group by b.product_id,b.year-b.rk having count(*)>1
+
+```
+

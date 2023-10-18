@@ -1,0 +1,18 @@
+* 
+
+```
+# 先找到每一个产品每年订购的次数在3次及以上的记录
+with t1 as (
+  select product_id, cast(date_format(purchase_date, '%Y') AS SIGNED INTEGER) as year, count(*) as cnt
+  from Orders
+  group by product_id, year
+  having cnt >= 3
+)# 获取连续两年满足>=3次的产品id,用下面的方法需要去重
+select DISTINCT product_id
+from (
+  select product_id, year
+  from t1
+  where (product_id, year+1) in (select product_id, year from t1)
+) as a;
+```
+
