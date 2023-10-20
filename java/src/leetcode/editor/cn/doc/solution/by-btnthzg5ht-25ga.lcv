@@ -1,0 +1,25 @@
+注意标题
+注意标题
+注意标题
+
+原因见↓
+rank()排序相同时会重复，总数不变，即会出现1、1、3这样的排序结果；
+dense_rank()排序相同时会重复，总数会减少，即会出现1、1、2这样的排序结果；
+
+如果使用dense会因为总数变化，导致出现某用例本应该输出100.却输出了75.
+
+* 
+
+```
+select student_id ,
+department_id ,
+ifnull(round((rk-1)*100/(cnt-1),2),0) percentage from
+(
+select 
+student_id ,
+department_id ,
+rank()over(partition by department_id order by mark desc) rk ,
+count(student_id)over(partition by department_id) cnt from Students 
+) a
+```
+

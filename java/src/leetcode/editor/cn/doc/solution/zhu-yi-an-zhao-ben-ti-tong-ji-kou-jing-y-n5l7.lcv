@@ -1,0 +1,49 @@
+> Problem: [2346. 以百分比计算排名](https://leetcode.cn/problems/compute-the-rank-as-a-percentage/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+
+with t1 as(
+    select *, 
+    rank() over(partition by department_id order by mark desc) as student_rank_in_the_department,
+    count(student_id) over(partition by department_id) as the_number_of_students_in_the_department
+    from Students
+)
+,
+t2 as(
+    select student_id , department_id, 
+     round((student_rank_in_the_department - 1) * 100 / (the_number_of_students_in_the_department - 1) ,2) as percentage
+     from t1
+)
+select student_id , department_id
+,ifnull(percentage ,0) as percentage
+from t2
+
+# select * from t1
+```
+
