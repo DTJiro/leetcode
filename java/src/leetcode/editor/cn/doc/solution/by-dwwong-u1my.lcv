@@ -1,0 +1,21 @@
+### 解题思路
+
+编写一个SQL查询，报告联赛中所有可能的匹配。请注意，每两支球队彼此进行两场比赛，其中一支球队为主场球队，另一支球队则为客场球队。
+按任意顺序返回结果表。
+查询结果格式如下例所示
+
+### 代码
+
+* oraclesql
+
+```oraclesql
+/* Write your PL/SQL query statement below 
+编写一个SQL查询，报告联赛中所有可能的匹配。请注意，每两支球队彼此进行两场比赛，其中一支球队为主场球队，另一支球队则为客场球队。
+按任意顺序返回结果表。
+查询结果格式如下例所示。*/
+
+select a.team_name as home_team,b.team_name as away_team
+from Teams a,Teams b
+where a.team_name!=b.team_name
+```
+

@@ -1,0 +1,40 @@
+### 题目翻译
+
+编写一个 SQL 查询，用于报告联赛的所有可能匹配项。请注意，每两支球队进行两场比赛：主场和客场。
+按任意顺序返回结果表。
+查询结果格式如以下示例所示
+输入:
+Teams表:
++-------------+
+| team_name   |
++-------------+
+| Leetcode FC |
+| Ahly SC     |
+| Real Madrid |
++-------------+
+输出:
++-------------+-------------+
+| home_team   | away_team   |
++-------------+-------------+
+| Real Madrid | Leetcode FC |
+| Real Madrid | Ahly SC     |
+| Leetcode FC | Real Madrid |
+| Leetcode FC | Ahly SC     |
+| Ahly SC     | Real Madrid |
+| Ahly SC     | Leetcode FC |
++-------------+-------------+
+解释: 联赛的所有比赛都显示在表格中.
+
+### 解题思路
+
+要求所有的比赛次序，自己和自己不能比赛。
+先自身连接产生两张表，排除自己与自己比赛的情况就可以了。
+
+### 代码
+
+* mysql
+
+```mysql
+SELECT home_team, away_team FROM(SELECT t1.team_name home_team,t2.team_name away_team FROM Teams t1 JOIN Teams t2 ON t1.team_name != t2.team_name)temp
+```
+
