@@ -1,0 +1,16 @@
+![image.png](https://pic.leetcode.cn/1674545315-KFVSlw-image.png)
+
+### 代码
+
+* mysql
+
+```mysql
+select 
+    user_id,
+    sum(quantity*price) spending
+from Sales 
+left join Product using(product_id)
+group by user_id
+order by spending desc, user_id
+```
+

@@ -1,0 +1,12 @@
+* 
+
+```
+# Write your MySQL query statement below
+select user_id,sum(quantity*price) spending 
+from sales
+    join product
+        using(product_id)
+group by 1
+order by 2 desc,1
+```
+
