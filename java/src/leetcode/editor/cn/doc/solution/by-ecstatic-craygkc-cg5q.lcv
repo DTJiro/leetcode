@@ -1,0 +1,22 @@
+![image.png](https://pic.leetcode-cn.com/1664875795-uGJXsE-image.png)
+
+### 解题思路
+
+1. 左连接取名字和价格；
+2. 按user_id和product_id分组求sum，然后对用户开窗求sum的排序；
+
+### 代码
+
+* mysql
+
+```mysql
+select user_id, product_id
+from
+    (select user_id, s.product_id, rank() over(partition by user_id order by sum(quantity*price) desc) as rk
+    from Sales s 
+    left join Product 
+    using (product_id)
+    group by user_id, s.product_id)a 
+where rk = 1
+```
+
