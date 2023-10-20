@@ -1,0 +1,29 @@
+> Problem: [2308. 按性别排列表格](https://leetcode.cn/problems/arrange-table-by-gender/description/)
+
+### 把每一个性别的按照user_id进行排序，然后female排名1，other为2， male为3
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+select user_id, gender
+from (
+select user_id, gender, row_number() over (order by user_id) as t_rank, 1 as rank1
+from Genders
+where gender = 'female'
+union 
+select user_id, gender, row_number() over (order by user_id) as t_rank, 2 as rank1
+from Genders
+where gender = 'other'
+union 
+select user_id, gender, row_number() over(order by user_id) as t_rank, 3 as rank1
+from Genders
+where gender = 'male'
+) as a
+order by t_rank, rank1;
+
+```
+

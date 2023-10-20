@@ -1,0 +1,15 @@
+### 解题思路
+
+![image.png](https://pic.leetcode.cn/1672305630-WqzLZk-image.png)
+
+### 代码
+
+* mysql
+
+```mysql
+with c as(
+select user_id ,if(gender = 'other','gother',gender) as g,row_number() over(partition by gender order by user_id) as rn from Genders 
+)
+select user_id,if(g = 'gother','other',g)  as gender from c order by rn,g asc
+```
+

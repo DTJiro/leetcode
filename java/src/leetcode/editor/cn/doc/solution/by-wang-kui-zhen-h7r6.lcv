@@ -1,0 +1,21 @@
+### 解题思路
+
+性别按照female、other、male轮询，且保证同性别中的user_id递增
+==> 同性别中user_id递增，且在各自性别中序号(非user_id)相同的按照female、other、male顺序排列
+==> 两个维度排序：各性别按照user_id排列后的序号（即user_id小的排前面）排序，相同序号的按照female、other、male顺序排序
+==> 排序指标合并：设计指标序号SN * 3 + SEX，其中SN即各自性别中按userId排序后的序号，SEX取性别对应的数字（female为0、other为1，male为2）。
+==> 其中在各自性别组中的序号SN利用窗口函数获得，SEX对应的值直接使用IF函数即可
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT 
+    user_id, 
+    gender  
+FROM Genders
+ORDER BY (rank() OVER(PARTITION BY gender ORDER BY user_id ASC)) * 3 + IF(gender = 'female', 0, IF(gender = 'other', 1, 2))
+```
+
