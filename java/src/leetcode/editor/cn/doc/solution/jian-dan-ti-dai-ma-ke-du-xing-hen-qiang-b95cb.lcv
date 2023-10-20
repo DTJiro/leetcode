@@ -1,0 +1,18 @@
+* 
+
+```
+# 先找到每个城市最高气温是多少
+with t1 as (
+    select city_id, max(degree) as max_degree
+    from Weather
+    group by city_id
+)# 找到每一个城市的最高温度的最开始的日期
+select t1.city_id, min(a.day) as day, t1.max_degree as degree
+from t1
+left join Weather as a
+on a.city_id = t1.city_id
+and a.degree = t1.max_degree
+group by t1.city_id
+order by t1.city_id;
+```
+
