@@ -1,0 +1,17 @@
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with invoice_with_max_amount as 
+(
+    select invoice_id, sum(quantity * price) total_amount
+    from products natural join purchases
+    group by invoice_id
+    order by total_amount desc, invoice_id asc
+    limit 1
+)
+select product_id, quantity, price * quantity as price
+from products natural join purchases
+where invoice_id = (select invoice_id from invoice_with_max_amount)
+```
+

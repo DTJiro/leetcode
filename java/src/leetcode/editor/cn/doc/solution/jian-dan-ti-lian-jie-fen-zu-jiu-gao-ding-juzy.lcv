@@ -1,0 +1,29 @@
+> Problem: [2362. 生成发票](https://leetcode.cn/problems/generate-the-invoice/description/)
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+# 先计算每个发票的价格
+with t1 as (
+  select a.invoice_id, a.product_id, a.quantity, a.quantity*b.price as money
+  from Purchases as a
+  left join Products as b
+  on a.product_id = b.product_id
+),
+t2 as (
+  # 找到应该返回的那个发票的id
+  select invoice_id, sum(money) as total_money
+  from t1
+  group by invoice_id
+  order by total_money desc, invoice_id
+  limit 1
+)# 然后得到发票的信息
+select product_id, quantity, money as price
+from t1
+where invoice_id = (select invoice_id from t2);
+```
+

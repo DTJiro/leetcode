@@ -1,0 +1,35 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select             #2.在建立链接，通过子查询找到那张发票，就为了让invoice_id=2
+p2.Product_id,     #3.以product_id分组求出具体的数据答案
+p2.quantity,
+sum(p2.quantity*p1.price) as price
+from Products p1 inner join Purchases  p2 on p1.Product_id=p2.Product_id
+where
+p2.invoice_id in (
+select
+t.invoice_id
+from(
+select
+ps.invoice_id,       #先计算那张发票最高,并有重复的按invoice_id进行排序
+p.Product_id, #1.首先invoice_id发票分组求每张发票的总数，sum(Productsprice*Purchases)ps.quantity,  #求出总价，并用窗口函数进行排序找到那张发票
+sum(ps.quantity*p.price) ,
+dense_rank()over( order by sum(ps.quantity*p.price) desc,ps.invoice_id asc) as m
+from Products p right join Purchases ps 
+on p.Product_id=ps.Product_id
+group by ps.invoice_id
+) as t
+where
+t.m=1
+)
+group by p2.product_id
+```
+

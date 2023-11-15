@@ -1,0 +1,35 @@
+> Problem: [2362. 生成发票](https://leetcode.cn/problems/generate-the-invoice/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+with tmp as(SELECT invoice_id,sum(quantity*p.price )as mon FROM purchases p1 LEFT JOIN Products p ON p1.product_id = p.product_id GROUP BY invoice_id
+ORDER BY mon DESC ,invoice_id LIMIT 1)
+SELECT a.product_id as product_id,quantity,quantity*p.price as price
+from (SELECT * from Purchases WHERE invoice_id in (SELECT invoice_id FROM tmp)) a LEFT JOIN Products p ON a.product_id=p.product_id;
+```
+
