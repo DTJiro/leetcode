@@ -1,0 +1,27 @@
+##### 首先将有消费记录的销售人员的总体消费金融计算出来
+
+with t1 as (
+select b.salesperson_id, sum(a.price) as total
+from Sales as a
+left join Customer as b
+on a.customer_id = b.customer_id
+group by b.salesperson_id
+),
+
+#### 处理没有消费的情况
+
+t2 as (
+select *
+from t1
+union all
+select salesperson_id, 0 as total
+from Salesperson
+where salesperson_id not in (select salesperson_id from t1)
+)
+
+##### 两表连接得到结果
+
+select t2.salesperson_id, c.name, t2.total
+from t2
+left join Salesperson as c
+on c.salesperson_id = t2.salesperson_id;
