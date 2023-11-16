@@ -1,0 +1,32 @@
+> Problem: [2388. 将表中的空值更改为前一个值](https://leetcode.cn/problems/change-null-values-in-a-table-to-the-previous-value/description/)
+
+[TOC]
+
+# 思路
+
+> 遍历整个表，如果drink不为空则更新临时变量的值；如果drink为空则赋值给它临时变量的值。直接用SELECT赋值就可以。
+
+# 注意点
+
+临时抱佛脚的笨蛋不知道如何赋值。。 记录一下:=和=的区别
+
+* 
+
+```
+=
+在set和update语句时和:=一样，用于赋值。在其他语句中用作等于号，判断作用。
+:=
+在set，update，select语句中都是用于赋值。
+```
+
+# Code
+
+* []
+
+```MySQL
+
+SELECT id, 
+@tmp := IF (drink IS NULL, @tmp, drink) AS drink
+FROM CoffeeShop
+```
+

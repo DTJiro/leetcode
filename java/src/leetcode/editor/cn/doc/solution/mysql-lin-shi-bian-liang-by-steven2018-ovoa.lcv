@@ -1,0 +1,12 @@
+使用临时变量存储上一行的值，若当前行的值为Null，那么填入上一行的值，否则用当前行的值更新临时变量的值
+
+* []
+
+```MySQL
+select
+    id,
+    @temp:=if(drink is null, @temp, drink) as drink
+from
+    CoffeeShop
+```
+

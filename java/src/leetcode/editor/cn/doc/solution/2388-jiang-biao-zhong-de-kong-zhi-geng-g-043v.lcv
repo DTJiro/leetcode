@@ -1,0 +1,121 @@
+## 题目
+
+- 将 drink 的 null 值替换为前面最近一行不为 null 的 drink（保证表第一行的 drink 不为 null）
+- 返回 与输入顺序相同的 结果表
+
+---
+
+## 解题关键点
+
+- 要找到前面最近一行不为null的drink值，这个非常难，需要用到分组，而要怎么达到准确的分组就是难点之一
+- 第二，则是需要按照原顺序返还，此时则需要考虑到使用ROW_NUMBER窗口函数将原表的固有顺序记录下来
+- 本道题目本人没做出来，挑出两个最认可的做法来做题解
+
+---
+
+## 解题思路
+
+### 方法 1：利用窗口函数&CASE WHEN来分组
+
+- 不得不说，这个方法和思路真的牛，对窗口函数和CASE WHEN的用法也很熟练
+
+#### 步骤 1：ROW_NUMBER()为原表附上原有顺序id
+
+* 
+
+```
+SELECT *,
+        ROW_NUMBER() OVER () AS rn
+FROM CoffeeShop
+```
+
+#### 步骤 2：使用移动计算 + SUM函数与CASE WHEN对每组null值进行分组
+
+- 这里在一般的窗口函数 + SUM函数中再插入了CASE WHEN，以达到从每一个首个非NULL值开始设立分组的目的，整个思路就打开了！
+
+* 
+
+```
+SELECT *,
+        SUM(CASE WHEN drink IS NULL THEN 0 ELSE 1 END) OVER (ORDER BY rn ASC) AS grp
+FROM
+    (SELECT *,
+            ROW_NUMBER() OVER () AS rn
+    FROM CoffeeShop) AS t1
+```
+
+#### 步骤 3：在现有分组内再使用一次移动计算 + MAX函数，找出文本值最大的drink值
+
+- 因为NULL不参与逻辑比较，因此非NULL值一定是最大值
+
+* 
+
+```
+SELECT id,
+        MAX(drink) OVER (PARTITION BY grp) AS drink
+FROM
+    (SELECT *,
+            SUM(CASE WHEN drink IS NULL THEN 0 ELSE 1 END) OVER (ORDER BY rn ASC) AS grp
+    FROM
+        (SELECT *,
+                ROW_NUMBER() OVER () AS rn
+        FROM CoffeeShop) AS t1) AS t2
+ORDER BY rn ASC;
+```
+
+---
+
+### 方法 2：自联结：ROW_NUMBER() + LEFT JOIN + RANK()
+
+#### 步骤 1：依旧是创建ROW_NUMBER，此处创建一个临时表以供后续自联结
+
+* 
+
+```
+WITH Shop AS
+    (SELECT *, ROW_NUMBER() OVER () AS idx
+        FROM CoffeeShop)
+```
+
+#### 步骤 2：找出每一行drink值 前面的所有非空的drink值，再使用RANK函数对所有非空dirnk值进行排序
+
+- 此处使用自联结 + 左联结，通过原有的顺序id即可找到在其前面的非空的drink值
+- 注意，在使用RANK窗口函数时，这里是根据s2.idx进行窗口内部排序，并且一定是DESC！
+
+* 
+
+```
+SELECT s1.id AS id, 
+        s2.drink AS drink, 
+        /* 找出所有非空dirnk值中谁是第一个，
+        注意，这里根据s2.idx进行窗口内部排序，并且一定是DESC */
+        RANK() OVER (PARTITION BY s1.id ORDER BY s2.idx DESC) AS rk
+FROM Shop s1 LEFT JOIN Shop s2
+ON s1.idx >= s2.idx AND s2.drink IS NOT NULL
+ORDER BY s1.idx
+```
+
+##### 步骤 3：根据RANK函数找出第一位非空drink值即可
+
+* 
+
+```
+WITH Shop AS(
+    SELECT *, ROW_NUMBER() OVER () AS idx
+    FROM CoffeeShop )
+
+SELECT id, drink 
+FROM
+    (SELECT s1.id AS id, s2.drink AS drink, RANK() OVER (PARTITION BY s1.id ORDER BY s2.idx DESC) AS rk
+        FROM Shop s1
+        LEFT JOIN Shop s2
+        ON s1.idx >= s2.idx AND s2.drink IS NOT NULL
+        ORDER BY s1.idx) tmp
+WHERE rk = 1
+
+作者：ql2142
+链接：https://leetcode.cn/problems/change-null-values-in-a-table-to-the-previous-value/solutions/1793223/by-ql2142-g26y/
+来源：力扣（LeetCode）
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+```
+
