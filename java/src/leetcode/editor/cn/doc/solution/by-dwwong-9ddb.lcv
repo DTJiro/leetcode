@@ -1,0 +1,19 @@
+### 解题思路
+
+奥运会的桌子按照以下规则排序:
+
+金牌数量多的国家排在第一位。
+如果金牌数量相同，那么银牌数量多的国家排在第一位。
+如果银牌数量相同，那么铜牌数量最多的国家排在第一位。
+如果在铜牌中有一个领带，那么有领带的国家按照字典上的升序排列。
+
+### 代码
+
+* oraclesql
+
+```oraclesql
+/* Write your PL/SQL query statement below */
+SELECT * FROM Olympic O
+ORDER BY gold_medals DESC,silver_medals DESC,bronze_medals DESC,country ASC
+```
+
