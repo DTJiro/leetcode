@@ -1,0 +1,31 @@
+### 解题思路
+
+直接用GROUP　by求出答案
+
+### 代码
+
+* mysql
+
+```mysql
+
+
+
+```
+
+select
+e.Employee_id
+from Employees  e left join Logs l
+on e.Employee_id=l.Employee_id
+group by e.Employee_id
+having ifnull(
+ceil(
+sum(
+timestampdiff(second,l.in_time,l.out_time))/60),0) <max(e.needed_hours)*60
+
+* 
+
+```
+
+
+```
+
