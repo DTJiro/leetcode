@@ -1,0 +1,8 @@
+* 
+
+```
+SELECT e1.symbol AS'Metal' , e2.symbol 'Nonmetal' 
+FROM Elements AS e1 , Elements AS e2  
+WHERE e1.type ='Metal' and e2.type = 'Nonmetal'
+```
+

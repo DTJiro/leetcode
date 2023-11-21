@@ -1,0 +1,33 @@
+> Problem: [2480. Form a Chemical Bond](https://leetcode.cn/problems/form-a-chemical-bond/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+select a.symbol 'Metal',b.symbol 'Nonmetal' from Elements a ,Elements b  
+where a.type ='Metal' and b.type='Nonmetal'
+```
+

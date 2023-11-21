@@ -1,0 +1,23 @@
+> Problem: [2480. 形成化学键](https://leetcode.cn/problems/form-a-chemical-bond/description/)
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+with t1 as (
+    select symbol as metal
+    from Elements
+    where type = 'Metal'
+)
+select *
+from t1
+cross join (
+    select symbol as nonmetal
+    from Elements
+    where type = 'Nonmetal'
+) as a
+```
+
