@@ -1,0 +1,44 @@
+经典的Gap and island 问题
+
+主要思路：
+只要每一个event start day 在之前任意end_day 之后 就是一个新的island 否则就是之前的island 因为没有gap
+我们可以利用这一点找到不同的island 然后对每一个island 找到min(start_day) 和 max(end_day)
+
+步骤：
+1. 利用max 后添加rows between unbounded preceding and 1 preceding 找到每行之前最后的end day
+2. 用每行的start day 和 上面的end day 对比 如果是新的island 则利用sum 给一个island ID。 这里利用了sum over 求 running total 的 方式找到每一个island
+3. 对每一个island 和 hall_id 找到min(start_day), max(end_day)
+
+这里的解题思路借鉴了medium 上的文章 全文在这里：
+
+https://medium.com/analytics-vidhya/sql-classic-problem-identifying-gaps-and-islands-across-overlapping-date-ranges-5681b5fcdb8
+
+文章中最精髓的应该就是利用sum over 去给每一个island 一个ID.
+
+* 
+
+```
+# Write your MySQL query statement below
+
+#step 1: get the maximum end day before each row
+#step 2: assign a row number as an ID for each row. It will be used in islaned ID assignment
+#step 3: using a running total for island ID assignment if two events have overlap. -> start date <= max end date for all previous rows
+#step 4: find max and min date in each island
+
+with a as (
+    select hall_id, start_day, end_day, 
+        max(end_day) over (partition by hall_id order by start_day, end_day rows between unbounded preceding and 1 preceding) as previous_end_day, 
+        row_number() over (order by hall_id, start_day, end_day) as rn
+    from hallevents
+), 
+b as (
+    select hall_id, start_day, end_day, previous_end_day,
+        sum(case when start_day <= previous_end_day then 0 else 1 end) over (order by rn)as island_id # this is the key to get the island id
+    from a
+    group by 1, 2, 3, 4
+)
+select hall_id, min(start_day) as start_day, max(end_day) as end_day
+from b
+group by hall_id, island_id
+```
+

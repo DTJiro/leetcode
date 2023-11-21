@@ -1,0 +1,46 @@
+### 解题思路
+
+给相同hall中时间区间有重叠的event一个组，即组中event的时间区间是可以合并的，此时从组中选择最小的start_day及最大的end_day组成一个更大的时间区间，就可以得到结果。
+
+关键就在于如何用代码分组
+
+- 首先给不同的hall以start_day从小到大排序，确保本行的start_day2不会大于上一行的start_day1，下一行的start_day2只有这两种情况
+
+![图片.png](https://pic.leetcode.cn/1678523233-RCAmte-%E5%9B%BE%E7%89%87.png)
+- 此时要考虑start_day2与上一行end_day1的关系:
+
+1. 如果取图片上左边的start_day2(start_day2<end_day1)，时间区间有重叠，即这两个时间区间可以合并，那么就在一个组内，进一步想到如果存在一个end_day0比end_day1还要大，start_day2也一定<end_day0，也就是说本行start_day2可以和end_day0这一行的时间区间合并，因此想到与max(end_day)比较
+2. 如果取图片上右边的start_day2(start_day2>end_day1)，因为时间不重叠，所以是另外一个组
+
+分组逻辑：
+hall_id相同时：
+1. 比较本行的start_day比上一行记录的max_end_day，本行的start_day小，则组号不变，否则组号+1。
+   `IF(@preid = hall_id AND start_day <= @pre_end, @rownum, @rownum:= @rownum + 1) range_id`
+2. 比较本行的end_day与上一行记录的max_end_day，本行的end_day大，则max_end_day变更为本行的end_end，否则max_end_day不变
+   `IF(@preid = hall_id AND end_day <= @pre_end , @pre_end:=@pre_end, @pre_end:= end_day) max_end_day`
+
+hall_id不同时：组号+1，新建立一个组
+
+### 代码
+
+* mysql
+
+```mysql
+# # Write your MySQL query statement below
+SELECT
+    hall_id,
+    MIN(start_day) AS start_day,
+    MAX(max_end_day) AS end_day
+FROM(
+    SELECT
+        *,
+        IF(@preid = hall_id AND start_day <= @pre_end, @rownum, @rownum:= @rownum + 1) range_id,
+        IF(@preid = hall_id AND end_day <= @pre_end , @pre_end, @pre_end:= end_day) max_end_day,
+        @preid:= hall_id
+    FROM
+        (SELECT * FROM HallEvents ORDER BY hall_id, start_day)a,
+        (SELECT @pre_end:='', @preid:='', @rownum:= 0)b
+)tb
+GROUP BY hall_id, range_id
+```
+

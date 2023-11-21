@@ -1,0 +1,22 @@
+判断一个日期是否成为最终结果中左右节点的条件如下：
+id为1的左节点：该日期出现在id为1的start——date和end——date中，并且满足该日期和该日期的下一天不会同时出现在id为1的某一行中；
+id为1的右节点：该日期出现在id为1的start——date和end——date中，并且满足该日期和该日期的上一天不会同时出现在id为1的某一行中；
+根据上面的规则，选出所有的左节点和右节点并且按照id和时间排序后链接就可以。
+
+* 
+
+```
+with temp as 
+(select hall_id ,start_day  as day1 from hallevents union select hall_id,end_day from hallevents)
+,temp1 as (select* from temp  t where not exists (select * from hallevents  h where (day1 between start_day and end_day) and (date_sub(day1,interval 1 day) between start_day and end_day) and (h.hall_id=t.hall_id) ))
+,temp2 as 
+(select* from temp  t where not exists (select * from hallevents  h where (day1 between start_day and end_day) and (date_add(day1,interval 1 day) between start_day and end_day) and (h.hall_id=t.hall_id) ))
+,temp3 as
+(select hall_id,day1 as start_day ,row_number()over(order by hall_id,day1) as r from temp1)
+,temp4 as 
+(select hall_id,day1 as end_day ,row_number()over(order by hall_id,day1) as r from temp2)
+,temp5 as
+(select t4.hall_id,t3.start_day,t4.end_day from temp3 t3, temp4 t4 where t4.r=t3.r)
+select * from temp5
+```
+

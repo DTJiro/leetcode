@@ -1,0 +1,31 @@
+1. 对每个hall_id单独做计算，计算顺序依据start_day升序(体现在窗口函数OVER部分中)；
+2. 作辅助列，对每一行，计算截至该行的最大的end_day时间值，记作max_end_day_so_far；
+3. 检查当前行start_day是否小于上一行的max_end_day_so_far，（注意到我们的计算都基于按start_day作升序排序）如果是说明这一行的start_day被包含在上一行的时间区间中，那么设置值为0，反之，设置值为1，记作range_start；
+4. 窗口累加range_start，记作range_grp，用于作为分组的标志；
+5. 按hall_id和range_grp进行分组，对于每个分组，MIN(d1)即为最终结果区间的开始，MAX(d2)即为最终结果区间的结束。
+
+* 
+
+```
+SELECT hall_id,
+       MIN(start_day) AS start_day,
+       MAX(end_day) AS end_day
+FROM (
+    SELECT *,
+           SUM(range_start) OVER (PARTITION BY hall_id ORDER BY start_day) AS range_grp
+    FROM (
+        SELECT *,
+               CASE WHEN start_day <= LAG(max_end_day_so_far) OVER (PARTITION BY hall_id ORDER BY start_day) THEN 0 
+                    ELSE 1 END AS range_start
+        FROM (
+            SELECT hall_id,
+                   start_day,
+                   end_day,
+                   MAX(end_day) OVER (PARTITION BY hall_id ORDER BY start_day) AS max_end_day_so_far
+            FROM HallEvents
+        ) t
+    ) t1
+) t2
+GROUP BY hall_id, range_grp;
+```
+
