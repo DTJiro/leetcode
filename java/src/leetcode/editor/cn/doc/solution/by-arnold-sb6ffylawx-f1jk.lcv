@@ -1,0 +1,30 @@
+temp1计算每个顾客在各年的购买金额
+temp2计算每个顾客在各年的下一年与当年购买金额的差值
+temp3计算差值小于等于0的个数
+最后过滤出个数小于等于1(因为最后一年的差值一定小于等于0所以至少为1)的
+
+* 
+
+```
+# Write your MySQL query statement below
+with temp1 as (
+    select customer_id, order_year, sum(price) as price
+    from (select *, year(order_date) as order_year from Orders) t
+    group by customer_id, order_year
+),
+
+temp2 as (
+    select t1.customer_id, ifnull(t2.price, 0) - t1.price as delta_price
+    from temp1 t1 left join temp1 t2 
+    on t1.customer_id = t2.customer_id and t1.order_year = t2.order_year - 1
+),
+
+temp3 as (
+    select * from temp2 where delta_price <= 0
+)
+
+select customer_id from (
+    select customer_id, count(1) as num from temp3 group by customer_id
+) t where num <= 1
+```
+

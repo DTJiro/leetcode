@@ -1,0 +1,29 @@
+**思路：**
+1. join 剔除不满足"(客户最大下单年份-客户最小下单年份+1)=(客户下单年份去重计数)"的客户；
+2. if 为客户当年购买量是否增加打标签：如"(当年总购买量-上年总购买量)>0"，则标签为0，否则为1；
+3. having 如客户每年都满足严格增加，则标签和为零，否则大于零并剔除。
+
+**代码实现：**
+
+* 
+
+```
+select customer_id
+from (
+    select a.customer_id
+        ,if(a.price-ifnull((lag(a.price,1) over (partition by a.customer_id order by a.yr)),0)>0,0,1) ind
+    from (
+        select customer_id,year(order_date) yr,sum(price) price
+        from orders
+        group by customer_id,year(order_date)
+        )a
+    join (
+        select customer_id
+        from orders
+        group by customer_id
+        having (max(year(order_date))-min(year(order_date))+1)=count(distinct year(order_date)))b on a.customer_id=b.customer_id
+)t
+group by customer_id
+having sum(ind)=0
+```
+

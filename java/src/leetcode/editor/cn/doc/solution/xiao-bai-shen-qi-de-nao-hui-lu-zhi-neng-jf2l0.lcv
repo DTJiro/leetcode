@@ -1,0 +1,81 @@
+> Problem: [2474. 购买量严格增加的客户](https://leetcode.cn/problems/customers-with-strictly-increasing-purchases/description/)
+
+[TOC]
+
+# 思路
+
+> 乍一看，题目是让你求出连续年递增就行，其实还忽略一个问题就是,比如咱们得例子customer_id=1,他有2019,2020,2021,2022的四年，也就是说他连续4年在上升，比如其他实例有个customer_id 他只有1年也算，所以这2个要建立等式.
+
+# 解题方法
+
+> 1.求出每个customer_id的每年的销售额
+> 2.求出每个customer_id的一共有几年发生销售额
+> 3.利用窗口函数，lag,1,0的函数(customer_id分组 order by 年份)与当前年份进行对比。
+> 4.在求出lag,1,0的函数(customer_id分组 order by 年份)与当前年份进行对比后,在利用row_number()作差进行找到连续天数
+> 5.把2和4的天数和customer_id结合，输出的就是答案
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+with tiaojian as (
+select 
+year(order_date) as year,
+customer_id,
+sum(price) as pt
+from Orders
+group by customer_id,year(order_date)
+)
+,tiaojian1 as (
+select 
+customer_id,
+count(distinct year(order_date)) as pm
+from Orders 
+group by customer_id
+),tiaojian2 as (
+select 
+t.customer_id,
+t.year
+from(
+select 
+customer_id,
+year,
+pt,
+lag(pt,1,0)over(partition by customer_id order by year ) as m
+from tiaojian
+) as t 
+where
+t.pt>t.m
+),tiaojian3 as (
+select
+customer_id,
+count(customer_id)over(partition by customer_id,t.year-t.py) as p
+from(
+select 
+customer_id,
+year,
+row_number()over(partition by customer_id order by year) as py
+from tiaojian2
+) as t
+)
+
+select
+distinct 
+t1.customer_id
+from tiaojian1 t1 inner join tiaojian3 t3 on t1.customer_id=t3.customer_id 
+and t1.pm=t3.p
+```
+
