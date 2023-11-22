@@ -1,0 +1,27 @@
+难点：如何确定一个员工**最新**的记录
+
+对应用例：
+
+* json
+
+```json
+{"headers":{"Salary":["emp_id","firstname","lastname","salary","department_id"]},"rows":{"Salary":[[1,"Todd","Wilson",110000,"D1006"],[1,"Todd","Wilson",106119,"D1006"],[2,"Justin","Simon",128922,"D1005"],[2,"Justin","Simon",130000,"D1005"],[3,"Kelly","Rosario",42689,"D1002"],[4,"Patricia","Powell",162825,"D1004"],[4,"Patricia","Powell",170000,"D1004"],[5,"Sherry","Golden",44101,"D1002"],[6,"Natasha","Swanson",79632,"D1005"],[6,"Natasha","Swanson",90000,"D1002"]]}}
+```
+
+解决思路：对每个员工按照薪水降序排序，取薪水最高的那一行记录
+涉及知识点：窗口函数
+
+* sql
+
+```sql
+# Write your MySQL query statement below
+select emp_id, firstname, lastname, salary, department_id from (
+    select emp_id, firstname, lastname, salary, department_id,
+        rank() over(partition by emp_id order by salary desc) rk 
+    from Salary
+) temp
+where rk = 1
+order by emp_id
+;
+```
+

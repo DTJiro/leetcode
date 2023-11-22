@@ -1,0 +1,15 @@
+> Problem: [2668. 查询员工当前薪水](https://leetcode.cn/problems/find-latest-salaries/description/)
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+# 既然工资每年都会增加，因此最高的工资记录就是当前工资
+select emp_id, firstname, lastname, max(salary) as salary, department_id
+from Salary
+group by emp_id, firstname, lastname, department_id
+order by emp_id;
+
+```
+
