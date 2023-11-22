@@ -1,0 +1,14 @@
+> Problem: [2504. 把名字和职业联系起来](https://leetcode.cn/problems/concatenate-the-name-and-the-profession/description/)
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+select person_id, concat(name,'(', substring(profession,1,1),')') as name
+from Person
+order by person_id desc;
+```
+

@@ -1,0 +1,10 @@
+Oracle 拼接一下就行，用substr取第一个字母
+
+* 
+
+```
+/* Write your PL/SQL query statement below */
+select person_id,name||'('||substr(profession,0,1)||')' as name  
+from Person order by person_id desc
+```
+

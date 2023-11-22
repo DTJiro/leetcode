@@ -1,0 +1,15 @@
+### 解题思路
+
+字符串拼接concat()
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+select t.person_id, concat(t.name, "(", substring(profession, 1, 1), ")") as name
+    from Person t
+        order by t.person_id desc;
+```
+

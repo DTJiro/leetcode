@@ -1,0 +1,14 @@
+CONCAT(s1,s2...sn)
+将字符串 s1,s2 等多个字符串合并为一个字符串
+LEFT(s,n)
+返回字符串 s 的左边前 n 个字符
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+SELECT person_id, CONCAT(name,"(",LEFT(profession,1),")") AS name
+FROM Person 
+ORDER BY 1 DESC
+```
+
