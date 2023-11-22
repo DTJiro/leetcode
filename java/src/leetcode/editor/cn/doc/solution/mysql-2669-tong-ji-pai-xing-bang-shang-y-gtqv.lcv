@@ -1,0 +1,9 @@
+* 
+
+```
+SELECT artist , COUNT(*) AS occurrences 
+FROM ＊＊＊
+GROUP BY 1 
+ORDER BY 2 DESC , 1
+```
+

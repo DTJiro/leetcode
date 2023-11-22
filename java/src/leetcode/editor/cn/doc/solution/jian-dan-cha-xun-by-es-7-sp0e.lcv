@@ -1,0 +1,35 @@
+> Problem: [2669. Count Artist Occurrences On ＊＊＊ Ranking List](https://leetcode.cn/problems/count-artist-occurrences-on-＊＊＊-ranking-list/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+select artist, count(*) occurrences 
+from ＊＊＊
+group by 1 
+order by 2 desc, 1
+```
+
