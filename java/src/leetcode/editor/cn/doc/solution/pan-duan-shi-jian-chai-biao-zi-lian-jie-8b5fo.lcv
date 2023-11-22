@@ -1,0 +1,38 @@
+> Problem: [2688. 查找活跃用户](https://leetcode.cn/problems/find-active-users/description/)
+
+[TOC]
+
+# 思路
+
+两个条件：
+1. 至少两次
+2. 两次之间时间小于7天
+
+容易写出bug代码
+
+* 
+
+```
+select user_id from Users
+  group by user_id
+  having count(distinct created_at) >= 2 and datediff(max(created_at), min(created_at)) <= 7
+```
+
+原因是可以同个user_id多次购买，不应直接用最小、最大时间进行判断
+
+# 解题方法
+
+1. 表自连接，u1、 u2分别表示本次和下次,两次时间差在0～7天内
+2. 自连接的两次不应为同一次，保证条件  u1.item <> u2.item
+
+# Code
+
+* []
+
+```MySQL
+select distinct u1.user_id from Users u1, Users u2 
+where u1.user_id = u2.user_id and (datediff(u2.created_at, u1.created_at) between 0 and 7)
+and u1.item <> u2.item;
+
+```
+

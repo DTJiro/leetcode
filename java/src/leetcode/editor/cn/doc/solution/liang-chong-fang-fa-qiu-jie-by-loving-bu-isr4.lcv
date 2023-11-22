@@ -1,0 +1,42 @@
+> Problem: [2688. 查找活跃用户](https://leetcode.cn/problems/find-active-users/description/)
+
+两种方法：
+1. 先用row_number assign 一个unique value 然后 self-join 找到 7天内的row
+2. 用lag 找到每一个user上一次purchase 记录 然后做差
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+
+with a as (
+   select *, row_number() over (partition by user_id order by created_at) as rn
+   from users
+)
+select distinct u1.user_id
+from a u1
+left join a u2
+   on u1.user_id = u2.user_id 
+   and u1.rn < u2.rn
+   and datediff(u2.created_at, u1.created_at) <=7
+where u2.user_id is not null
+```
+
+* []
+
+```MySQL
+
+with a as (
+    select user_id, created_at, lag(created_at) over (partition by user_id order by created_at) as prev_purchase
+    from users
+)
+select distinct user_id
+from a
+where datediff(created_at, prev_purchase) <= 7
+
+
+```
+

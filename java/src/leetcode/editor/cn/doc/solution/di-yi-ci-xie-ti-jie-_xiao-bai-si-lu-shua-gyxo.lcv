@@ -1,0 +1,56 @@
+# 提交记录
+
+![image.png](https://pic.leetcode.cn/1684386693-OtGRbb-image.png)
+
+# 思路
+
+如题所述，用户在5月31日进行了购买。如下两种情况都满足题设条件：
+1.用户在6月1日~6月7日之间再次购买
+2.用户在5月31日再次购买
+
+# 情况1：当天没有再次购买
+
+使用user_id字段进行连接，且日期之差在[1,7]以内，并且需要去重：
+
+* 
+
+```
+SELECT DISTINCT u1.user_id
+FROM Users u1
+JOIN
+Users u2
+ON u1.user_id = u2.user_id
+AND DATEDIFF(u2.created_at, u1.created_at) BETWEEN 1 AND 7
+```
+
+# 情况2：当天就进行了二次购买
+
+* 
+
+```
+SELECT user_id
+FROM
+Users u1
+GROUP BY user_id, created_at
+HAVING COUNT(1) > 1
+```
+
+# 使用UNION去重聚合
+
+* 
+
+```
+SELECT DISTINCT u1.user_id
+FROM Users u1
+JOIN
+Users u2
+ON u1.user_id = u2.user_id
+AND DATEDIFF(u2.created_at, u1.created_at) BETWEEN 1 AND 7
+UNION
+SELECT user_id
+FROM
+Users u1
+GROUP BY user_id, created_at
+HAVING COUNT(1) > 1
+```
+
