@@ -1,0 +1,25 @@
+### 解题思路
+
+连续计算
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with c as(
+    select customer_id,transaction_date, first_value(transaction_date) over(partition by customer_id order by transaction_date) as ftd from Transactions 
+), d as(
+    select customer_id,datediff(transaction_date,ftd) as df,row_number() over(partition by customer_id order by transaction_date) as rn from c
+), e as(
+    select customer_id, cast(df as signed)-cast(rn as signed) as ff from d
+), f as(
+    select customer_id,count(ff) as ct  from e group by customer_id,ff
+), g as(
+    select customer_id from f where ct = (select max(ct) from f)
+)
+select * from g
+
+```
+

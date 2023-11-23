@@ -1,0 +1,55 @@
+> Problem: [2752. 在连续天数上进行了最多交易次数的顾客](https://leetcode.cn/problems/customers-with-maximum-number-of-transactions-on-consecutive-days/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+
+
+WITH t1  AS (
+    SELECT
+        #------------只需要修改里面的逻辑就行。注意语句是“顺序执行”的-------------------------------
+        transaction_date,
+        id,
+        (case when transaction_date = @prev_date + INTERVAL 1 DAY AND id = @prev_id then @consec_days := @consec_days + 1
+        when transaction_date = @prev_date AND id = @prev_id then @consec_days := @consec_days 
+        else @consec_days := 1 end) 
+        
+        AS consec_days,
+        @prev_date := transaction_date,
+        @prev_id := id
+        #-------------只需要修改里面的逻辑就行。注意语句是“顺序执行”的------------------------------
+    FROM
+        (SELECT @prev_date := NULL, @prev_id := NULL, @consec_days := 1) vars,
+        (SELECT transaction_date, customer_id as id FROM Transactions ORDER BY customer_id , transaction_date) ordered_dates
+)
+
+select id as customer_id
+from t1
+where consec_days=(select max(consec_days) from t1)
+order by customer_id asc
+```
+

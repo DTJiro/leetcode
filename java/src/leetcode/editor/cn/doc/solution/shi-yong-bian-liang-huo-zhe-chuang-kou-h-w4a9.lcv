@@ -1,0 +1,67 @@
+## 使用窗口函数
+
+* 
+
+```
+# Write your MySQL query statement below
+with tmp as(
+    -- 求最大连续交易次数
+    select    customer_id, count(1) as per_max_tran
+    from 
+        (
+            select 
+                customer_id
+                ,transaction_date 
+                ,transaction_date- interval cast(row_number() over(partition  by customer_id order by transaction_date) as char) day as idx 
+            from
+            Transactions
+        ) A 
+    group by 
+        customer_id,idx 
+)
+select   customer_id from 
+    tmp,
+    (select max(per_max_tran) as max_tran from tmp) B 
+where 
+    tmp.per_max_tran=B.max_tran
+order  by customer_id;
+
+```
+
+## 使用变量
+
+* 
+
+```
+with tmp as (select 
+    customer_id
+    ,transaction_date
+    ,amount
+    ,@id:=
+    case   
+        when @pre_customer is null or @pre_customer!=customer_id then @id+1
+        when @pre_customer = customer_id and transaction_date= @pre_date+ interval '1' day then @id 
+        when @pre_customer = customer_id and transaction_date!= @pre_date+ interval '1' day  then @id+1
+    end as id 
+    ,@pre_date:=transaction_date as pre_date
+    ,@pre_customer:=customer_id
+from 
+    Transactions A ,
+    (select @pre_customer:=null,@pre_date:=null,@id:=0) T
+order by customer_id,transaction_date  ),
+tmp1 as (
+    select customer_id,count(1) as per_max_tran  from 
+    tmp 
+    group by 
+        customer_id,id 
+)
+
+select 
+    customer_id
+from 
+    tmp1 ,
+    (select max(per_max_tran) as max_tran from tmp1 )T
+where 
+    tmp1.per_max_tran=T.max_tran;
+```
+

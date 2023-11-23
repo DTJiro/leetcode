@@ -1,0 +1,24 @@
+> Problem: [2752. 在连续天数上进行了最多交易次数的顾客](https://leetcode.cn/problems/customers-with-maximum-number-of-transactions-on-consecutive-days/description/)
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+with t1 as (
+  select customer_id, transaction_date, date_sub(transaction_date, interval row_number() over(partition by customer_id order by transaction_date) day) as t_rank
+  from Transactions
+),# 找到每一个用户连续次数
+t2 as (
+  select customer_id, t_rank, count(*) as cnt
+  from t1
+  group by customer_id, t_rank
+)
+select customer_id
+from t2
+where cnt = (select max(cnt) from t2)
+order by customer_id;
+```
+

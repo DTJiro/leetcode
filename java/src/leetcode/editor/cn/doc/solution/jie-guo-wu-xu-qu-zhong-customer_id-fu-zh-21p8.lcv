@@ -1,0 +1,49 @@
+### 解题思路
+
+这道题的结果没有去重
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with base as (
+    # 先给数据按照customer_id，date排序
+    Select customer_id
+    , transaction_date 
+    , amount
+    , transaction_id
+    From Transactions
+    Order by customer_id,transaction_date
+),
+transaction_cons as(
+    # 使用负值对已经连续交易的天数大标签
+    Select customer_id
+    , cons_days 
+    , rank() over(partition by customer_id order by cons_days desc) as rnk
+    From (
+        Select customer_id
+        , transaction_date
+        , @cons_days:= if(@pre_customer = customer_id and datediff(transaction_date,@pre_date )=1, @cons_days+1 ,1) as cons_days
+        , @pre_customer:=  customer_id as pre_customer
+        , @pre_date:= transaction_date as pre_date
+        From base ,(select @pre_customer:= null,@pre_date:= null,@cons_days:= null ) init
+    ) ta
+),
+max_tans as(
+    # 取最大连续交易天数 
+    Select max(cons_days) as max_days from transaction_cons
+)
+# 筛选出对应的数据进行排序
+Select customer_id
+From transaction_cons
+Where cons_days = (select  max_days from max_tans)
+order by customer_id
+
+
+
+
+
+```
+
