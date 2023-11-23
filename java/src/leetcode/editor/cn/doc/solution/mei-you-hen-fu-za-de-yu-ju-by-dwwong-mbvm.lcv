@@ -1,0 +1,22 @@
+简单来说，去掉重复的好友数据，然后将两行合并成一行，直接数对应的用户数量，就是好友数，然后直接除以总用户数即可
+
+* 
+
+```
+with main0 as (select distinct ff.user1,ff.user2 from 
+(select case when f.user1>f.user2 then f.user1 else f.user2 end as user1,
+case when f.user1>f.user2 then f.user2 else f.user1 end as user2
+from Friends f where f.user1 != f.user2) ff)
+, maina as (select user1 from main0 
+union all
+select user2 from main0)
+,mainb as (
+select a.user1,count(1) as count 
+from maina a 
+group by user1
+order by user1
+)
+
+select b.user1,round(b.count*100/t.num,2) as percentage_popularity from mainb b,(select count(distinct user1) as num from mainb) t
+```
+

@@ -1,0 +1,19 @@
+* 
+
+```
+WITH src AS(
+    SELECT * FROM Friends
+    UNION ALL
+    SELECT user2 AS user1,user1 AS user2
+    FROM Friends
+),t AS(
+    SELECT src.user1,COUNT(DISTINCT src.user2) AS fz,COUNT(src.user1) OVER() AS fm
+    FROM src
+    GROUP BY user1
+)
+SELECT t.user1,round(fz*100/fm,2) AS percentage_popularity
+FROM t
+ORDER BY t.user1;
+
+```
+

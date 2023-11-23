@@ -1,0 +1,26 @@
+### 解题思路
+
+union all + 去重 + 分组
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with c as(
+
+    select user1,user2 from friends
+
+    union all
+
+    select user2,user1 from friends
+),c2 as(
+    select distinct * from c
+),c1 as(
+    select user1, count(*) as ufs, (select count(distinct user1) from c) as aff from c2
+    group by user1
+)
+select user1, round(ufs * 1.0 / aff *100,2) as percentage_popularity  from c1 order by user1
+```
+

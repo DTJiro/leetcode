@@ -1,0 +1,38 @@
+1. tb 临时表构造一下好友关系
+2. 内存查询添加上好友数和总用户数
+3. 外层查询计算结果，同时去重
+
+* 
+
+```
+WITH tb AS(
+    SELECT
+        user,
+        user2
+    FROM(
+        SELECT
+            user1 as user,
+            user2
+        FROM Friends f1
+        UNION ALL
+        SELECT
+            user2,
+            user1
+        FROM Friends f2
+        ORDER BY user
+    )t
+    GROUP BY user,user2
+)
+
+SELECT
+    DISTINCT user as user1,
+    ROUND(friend_cnt / total_user,4) * 100 as percentage_popularity 
+FROM(
+    SELECT
+        user,
+        count(user) over(partition by user) as friend_cnt,
+        total_user
+    FROM tb,(SELECT COUNT(DISTINCT user) as total_user FROM tb) tmp
+)t
+```
+
