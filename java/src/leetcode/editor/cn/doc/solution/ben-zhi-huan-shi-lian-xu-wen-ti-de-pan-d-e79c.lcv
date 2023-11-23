@@ -1,0 +1,41 @@
+# 题目可以拆解为两部分
+
+1. 用户发生连续交易
+
+- 通用解法，使用 日期 - row_number做标识即可
+
+2. 连续交易的几天中交易金额持续增长
+
+- 逐日判断当日金额是否大于前一天金额，大于则标识0否则标识1。目的是为了使用1作为“不连续”情况的分界线
+- 开窗累加标识，当存在不连续情况的“分界线”时累计值会发生变化，即可识别金额的连续增长情况。
+
+* 
+
+```
+select 
+    customer_id,
+    min(transaction_date) as consecutive_start,
+    max(transaction_date) as consecutive_end
+from
+(    select 
+			customer_id,
+      transaction_date,
+      sum(case when amount > last_amount then 0 else 1 end) over(partition by customer_id order by transaction_date asc) as flag_amount,
+			date_sub(transaction_date,interval rn day) as flag_day
+		from (
+			select 
+		    transaction_id,
+		    customer_id,
+		    transaction_date,
+        amount,
+        lag(amount,1,0) over(partition by customer_id order by transaction_date asc) as last_amount,
+		    row_number() over(partition by customer_id order by transaction_date asc) as rn 
+			from Transactions
+	) t1
+) t2 
+group by customer_id,flag_amount,flag_day 
+having count(1) > 2
+order by customer_id asc
+;
+```
+

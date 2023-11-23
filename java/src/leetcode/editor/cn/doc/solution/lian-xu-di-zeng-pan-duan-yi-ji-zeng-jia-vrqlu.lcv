@@ -1,0 +1,61 @@
+### 解题思路
+
+连续 + 递增判断 以及 增加包装间隔
+
+### 代码
+
+* mysql
+
+```mysql
+with c0 as(
+select customer_id ,transaction_date, amount, 
+lag(amount) over(partition by customer_id order by transaction_date ) as la,
+lag(transaction_date) over(partition by customer_id order by transaction_date ) as ld,
+first_value(amount) over (partition by customer_id order by transaction_date rows between 1 preceding and 2 preceding) as wb,
+first_value(transaction_date) over (partition by customer_id order by transaction_date rows between 1 preceding and 2 preceding) as wbd,
+lead(amount) over(partition by customer_id order by transaction_date ) as lad,
+lead(transaction_date) over(partition by customer_id order by transaction_date ) as ldd,
+last_value(amount) over (partition by customer_id order by transaction_date rows between 1 following and 2 following) as lsa,
+last_value(transaction_date) over (partition by customer_id order by transaction_date rows between 1 following and 2 following) as lsad
+from Transactions
+),c01 as(
+	select customer_id ,transaction_date, amount, 
+	case when la is null then amount else la end as la,
+	case when ld is null then transaction_date else ld end ld  ,
+	case when wb is null then amount else wb end as wb,
+	case when wbd is null then transaction_date else wbd end wbd  ,
+	case when lad is null then amount else lad end as lad,
+	case when ldd is null then transaction_date else ldd end ldd  ,
+	case when lsa is null then amount else lsa end as lsa,
+	case when lsad is null then transaction_date else lsad end lsad 
+	from c0 
+),c02 as(
+	select * from c01 where 
+	(amount< lad and lad < lsa and datediff(ldd,transaction_date) = 1 and datediff(lsad,ldd) = 1)
+	or
+	(amount > la and la > wb and datediff(transaction_date,ld) = 1 and datediff(ld,wbd) = 1 )
+)
+,c03 as(
+select customer_id, wbd as consecutive_start, lsad as consecutive_end from c02
+), c as(
+    select customer_id , consecutive_start as ts, 1 as type,null as e,
+    row_number() over (partition by customer_id order by consecutive_start) as s from c03
+
+    union all
+
+    select customer_id , consecutive_end  as ts, -1 as type,
+    row_number() over (partition by customer_id order by consecutive_end) as e ,null as s from c03
+),d as(
+    select *,row_number() over(partition by customer_id order by ts,type desc) as se  from c
+),e as(
+    select customer_id,ts,
+    floor((row_number() over(partition by customer_id order by ts) - 1) / 2+1) as grpnum
+    from d where
+    coalesce(s- (se-s)-1,(se - e)- e) = 0
+)
+select customer_id, min(ts) as consecutive_start,max(ts) as consecutive_end from e group by customer_id,grpnum
+order by customer_id
+
+
+```
+

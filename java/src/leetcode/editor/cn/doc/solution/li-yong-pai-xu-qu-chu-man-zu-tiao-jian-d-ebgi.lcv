@@ -1,0 +1,49 @@
+> Problem: [2701. 连续递增交易](https://leetcode.cn/problems/consecutive-transactions-with-increasing-amounts/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```MySQL
+
+with T as
+         (select customer_id,
+                 transaction_date,
+                 @Count := (IF(@Pre_id = customer_id and @Pre_date = yesterday and amount > @Pre_amount, @Count + 1,
+                               1)) C,
+                 @Pre_id := customer_id,
+                 @Pre_amount := amount,
+                 @Pre_date := transaction_date
+          from (select *, date_sub(transaction_date, interval 1 day) yesterday
+                from transactions
+                order by customer_id, transaction_date) t1,
+               (select @Count := 0, @Pre_id := null, @Pre_amount := null, @Pre_date := null) t2)
+select customer_id, consecutive_start,consecutive_end from
+(select  *,rank()over(partition by customer_id,consecutive_start order by consecutive_end desc ) r from
+    (select customer_id, date_sub(transaction_date, interval C - 1 day) consecutive_start, transaction_date consecutive_end
+     from T
+     where C>=3)l)l2
+where r=1;
+
+```
+

@@ -1,0 +1,17 @@
+* sql
+
+```sql
+with t as(
+    select m3.customer_id, m3.transaction_date as transaction_date  from transactions m1, transactions m2, transactions m3 where m1.transaction_date + INTERVAL 1 DAY = m2.transaction_date and m2.transaction_date + INTERVAL 1 DAY = m3.transaction_date and m1.amount < m2.amount and  m2.amount < m3.amount and m1.customer_id = m2.customer_id and m2.customer_id = m3.customer_id
+), 
+t1 as(
+SELECT customer_id, transaction_date,
+           row_number() OVER(partition by customer_id ORDER BY transaction_date) AS rk
+      FROM transactions),
+t2 as(
+    select customer_id, min(transaction_date) as md from transactions group by customer_id
+)
+select t1.customer_id, (max(t1.transaction_date) - INTERVAL count(1) + 1 DAY ) as consecutive_start, max(t1.transaction_date) as consecutive_end from t1, t2, t where t1.customer_id = t2.customer_id and t1.transaction_date = t.transaction_date and t1.customer_id = t.customer_id group by cast(datediff(t1.transaction_date, t2.md) as signed)  - cast(t1.rk as signed), t1.customer_id order by
+t1.customer_id, consecutive_start, consecutive_end
+```
+

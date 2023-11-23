@@ -1,0 +1,41 @@
+### 解题思路
+
+保留信息包含
+1. 前面的customer_id
+2. 前面交易日期
+3. 前面交易金额
+4. 当前累计连续增涨交易次数
+5. 当前连续增长交易日期开始日期
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+with ordered_trans as (
+    Select *
+    From transactions 
+    order by customer_id,transaction_date
+),
+base as (
+Select customer_id
+, transaction_date
+, amount 
+, @consecutive_trans := if(@prev_id = customer_id and @prev_date = date_add(transaction_date,INTERVAL -1 DAY) and @prev_amount < amount,@consecutive_trans+1 ,1) as cons_days
+, @cons_start_date := if(@prev_id = customer_id and @prev_date = date_add(transaction_date,INTERVAL -1 DAY) and @prev_amount < amount,@cons_start_date ,transaction_date) as cons_start_date
+
+, @prev_id := customer_id as prev_id
+, @prev_date := transaction_date as prve_date
+, @prev_amount:= amount as prev_amount
+
+From ordered_trans, (select @prev_id := null,@prev_date := null, @prev_amount:= 0, @consecutive_trans:= 0, @cons_start_date:= null) init
+) 
+select customer_id
+, cons_start_date as consecutive_start
+, max(transaction_date) as consecutive_end
+From base
+where cons_days>=3
+Group by customer_id,cons_start_date
+```
+

@@ -1,0 +1,36 @@
+- 借鉴[2494](https://leetcode.cn/problems/merge-overlapping-events-in-the-same-hall/solutions/2006570/by-steven2018-jkck/)的思路，将满足要求的记录分到同一个组中，这样在每个组中对transaction_date取最小值和最大值即可
+- 首先按照customer_id和transaction_date排序，然后使用4个临时变量，分别存储上一行的分组编号、transaction_date、amount和customer_id
+- 当本行的customer_id和上一行的customer_id相同、且本行的transaction_date是上一行的transaction_date的后一天、且本行的amount大于上一行的amount时，分到同一个组中，否则递增分组编号
+- 更新customer_id、transaction_date、amount
+- 最后注意要筛选出至少连续3天的分组
+
+* []
+
+```MySQL
+# Write your MySQL query statement below
+with t as (
+    select
+        *,
+        @g:=if(@c = customer_id and datediff(transaction_date, @d) = 1 and amount > @a, @g, @g + 1) as g,
+        @d:=transaction_date,
+        @a:=amount,
+        @c:=customer_id
+    from
+        (select * from Transactions order by customer_id, transaction_date) as transaction,
+        (select @g:=0, @d:=null, @a:=null, @c:=null) as init
+)
+
+select
+    customer_id,
+    min(transaction_date) as consecutive_start,
+    max(transaction_date) as consecutive_end
+from
+    t
+group by
+    g
+having
+    datediff(consecutive_end, consecutive_start) >= 2
+order by
+    customer_id
+```
+
