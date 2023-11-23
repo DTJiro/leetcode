@@ -1,0 +1,26 @@
+### 解题思路
+
+题目存在误导，每个content只要包含对应的词，只算一次
+
+### 代码
+
+* mysql
+
+```mysql
+# Write your MySQL query statement below
+
+
+with t as(
+    select  content from Files
+), c as(
+select content, replace(content,concat(' ' , 'bull' , ' '),concat(' ' , 'aaa' , ' ')) as lc, replace(content,concat(' ' , 'bear' , ' '),concat(' ' , 'bbb' , ' ')) as bc from t
+), c1 as(
+    select length(content) - length(lc) as bullnum, length(content)-length(bc) as bearnum  from c
+), c2 as(
+    select 'bull' as word,sum(case when bullnum >= 1 then 1 else 0 end ) as count from c1
+    union
+    select 'bear' as word,sum(case when bearnum >= 1 then 1 else 0 end ) as count from c1
+)
+select * from  c2
+```
+

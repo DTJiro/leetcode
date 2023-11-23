@@ -1,0 +1,23 @@
+SQL进行字符串匹配，可以使用`like`操作符，也可以使用`REGEXP`进行正则表达式的匹配
+
+* sql
+
+```sql
+# Write your MySQL query statement below
+select 'bull' word, count(1) count from Files
+where content REGEXP ' +bull[, \.\ ]'
+union all
+select 'bear' word, count(1) count from Files
+where content REGEXP ' +bear[, \.\ ]'
+;
+```
+
+不过题目目前表示不清晰，不知道这个测试用例应该怎么判断
+
+* json
+
+```json
+{"headers":{"Files":["file_name","content"]},"rows":{"Files":[["draft1.txt","I have a bear, bull."],["draft2.txt","A bull bear."],["final.txt","The bull."]]}}
+```
+
+![image.png](https://pic.leetcode.cn/1691131298-Wlxzyi-image.png)

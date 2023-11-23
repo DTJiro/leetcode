@@ -1,0 +1,36 @@
+> Problem: [2738. 统计文本中单词的出现次数](https://leetcode.cn/problems/count-occurrences-in-text/description/)
+
+[TOC]
+
+# 思路
+
+> 一开始理解的是计算所有content中 ' bull ' 和 ' bear ' 的总的出现次数，但都显示错误。结果题目其实是要看出现了 ' bull ' 和 ' bear ' 的content的个数，也就是如果某个content中包含多个 ' bull ' 或 ' bear ' ，只记作一次。
+
+# 解题方法
+
+> 检查 DataFrame 中的每个content是否包含子字符串 ' bull ' ，如果包含，则对应的值为 True，否则为 False，并将结果存储在 'bullcount' 列中，该列求和即为题目所求的 ' bull ' 的出现次数；bear类似。
+
+# 复杂度
+
+- 时间复杂度:
+
+> 代码的时间自由度是 O(n*m)，其中 n 是 DataFrame 的行数，m 是每行中字符串的平均长度。
+
+- 空间复杂度:
+
+> 代码的空间自由度是 O(n)，其中 n 是 DataFrame 的行数。
+
+# Code
+
+* []
+
+```Pandas
+
+import pandas as pd
+
+def count_occurrences(files: pd.DataFrame) -> pd.DataFrame:
+  files['bullcount'] = files['content'].str.contains(' bull ', regex=False)
+  files['bearcount'] = files['content'].str.contains(' bear ', regex=False)
+  return pd.DataFrame({'word': ['bull', 'bear'], 'count': [files['bullcount'].sum(), files['bearcount'].sum()]})
+```
+
