@@ -1,0 +1,21 @@
+做left join即可
+
+* 
+
+```
+select
+    user_id,
+    name,
+    sum(distance) as `traveled distance`
+from(
+    select
+        a.user_id,
+        a.name,
+        if(b.distance is null,0,b.distance) as distance
+    from Users as a left join Rides as b
+    on a.user_id = b.user_id
+) a
+group by user_id,name
+order by user_id
+```
+

@@ -1,0 +1,11 @@
+* 
+
+```
+SELECT DISTINCT u.user_id , name , 
+COALESCE((SUM(distance) over(partition by r.user_id)) , 0) AS 'traveled distance'
+FROM Users AS u 
+LEFT JOIN Rides AS r 
+ON u.user_id = r.user_id
+ORDER BY u.user_id
+```
+
