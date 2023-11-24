@@ -1,0 +1,49 @@
+> Problem: [2922. 市场分析 III](https://leetcode.cn/problems/market-analysis-iii/description/)
+
+[TOC]
+
+# 思路
+
+1.先筛选出所有seller_id 和他们卖出的不喜欢商品的数目，放在临时表t中；
+2.where子查询筛选出最大数目
+3.select最大数目对应的目标字段
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```MySQL
+
+with t as(  -- 1.先筛选出所有seller_id 和他们卖出的不喜欢商品的数目
+  select 
+    seller_id,
+    count(distinct item_id) num_items
+  from Users u 
+  left join Orders o using(seller_id)
+  left join Items i using(item_id)
+  where favorite_brand != item_brand
+  group by seller_id
+)
+select      -- 3.最大数目对应的目标字段
+  seller_id,num_items 
+from t
+where num_items = (  -- 2.where子查询筛选出最大数目
+  select max(num_items) from t  
+)
+
+```
+

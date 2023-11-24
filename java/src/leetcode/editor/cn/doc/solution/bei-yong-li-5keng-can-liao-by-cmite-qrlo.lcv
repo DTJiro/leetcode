@@ -1,0 +1,32 @@
+> Problem: [2922. 市场分析 III](https://leetcode.cn/problems/market-analysis-iii/description/)
+
+[TOC]
+
+# 思路
+
+多表联查，需要注意用例5，**不同的item_id可能会有相同的item_brand**
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+with t as (
+    select seller_id, o.item_id, item_brand
+    from Orders o join Items i
+    on o.item_id = i.item_id
+),
+temp as (
+    select u.seller_id, count(distinct t.item_brand, t.item_id) cnt
+    from Users u join t
+    on u.seller_id = t.seller_id and t.item_brand <> u.favorite_brand
+    group by 1
+)
+select seller_id, cnt num_items from temp
+where cnt = (select max(cnt) from temp)
+order by 1
+;
+```
+
