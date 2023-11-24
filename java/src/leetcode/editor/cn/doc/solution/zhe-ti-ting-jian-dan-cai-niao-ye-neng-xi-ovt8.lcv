@@ -1,0 +1,10 @@
+* 
+
+```
+select max(s)-min(s) as salary_difference
+from
+(select max(salary) as s
+from salaries
+group by department) temp;
+```
+

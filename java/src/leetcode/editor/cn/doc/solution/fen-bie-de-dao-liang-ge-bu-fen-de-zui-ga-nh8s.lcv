@@ -1,0 +1,24 @@
+> Problem: [2853. 最高薪水差异](https://leetcode.cn/problems/highest-salaries-difference/description/)
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+with t1 as (
+select max(salary) as max_salary1
+from Salaries
+where department = 'Engineering'
+),
+t2 as (
+select max(salary) as max_salary2
+from Salaries 
+where department = 'Marketing'
+)
+select abs(max_salary1-(select max_salary2 from t2)) as salary_difference
+from t1;
+
+```
+

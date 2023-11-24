@@ -1,0 +1,18 @@
+分别按两个条件聚合取最高值，两个最高值交叉结合取差值的绝对值即可。
+
+* []
+
+```MySQL
+# Write your MySQL query statement below
+SELECT ABS(em.mx - mm.mx) as salary_difference
+FROM
+(SELECT MAX(salary) as mx
+FROM  salaries
+WHERE department = "Engineering"
+GROUP BY department ) as em,
+(SELECT MAX(salary) as mx
+FROM  salaries
+WHERE department = "Marketing" 
+GROUP BY department ) as mm
+```
+
