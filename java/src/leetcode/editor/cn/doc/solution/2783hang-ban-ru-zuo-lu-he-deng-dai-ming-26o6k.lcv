@@ -1,0 +1,21 @@
+乘客订购的航班可能没有在航班列表里出现，需要判空。
+
+* mysql
+
+```mysql
+# 预定航班的乘客数
+with tb1 as (
+    select flight_id, count(passenger_id) as freq
+    from Passengers
+    group by flight_id
+)
+
+select F.flight_id, 
+    ifnull(least(capacity, freq), 0) as booked_cnt, 
+    ifnull(if(capacity >= freq, 0, freq - capacity), 0) as waitlist_cnt
+from Flights F
+left join tb1
+on F.flight_id = tb1.flight_id
+order by F.flight_id
+```
+

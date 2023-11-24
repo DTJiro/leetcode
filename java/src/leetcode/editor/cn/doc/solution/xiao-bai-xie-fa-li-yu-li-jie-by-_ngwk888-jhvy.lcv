@@ -1,0 +1,53 @@
+> Problem: [2783. 航班入座率和等待名单分析](https://leetcode.cn/problems/flight-occupancy-and-waitlist-analysis/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+
+with tiaojian as (
+select
+f.flight_id,
+f.capacity as booked_cnt,
+count(p.flight_id) as cnt,f.capacity,
+count(p.flight_id)-f.capacity as waitlist_cnt
+from Flights f left join Passengers p 
+on f.flight_id=p.flight_id
+group by f.flight_id
+)
+
+select
+flight_id,
+case when cnt>=capacity then capacity
+     when cnt<capacity then cnt 
+     end as booked_cnt,
+case when waitlist_cnt>0 then waitlist_cnt
+     when waitlist_cnt<=0 then 0
+     end as waitlist_cnt
+from tiaojian
+order by flight_id
+```
+
