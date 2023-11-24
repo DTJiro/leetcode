@@ -1,0 +1,38 @@
+> Problem: [2854. 滚动平均步数](https://leetcode.cn/problems/rolling-average-steps/description/)
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+# 将连续三天甚至更多的数据找到
+with t1 as (
+  select user_id, steps_count, steps_date, date_sub(steps_date, interval row_number() over(partition by user_id order by steps_date) day) as t_rank
+  from Steps
+),# 对t_rank进行分组， 得到连续次数≥3的数据
+t2 as (
+  select user_id, t_rank
+  from t1
+  group by user_id, t_rank
+  having count(*) >= 3
+),
+t3 as (
+  select t1.*
+  from t1
+  right join t2
+  on t1.user_id = t2.user_id and t1.t_rank = t2.t_rank
+),# 计算滚动平均，并赋予排名
+t4 as (
+  select user_id, steps_date, round((sum(steps_count) over(partition by user_id order by steps_date rows between 2 preceding and current row))/3, 2) as rolling_average, row_number() over(partition by user_id order by steps_date) as rank1
+  from t3
+)
+# 得到答案，选择排名>= 3的记录输出
+select user_id, steps_date, rolling_average
+from t4
+where rank1 >= 3
+order by user_id, steps_date;
+
+```
+
