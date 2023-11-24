@@ -1,0 +1,16 @@
+* 
+
+```
+select idx interval_no, sum(order_count) total_orders 
+from (
+	select minute,order_count,
+		case when minute % 6 = 0 then minute / 6
+		else floor(minute / 6)+1 end as idx 
+	from Orders
+) a 
+group by idx
+order by interval_no
+-- oracle需要将 % 运算符改成mod函数,改动如下:
+-- mod(minute, 6)
+```
+

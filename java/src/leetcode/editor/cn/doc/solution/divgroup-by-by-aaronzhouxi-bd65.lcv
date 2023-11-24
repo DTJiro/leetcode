@@ -1,0 +1,10 @@
+select interval_no+1 as interval_no, sum(order_count) as total_orders from
+(select *,(minute-1) div 6 as interval_no
+from Orders)A
+group by interval_no
+
+* 
+
+```
+```
+

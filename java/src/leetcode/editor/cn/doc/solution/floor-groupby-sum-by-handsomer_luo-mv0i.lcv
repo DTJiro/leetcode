@@ -1,0 +1,16 @@
+利用math技巧 （minute+5）/divided by 6 分成正好6minutes一个interval
+注意floor的用法
+
+然后正常的group by 就好了
+
+* 
+
+```
+SELECT 
+    floor((minute + 5) / 6) AS interval_no,
+    SUM(order_count) AS total_orders
+FROM Orders
+GROUP BY floor((minute + 5) / 6)
+ORDER BY interval_no;
+```
+

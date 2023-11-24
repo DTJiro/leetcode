@@ -1,0 +1,37 @@
+> Problem: [2893. 计算每个区间内的订单](https://leetcode.cn/problems/calculate-orders-within-each-interval/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+SELECT 
+    CEIL(minute/6) AS interval_no,
+    SUM(order_count) AS total_orders
+FROM Orders
+GROUP BY interval_no
+ORDER BY interval_no ASC
+```
+

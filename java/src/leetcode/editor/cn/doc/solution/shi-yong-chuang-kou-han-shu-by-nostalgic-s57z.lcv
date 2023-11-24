@@ -1,0 +1,20 @@
+> Problem: [2893. 计算每个区间内的订单](https://leetcode.cn/problems/calculate-orders-within-each-interval/description/)
+
+# Code
+
+* []
+
+```MySQL
+
+# Write your MySQL query statement below
+# 先使用窗口函数计算当前行以及前5行的和
+with t1 as (
+  select minute, sum(order_count) over (order by minute rows between 5 preceding and current row) as total_orders
+  from Orders
+)
+# 然后选择6的倍数行
+select ROW_NUMBER() OVER(order by minute) as interval_no, total_orders
+from t1
+where MOD(minute, 6) = 0; 
+```
+
