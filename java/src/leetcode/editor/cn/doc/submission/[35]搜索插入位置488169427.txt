@@ -1,0 +1,21 @@
+class Solution {
+    public int searchInsert(int[] nums, int target) {
+		int i = 0;
+		int j = nums.length;
+		int m = 0;
+		int t = j;
+		while (i < j) {
+			m = i + (j - i) / 2;
+			if (target <= nums[m]) {
+				t = m;
+				j = m;
+			} else if (nums[m] < target) {
+				i = m + 1;
+			}
+		}
+		return t;
+    }
+}
+
+//runtime:0 ms
+//memory:42.3 MB
