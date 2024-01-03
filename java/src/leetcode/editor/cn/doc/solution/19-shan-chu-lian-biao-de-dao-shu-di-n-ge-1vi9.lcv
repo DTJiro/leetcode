@@ -1,0 +1,32 @@
+> Problem: [19. 删除链表的倒数第 N 个结点](https://leetcode.cn/problems/remove-nth-node-from-end-of-list/description/)
+
+## 思路
+
+> 哑节点＋双指针，快指针先比慢指针多走 $n$ 步，然后继续遍历直到快指针走到链表末尾，这时慢指针指向的下一个结点就是待删除的结点
+
+## Code
+
+* []
+
+```Java
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode front = new ListNode();
+        front.next = head;
+        ListNode p = front, q = front;
+        while(n > 0){
+            q = q.next;
+            n--;
+        }
+        while(q.next != null){
+            p = p.next; q = q.next;
+        }
+        if(p.next.next == null)
+            p.next = null;
+        else
+            p.next = p.next.next;
+        return front.next;
+    }
+}
+```
+
