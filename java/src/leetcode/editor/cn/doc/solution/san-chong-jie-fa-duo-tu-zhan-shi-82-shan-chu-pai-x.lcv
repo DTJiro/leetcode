@@ -1,0 +1,279 @@
+## 解法一
+
+有时候当我们拿到一道题时，如果不能立马想到比较好的解决方案，不妨先用"笨"一点的方式去做一下，"笨"的方案虽然效率不高，但是实现起来简单，也容易想到。为后面再做优化也起到了一个铺垫的效果。
+
+这里要求的是去重，那简单。用一个哈希表记录每个值出现的频率就可以了。   
+具体做法如下:
+1. 遍历链表，将每个节点的值放到哈希表中，哈希表的key就是节点的值，value是这个值出现的频率
+2. 遍历哈希表，将所有频率==1的key放到集合中
+3. 对集合进行排序
+4. 遍历集合，然后不断创建新的链表节点
+
+当然这里可以优化一下，比如使用```LinkedHashMap```或者```OrderedDict```这样的数据结构，可以省去排序环节。
+
+代码实现:
+
+* []
+
+```java
+class Solution {
+    public ListNode deleteDuplicates(ListNode head) {
+        if(head==null || head.next==null) {
+            return head;
+        }
+        //用哈希表记录每个节点值的出现频率
+        HashMap<Integer,Integer> cache = new HashMap<Integer,Integer>();
+        ArrayList<Integer> arr = new ArrayList<Integer>();
+        ListNode p = head;
+        while(p!=null) {
+            int val = p.val;
+            if(cache.containsKey(val)) {
+                cache.put(val,cache.get(val)+1);
+            } else {
+                cache.put(val,1);
+            }
+            p = p.next;
+        }
+        //将所有只出现一次的值放到arr中，之后再对这个arr排序
+        for(Integer k : cache.keySet()) {
+            if(cache.get(k)==1) {
+                arr.add(k);
+            }
+        }
+        Collections.sort(arr);
+        ListNode dummy = new ListNode(-1);
+        p = dummy;
+        //创建长度为arr.length长度的链表，依次将arr中的值赋给每个链表节点
+        for(Integer i : arr) {
+            ListNode tmp = new ListNode(i);
+            p.next = tmp;
+            p = p.next;
+        }
+        return dummy.next;
+    }
+}
+```
+
+* []
+
+```python
+class Solution(object):
+    def deleteDuplicates(self, head):
+        if not (head and head.next):
+            return head
+        # 用哈希表记录每个节点值的出现频率
+        d = dict()
+        p = head
+        arr = []
+        while p:
+            val = p.val
+            d[val] = d.setdefault(val,0)+1
+            p = p.next
+        # 将所有只出现一次的值放到arr中，之后再对这个arr排序
+        for k in d:
+            if d[k]==1:
+                arr.append(k)
+        arr = sorted(arr)
+        dummy = ListNode(-1)
+        p = dummy
+        # 创建长度为len(arr)长度的链表，依次将arr中的值赋给每个链表节点
+        for i in arr:
+            tmp = ListNode(i)
+            p.next = tmp
+            p = p.next
+        return dummy.next
+```
+
+## 解法二
+
+这里我们使用双指针的方式，定义```a```，```b```两个指针。   
+考虑到一些边界条件，比如```1->1->1->2```这种情况，需要把开头的几个```1```给去掉，我们增加一个**哑结点**，方便边界处理。
+
+初始的两个指针如下:
+- 将```a```指针指向哑结点
+- 将```b```指针指向```head```(哑结点的下一个节点)
+
+如果```a```指向的值**不等于**```b```指向的值，则两个指针都前进一位   
+否则，就单独移动```b```，```b```不断往前走，直到```a```指向的值**不等于**```b```指向的值。
+
+注意，这里不是直接比较```a.val==b.val```，这么比较不对，因为**初始**的时候，```a```指向的是哑结点，所以比较逻辑应该是这样：
+
+* 
+
+```
+a.next.val == b.next.val
+```
+
+当两个指针指向的值相等时，```b```不断往前移动，这里是通过一个```while```循环判断的，因为要过滤掉```1->2->2->2->3```重复的```2```。   
+那么整个逻辑就是两个```while```，但时间复杂度不是O(N^2)，而是O(N)，空间上也只是常数级别。
+
+请点击下面幻灯片查看完整的执行过程:
+
+<![幻灯片2.JPG](https://pic.leetcode-cn.com/c4674e0da8e130ea0873a1fb3001c09ee83fec6ebceb2e8912357d59c674dae1-%E5%B9%BB%E7%81%AF%E7%89%872.JPG),![幻灯片3.JPG](https://pic.leetcode-cn.com/4ed4e5baa8f8ee1341b9092ceed5d40d4a7115fc53ba431ce0499384322aa621-%E5%B9%BB%E7%81%AF%E7%89%873.JPG),![幻灯片4.JPG](https://pic.leetcode-cn.com/37fae61cc16b4f5d9a3f1955e701b50760a0fa3d9f2f35efddd226ba8977a430-%E5%B9%BB%E7%81%AF%E7%89%874.JPG),![幻灯片5.JPG](https://pic.leetcode-cn.com/927d3aaf3cb7a3d213dfff51b266c4ba41d219ddf3166c9be82302fe56cedad9-%E5%B9%BB%E7%81%AF%E7%89%875.JPG),![幻灯片6.JPG](https://pic.leetcode-cn.com/7e1697bfbe0e66ceb67bc51bc7e67324c2d26e31f61501ff25e20e18221665f8-%E5%B9%BB%E7%81%AF%E7%89%876.JPG),![幻灯片7.JPG](https://pic.leetcode-cn.com/368d10edbf9562908d87b5898114ea39e098a056360d214599842d0a8ec49b8f-%E5%B9%BB%E7%81%AF%E7%89%877.JPG),![幻灯片8.JPG](https://pic.leetcode-cn.com/a573cdc7887caf8f7bf33437403edbaec253cd7213a5f1c7ca57c3b1acf1256a-%E5%B9%BB%E7%81%AF%E7%89%878.JPG),![幻灯片9.JPG](https://pic.leetcode-cn.com/40154c37389dfd3be03ef3aa40c4e307837c0814992d2e943d674e5c82ed7470-%E5%B9%BB%E7%81%AF%E7%89%879.JPG),![幻灯片10.JPG](https://pic.leetcode-cn.com/a5c583c16b37165e81ee6512a9f37959dbc3e3bf3b9720ec354b60a5dd374b40-%E5%B9%BB%E7%81%AF%E7%89%8710.JPG),![幻灯片11.JPG](https://pic.leetcode-cn.com/e12ec713046e9e9bcc50a90d2ba6396201e7477ba069f22058815bc02d9a0101-%E5%B9%BB%E7%81%AF%E7%89%8711.JPG),![幻灯片12.JPG](https://pic.leetcode-cn.com/1cc4d6ecbb1433429a095adb7203a3d5c6f93929a0a78c38e424fd82b53483b0-%E5%B9%BB%E7%81%AF%E7%89%8712.JPG),![幻灯片13.JPG](https://pic.leetcode-cn.com/63851e77e4f04c10755dae4d0d334a9a77db942bf331eb2c371b3fc5be9c1202-%E5%B9%BB%E7%81%AF%E7%89%8713.JPG),![幻灯片14.JPG](https://pic.leetcode-cn.com/95f041c51ab4cc82a646ce8a6f3dad7ecef36112c48dfe03a464d7e22205c472-%E5%B9%BB%E7%81%AF%E7%89%8714.JPG),![幻灯片15.JPG](https://pic.leetcode-cn.com/64ac97ca00a417c5884c70fdb27fa9edd66d3016c8f28bc083d3445a15c41398-%E5%B9%BB%E7%81%AF%E7%89%8715.JPG),![幻灯片16.JPG](https://pic.leetcode-cn.com/b1b42927090d79be8bbfe6d649eeb90bd56e1bf57906145265d300c864782286-%E5%B9%BB%E7%81%AF%E7%89%8716.JPG),![幻灯片17.JPG](https://pic.leetcode-cn.com/505e134ea6fdc69791d5695d4df682ae988c4efaf8ac110772fa792571e4fbf9-%E5%B9%BB%E7%81%AF%E7%89%8717.JPG)>
+
+代码实现:
+
+* []
+
+```java
+class Solution {
+    public ListNode deleteDuplicates(ListNode head) {
+        if(head==null || head.next==null) {
+            return head;
+        }
+        ListNode dummy = new ListNode(-1);
+        dummy.next = head;
+        ListNode a = dummy;
+        ListNode b = head;
+        while(b!=null && b.next!=null) {
+            //初始化的时a指向的是哑结点，所以比较逻辑应该是a的下一个节点和b的下一个节点
+            if(a.next.val!=b.next.val) {
+                a = a.next;
+                b = b.next;
+            }
+            else {
+                //如果a、b指向的节点值相等，就不断移动b，直到a、b指向的值不相等 
+                while(b!=null && b.next!=null && a.next.val==b.next.val) {
+                    b = b.next;
+                }
+                a.next = b.next;
+                b = b.next;
+            }
+        }
+        return dummy.next;
+    }
+}
+```
+
+* []
+
+```python
+class Solution(object):
+    def deleteDuplicates(self, head):
+        if not (head and head.next):
+            return head
+        dummy = ListNode(-1)
+        dummy.next = head
+        a = dummy
+        b = head
+        while b and b.next:
+            # 初始化的时a指向的是哑结点，所以比较逻辑应该是a的下一个节点和b的下一个节点
+            if a.next.val!=b.next.val:
+                a = a.next
+                b = b.next
+            else:
+                # 如果a、b指向的节点值相等，就不断移动b，直到a、b指向的值不相等 
+                while b and b.next and a.next.val==b.next.val:
+                    b = b.next
+                a.next = b.next
+                b = b.next
+        return dummy.next
+```
+
+## 解法三
+
+解法三和解法二的代码实现很类似，区别是   
+解法二初始化的时候```b```指针指向的是```head```   
+而解法三初始化的时候```b```指针指向的是```head.next```
+
+所以判断两个指针指向的节点值是否相等时，解法三是这么做的:
+
+* 
+
+```
+a.next.val == b.val
+```
+
+当两个指针指向的值不同时，```a```和```b```指针都是前移一位   
+当两个指针指向的值相同时，解法二和解法三也略有不同   
+主要体现在```while```循环后面的几句   
+此外```b```指针还需要考虑边界条件，当循环结束后```b```指针可能会指向空，所以不能直接```b=b.next```，需要判断一下边界，这里请查看代码，并配合动态/静态图方便理解。
+
+时间复杂度和空间复杂度，解法二和解法三都是一样的。
+
+请点击下面幻灯片查看完整的执行过程:
+
+<![幻灯片19.JPG](https://pic.leetcode-cn.com/3bc6a392e439f706385e5b8507d06055e5294a1faaf1329971777a236dafa6b9-%E5%B9%BB%E7%81%AF%E7%89%8719.JPG),![幻灯片20.JPG](https://pic.leetcode-cn.com/583d641dce692ce6cf1cae8088e22ad9e83062fd9f15e3329f4dff31a53c040f-%E5%B9%BB%E7%81%AF%E7%89%8720.JPG),![幻灯片21.JPG](https://pic.leetcode-cn.com/fb045f50042213e8d54775a887d0fbd59b1bdf49334abd43427d397b95eb81ba-%E5%B9%BB%E7%81%AF%E7%89%8721.JPG),![幻灯片22.JPG](https://pic.leetcode-cn.com/96e6d56ff941b644bd072a9486268e01a38061694e32566fceae252a36d8801b-%E5%B9%BB%E7%81%AF%E7%89%8722.JPG),![幻灯片23.JPG](https://pic.leetcode-cn.com/209512f227c4fa096226c17fdff4d491c06c56818d16acb727d6eb95d957d936-%E5%B9%BB%E7%81%AF%E7%89%8723.JPG),![幻灯片24.JPG](https://pic.leetcode-cn.com/8faeb05841e1d3847891ddc7172fd2df52fa698ed492bf82acd1b1cc613a10a4-%E5%B9%BB%E7%81%AF%E7%89%8724.JPG),![幻灯片25.JPG](https://pic.leetcode-cn.com/50fcadfef926339bc8062d3330c247293a79cea5b1139796bb2334121a76ee76-%E5%B9%BB%E7%81%AF%E7%89%8725.JPG),![幻灯片26.JPG](https://pic.leetcode-cn.com/ac46761abe51782c38bec5d22dff79efcbd96258ef4d8700935bcfd5bdb4d4c8-%E5%B9%BB%E7%81%AF%E7%89%8726.JPG),![幻灯片27.JPG](https://pic.leetcode-cn.com/079ec30dd697ba7ace313bff2b7a5cd908354a626a11245ce6b410edb4a28806-%E5%B9%BB%E7%81%AF%E7%89%8727.JPG),![幻灯片28.JPG](https://pic.leetcode-cn.com/781d2f90d624df4bebbeba26e420969c4c8a52f5e2bfc8a0e6a28a379a532a12-%E5%B9%BB%E7%81%AF%E7%89%8728.JPG),![幻灯片29.JPG](https://pic.leetcode-cn.com/99527abd7639df9fb06faca52fc16b6b17ec1dc57bbe951a8f0faafceaa3a7a1-%E5%B9%BB%E7%81%AF%E7%89%8729.JPG),![幻灯片30.JPG](https://pic.leetcode-cn.com/35b6a9e7de8c9048b673b599c10289a2bb9a01066077a320d8bc29160a38e979-%E5%B9%BB%E7%81%AF%E7%89%8730.JPG),![幻灯片31.JPG](https://pic.leetcode-cn.com/3b5ac4faf6a9803cf21504bac3b09c80c70ff5220b95d31219a279539969512f-%E5%B9%BB%E7%81%AF%E7%89%8731.JPG),![幻灯片32.JPG](https://pic.leetcode-cn.com/adf61b5c4e0027bbfe5a7050c50fee65f002e8877cd5151e0af39b86643d8a10-%E5%B9%BB%E7%81%AF%E7%89%8732.JPG),![幻灯片33.JPG](https://pic.leetcode-cn.com/129958c2f17a053e042374fa9e35f0a2ee7db07e531f668c905d270389149573-%E5%B9%BB%E7%81%AF%E7%89%8733.JPG),![幻灯片34.JPG](https://pic.leetcode-cn.com/da19d41ae68b0c15bf20904730f8138f5ec7c9fa1257f95ca0fd4d5ca2a0a02b-%E5%B9%BB%E7%81%AF%E7%89%8734.JPG)>
+
+代码实现中还有一个小细节，外层的```while```是这么写的
+
+* 
+
+```
+while(b!=null)
+```
+
+如果写成
+
+* 
+
+```
+while(b!=null && b.next!=null)
+```
+
+这就不对了，没法处理```1->1```这种情况。
+
+代码实现:
+
+* []
+
+```java
+class Solution {
+    public ListNode deleteDuplicates(ListNode head) {
+        if(head==null || head.next==null) {
+            return head;
+        }
+        ListNode dummy = new ListNode(-1);
+        dummy.next = head;
+        ListNode a = dummy;
+        ListNode b = head.next;
+        while(b!=null) {
+            if(a.next.val!=b.val) {
+                a = a.next;
+                b = b.next;
+            }
+            else {
+                while(b!=null && a.next.val==b.val) {
+                    b = b.next;
+                }
+                //这里的去重跟解法二有点差别，解法二的是
+                //a.next = b.next
+                a.next = b;
+                //b指针在while中判断完后，可能指向了null，这里需要处理边界问题
+                b = (b==null) ? null : b.next;
+            }
+        }
+        return dummy.next;
+    }
+}
+```
+
+* []
+
+```python
+class Solution(object):
+    def deleteDuplicates(self, head):
+        if not (head and head.next):
+            return head
+        dummy = ListNode(-1)
+        dummy.next = head
+        a = dummy
+        b = head.next
+        while b:
+            if a.next.val!=b.val:
+                a = a.next
+                b = b.next
+            else:
+                while b and a.next.val==b.val:
+                    b = b.next
+                # 这里的去重跟解法二有点差别，解法二的是
+                # a.next = b.next
+                a.next = b
+                # b指针在while中判断完后，可能指向了null，这里需要处理边界问题
+                b = b.next if b else None
+        return dummy.next
+```
+
+**欢迎关注我的 👉👉👉  [【公众号】](https://pic.leetcode-cn.com/6beda4bc689d92682484d69274aa0cac88d4f204886b73835538d13ad4abf032-82.jpg) 👈👈👈**
+
+**如果能再点个赞👍👍 就更感激啦💓💓**

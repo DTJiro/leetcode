@@ -1,0 +1,66 @@
+> Problem: [82. 删除排序链表中的重复元素 II](https://leetcode.cn/problems/remove-duplicates-from-sorted-list-ii/description/)
+
+[TOC]
+
+# 思路
+
+1. 本题需要设置一个预节点，该节点指向头结点，这样方便进行比较
+2. 先比较当前节点的下两个节点的值是否相等，如果相等，就将其值计为x，用while循环删除
+3. 如果不相等，就更新cur的位置
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```Java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode deleteDuplicates(ListNode head) {
+        if(head==null)
+        {
+            return head;
+        }
+        ListNode pre = new ListNode(0, head);
+        ListNode cur = pre;
+
+        while (cur.next!=null&&cur.next.next!=null) {
+            if(cur.next.val==cur.next.next.val)
+            {
+                int x = cur.next.val;
+                while(cur.next!=null && cur.next.val==x)
+                {
+                    cur.next = cur.next.next;
+                }
+            }
+            else{
+                cur = cur.next;
+            }
+        }
+        return pre.next;
+    }
+}
+```
+

@@ -1,22 +1,21 @@
 package leetcode.editor.cn;
 
-//给定一个已排序的链表的头
-// head ， 删除所有重复的元素，使每个元素只出现一次 。返回 已排序的链表 。 
+//给定一个已排序的链表的头 head ， 删除原始链表中所有重复数字的节点，只留下不同的数字 。返回 已排序的链表 。 
 //
 // 
 //
 // 示例 1： 
 // 
 // 
-//输入：head = [1,1,2]
-//输出：[1,2]
+//输入：head = [1,2,3,3,4,4,5]
+//输出：[1,2,5]
 // 
 //
 // 示例 2： 
 // 
 // 
-//输入：head = [1,1,2,3,3]
-//输出：[1,2,3]
+//输入：head = [1,1,1,2,3]
+//输出：[2,3]
 // 
 //
 // 
@@ -29,11 +28,11 @@ package leetcode.editor.cn;
 // 题目数据保证链表已经按升序 排列 
 // 
 //
-// Related Topics 链表 👍 1077 👎 0
+// Related Topics 链表 双指针 👍 1221 👎 0
 
-public class RemoveDuplicatesFromSortedList{
+public class RemoveDuplicatesFromSortedListIi{
 	public static void main(String[] args) {
-		Solution solution = new RemoveDuplicatesFromSortedList().new Solution();
+		Solution solution = new RemoveDuplicatesFromSortedListIi().new Solution();
 		
 	}
 //leetcode submit region begin(Prohibit modification and deletion)
@@ -49,15 +48,23 @@ public class RemoveDuplicatesFromSortedList{
  */
 class Solution {
     public ListNode deleteDuplicates(ListNode head) {
-		if (head == null || head.next == null) {
+		if (head == null) {
 			return head;
 		}
-		if (head.val == head.next.val) {
-			return deleteDuplicates(head.next);
-		} else {
-			head.next = deleteDuplicates(head.next);
-			return head;
+		ListNode q = new ListNode(999, head);
+		ListNode p = q;
+		while (p.next != null && p.next.next != null) {
+			if (p.next.val == p.next.next.val) {
+				int x = p.next.val;
+				while (p.next != null && p.next.val == x) {
+					p.next = p.next.next;
+				}
+			} else {
+				p = p.next;
+			}
 		}
+
+		return q.next;
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)
