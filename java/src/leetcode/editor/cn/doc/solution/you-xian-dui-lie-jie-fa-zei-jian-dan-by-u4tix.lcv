@@ -1,0 +1,53 @@
+> Problem: [23. 合并 K 个升序链表](https://leetcode.cn/problems/merge-k-sorted-lists/description/)
+
+[TOC]
+
+# 思路
+
+> 和多个有序数组合并解法类似，链表甚至更简单
+
+# 解题方法
+
+> 构建递增优先队列，初始将先将每个不为null链表头添加进队列。循环里每次弹出最小的一个值，添加到链表，再将弹出节点的下一个节点添加进队列(为null则不添加),直到队列为空
+
+# 复杂度
+
+时间复杂度:
+
+> 参考官方题解为：$O(kn×logk)$
+
+空间复杂度:
+
+> 参考官方题解为：$O(k)$
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        // 递增队列
+        Queue<ListNode> queue = new PriorityQueue<>((a,b)->a.val - b.val);   
+        // 先将每个不为null链表头添加进队列
+        for(int i =0;i<lists.length;i++){
+            if(lists[i] == null) continue;
+            queue.offer(lists[i]);
+        }
+        ListNode root = new ListNode();
+        // 备份头结点
+        ListNode tem = root;
+        while(!queue.isEmpty()){
+            ListNode node = queue.poll();
+            root.next = node;
+            // 更新尾结点
+            root = node;
+            if(node.next != null){
+                queue.offer(node.next);
+            }
+        }
+        return tem.next;
+    }
+}
+```
+
