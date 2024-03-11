@@ -1,0 +1,85 @@
+> Problem: [622. 设计循环队列](https://leetcode.cn/problems/design-circular-queue/description/)
+
+[TOC]
+
+# 思路
+
+![iShot_2024-02-02_11.44.22.jpg](https://pic.leetcode.cn/1706845479-GXMuKs-iShot_2024-02-02_11.44.22.jpg)
+
+# Code
+
+* []
+
+```JavaScript
+/**
+ * @param {number} k
+ */
+var MyCircularQueue = function (k) {
+    this.front = 0;
+    this.rear = 0;
+    this.capacity = k + 1;
+    this.arr = new Array(this.capacity);
+};
+
+/** 
+ * @param {number} value
+ * @return {boolean}
+ */
+MyCircularQueue.prototype.enQueue = function (value) {
+    if (this.isFull()) {
+        return false;
+    }
+    this.arr[this.rear] = value;
+    this.rear = (this.rear + 1) % this.capacity;
+    return true;
+};
+
+/**
+ * @return {boolean}
+ */
+MyCircularQueue.prototype.deQueue = function () {
+    if (this.isEmpty()) {
+        return false;
+    }
+    this.front = (this.front + 1) % this.capacity;
+    return true;
+};
+
+/**
+ * @return {number}
+ */
+MyCircularQueue.prototype.Front = function () {
+    if (this.isEmpty()) {
+        return -1;
+    }
+    return this.arr[this.front];
+};
+
+/**
+ * @return {number}
+ */
+MyCircularQueue.prototype.Rear = function () {
+    if (this.isEmpty()) {
+        return -1;
+    }
+    return this.arr[(this.rear - 1 + this.capacity) % this.capacity];
+};
+
+/**
+ * @return {boolean}
+ */
+MyCircularQueue.prototype.isEmpty = function () {
+    return this.front == this.rear;
+};
+
+/**
+ * @return {boolean}
+ */
+MyCircularQueue.prototype.isFull = function () {
+    // 注意：这是这个经典设计的原因
+    return (this.rear + 1) % this.capacity == this.front;
+};
+```
+
+# [题解传送门](https://ricepudding.cn/article/b0107207)
+
