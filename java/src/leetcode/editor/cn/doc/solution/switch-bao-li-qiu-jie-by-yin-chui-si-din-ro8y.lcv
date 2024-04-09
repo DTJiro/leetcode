@@ -1,0 +1,46 @@
+> Problem: [150. 逆波兰表达式求值](https://leetcode.cn/problems/evaluate-reverse-polish-notation/description/)
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int evalRPN(String[] tokens) {
+        Stack<Integer> stack = new Stack<>();
+        for(int i = 0;i < tokens.length;i++) {
+            String str = tokens[i];
+            if (!isOperations(str)) {
+                int val = Integer.valueOf(str);
+                stack.push(val);
+            }else {
+                int n1 = stack.pop();
+                int n2 = stack.pop();
+                switch(str) {
+                    case "+":
+                    stack.push(n2+n1);
+                    break;
+                    case "-":
+                    stack.push(n2-n1);
+                    break;
+                    case "*":
+                    stack.push(n2*n1);
+                    break;
+                    case "/":
+                    stack.push(n2/n1);
+                    break;
+                }
+            }            
+        }
+        return stack.pop();
+    }
+
+    private boolean isOperations(String str) {
+        if (str.equals("+") || str.equals("-") || str.equals("*") || str.equals("/")) {
+            return true;
+        }
+        return false;
+    }
+}
+```
+

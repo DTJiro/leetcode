@@ -1,0 +1,67 @@
+> Problem: [150. 逆波兰表达式求值](https://leetcode.cn/problems/evaluate-reverse-polish-notation/description/)
+
+[TOC]
+
+# Code
+
+* []
+
+```Go
+func evalRPN(tokens []string) int {
+	st := newStack()
+	for _, token := range tokens {
+		switch token {
+		case "+", "-", "*", "/":
+			b, a := st.pop(), st.pop()
+			y, _ := strconv.Atoi(b)
+			x, _ := strconv.Atoi(a)
+			z := 0
+			if token == "+" {
+				z = x + y
+			}
+			if token == "-" {
+				z = x - y
+			}
+			if token == "*" {
+				z = x * y
+			}
+			if token == "/" {
+				z = x / y
+			}
+			st.push(strconv.Itoa(z))
+		default:
+			st.push(token)
+		}
+	}
+	top := st.top()
+	ans, _ := strconv.Atoi(top)
+	return ans
+}
+
+type stack struct {
+    arr []string
+}
+
+func newStack() stack {
+    return stack {arr: make([]string, 0)}
+}
+
+func (st *stack) push(v string) {
+    st.arr = append(st.arr, v)
+}
+
+func (st *stack) pop() string {
+    top := st.arr[len(st.arr)-1]
+    st.arr = st.arr[:len(st.arr)-1]
+    return top
+}
+
+func (st *stack) top() string {
+    return st.arr[len(st.arr)-1]
+}
+
+func (st *stack) isEmpty() bool {
+    return len(st.arr) == 0
+}
+```
+
