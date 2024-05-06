@@ -1,0 +1,71 @@
+> Problem: [215. 数组中的第K个最大元素](https://leetcode.cn/problems/kth-largest-element-in-an-array/description/)
+
+[TOC]
+
+# 思路
+
+> 可以先构造一个空间大小为k的堆
+> 再从nums[k+1]开始与堆顶元素比较
+> 如果nums[i] > heap则将当前堆顶元素出堆,并将nums[i]入堆
+> 这样遍历完数组后堆顶元素就是ans
+
+# 解题方法
+
+> 这样的解法实际上时间复杂度是达不到O(n)的
+> 我们共执行了n轮入堆和出堆,堆的最大长度为k,入堆和出堆的时间复杂度为O(logk)
+> 所以整个算法的时间复杂度为O(nlogk)
+> 空间复杂度为O(k)->构造了一个大小为k的堆
+> 这个算法主要是用来理解堆这种数据结构
+> 如果要达到O(n)的时间复杂度和O(1)的空间复杂度,快排也许是最优解
+
+# 复杂度
+
+时间复杂度:
+
+> $O(nlogk)$
+
+空间复杂度:
+
+> $O(k)$
+
+# Code
+
+* []
+
+```Python
+class Solution:
+    def findKthLargest(self, nums: List[int], k: int) -> int:
+        # 先将前k个元素入堆
+        heap = [nums[i] for i in range(0,k)]
+        heapq.heapify(heap)
+        for i in range(k,len(nums)):
+            if nums[i] > heap[0]:
+                heapq.heappop(heap) # 弹出堆顶元素
+                heapq.heappush(heap,nums[i]) # nums[i] 入堆
+        return heap[0]
+```
+
+* []
+
+```java
+class Solution {
+    public int findKthLargest(int[] nums, int k) {
+        // 初始化小顶堆
+        Queue<Integer> heap = new PriorityQueue<>();
+        // 将数组的前k个元素入堆
+        for (int i = 0; i < k; i++) {
+            heap.offer(nums[i]);
+        }
+        // 从第k + 1个元素开始与堆顶元素比较
+        // 若大于堆顶元素则将其入堆,并将当前堆顶元素出堆
+        for (int i = k; i < nums.length; i++) {
+            if (nums[i] > heap.peek()) {
+                heap.poll();
+                heap.offer(nums[i]);
+            }
+        }
+        return heap.peek();
+    }
+}
+```
+

@@ -1,0 +1,226 @@
+> [215. 数组中的第K个最大元素](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
+
+[TOC]
+
+# 题目
+
+给定整数数组 `nums` 和整数 `k`，请返回数组中第 `k` 个最大的元素。
+
+请注意，你需要找的是数组排序后的第 `k` 个最大的元素，而不是第 `k` 个不同的元素。
+
+你必须设计并实现时间复杂度为 `O(n)` 的算法解决此问题。
+
+# 题目分析
+
+## 堆排序
+
+我们可以借助一个**小顶堆来维护当前堆内元素的最小值，同时保证堆的大小为 `k`**：
+
+- 遍历数组将元素入堆；
+- 如果当前堆内元素超过 `k` 了，我们就把堆顶元素去除，即去除当前的最小值。
+
+因此我们在元素入堆的过程中，不断淘汰最小值，最终留在堆中就是数组中前 `k` 个最大元素，并且堆顶元素为前 `k` 大元素中的最小值，即为第 `k` 个元素。
+
+![image-20240219200421669.png](https://pic.leetcode.cn/1708448401-FQzgJM-image-20240219200421669.png)
+
+### 代码
+
+* []
+
+```Java
+class Solution {
+    public int findKthLargest(int[] nums, int k) {
+        Queue<Integer> pq = new PriorityQueue<>();   // 将数组加入小顶堆，堆中维护当前值最大的k个数
+        for(int num: nums){
+            pq.offer(num);
+            if(pq.size() > k){
+                pq.poll();   // 堆中元素超过k个，弹出最小的那个
+            }
+        }
+        return pq.peek();    // 最后堆顶的即为第k大的数
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def findKthLargest(self, nums: List[int], k: int) -> int:
+        pq = []   # 将数组加入小顶堆，堆中维护当前值最大的k个数
+        for num in nums:
+            heapq.heappush(pq, num) # 当前元素入堆
+            if len(pq) > k:
+                heapq.heappop(pq)   # 堆中元素超过k个，弹出最小的那个
+        return pq[0]    # 最后堆顶的即为第k大的数
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    int findKthLargest(vector<int>& nums, int k) {
+        priority_queue<int, vector<int>, greater<int>> pq;   // 将数组加入小顶堆，堆中维护当前值最大的k个数
+        for(auto& num: nums){
+            pq.emplace(num);
+            if(pq.size() > k){
+                pq.pop();   // 堆中元素超过k个，弹出最小的那个
+            }
+        }
+        return pq.top();    // 最后堆顶的即为第k大的数
+    }
+};
+```
+
+## 快速排序
+
+我们要找到第 `k` 个最大元素 `number`，实际上我们并不关心比它大和比它小的那些元素的具体排序。我们只希望那些比 `number`大的元素都集中到其左侧，比它小的元素都集中到其右侧，那么 `nums[k-1]` 就是第 `k` 个最大元素。【排序了又没完全排】
+
+这个过程其实就和 **快速排序** 的思想是类似的。快速排序核心思想就是每次在当前区间 `[left, right]` 中选择出一个元素 `nums[p]`，然后将区间内所有大于它的元素和所有小于它的元素都放到其两侧【**具体放在哪一侧取决于是升序还是降序**】，然后再递归去处理两侧区间。
+
+![image-20240220070536514.png](https://pic.leetcode.cn/1708448410-mJuphx-image-20240220070536514.png)
+
+如上图所示，这么一次操作后就可以**确定选择的元素 `nums[p]` 的顺序了**。假设其当前位置为 `p'`，则有以下三种情况：
+
+- `p' == k-1`，找到了第 `k` 大的元素，直接返回；
+- `p' < k - 1`，说明第 `k` 大的元素是比当前元素 `nums[p]`要靠后的，在其右侧区间进行递归搜索。
+- `p' > k - 1`，说明第 `k` 大的元素是比当前元素 `nums[p]`要靠前的，在其左侧区间进行递归搜索。
+
+【快排是要对整个数组排序，需要对左右区间都进行递归排序；**而我们只要找到某个元素，因此只要确认目标元素在哪个区间即可，类似二分查找的思想**。】
+
+![image-20240220071128418.png](https://pic.leetcode.cn/1708448421-fQhzTm-image-20240220071128418.png)
+
+快排的代码细节比较多，调试的过程也是一个熟悉快排思想较好的方式。
+
+### 双指针交换的方式划分左右区间
+
+我们的目标是将大于切分值的元素都放到左侧，小于切分值得元素都放到右侧。因此我们可以使用双指针分别从两端往中间搜索，分别找到左侧小于切分值的元素和右侧大于切分值的元素，交换之，直到两个指针相遇。
+
+![image-20240220225835424.png](https://pic.leetcode.cn/1708448433-XHYrmS-image-20240220225835424.png)
+
+对于等于切分值的元素，其在左侧还是右侧无所谓，为了减少交换操作，对于等于切分值的元素我们不做处理；
+
+![image-20240220230509558.png](https://pic.leetcode.cn/1708448441-dARduF-image-20240220230509558.png)
+
+### 如何选择元素 nums[p]
+
+由上可知，我们需要预先选择一个元素作为切分元素。这个元素最好是一个当前排序区间 `[left, right]` 范围内一个随机值。这是为了避免当我们选择边界时 `nums[left]` 或 `nums[right]`，对于已经有序的区间而出现的时间复杂度退化的情况。
+
+![image-20240220234221020.png](https://pic.leetcode.cn/1708448449-aNlIiH-image-20240220234221020.png)
+
+对于这道题，我们可以选择区间的中间值作为切分元素，并且我们要**事先将切分值交换到区间的右边界**：
+
+1. 避免在划分左右区间的时候，将切分值给覆盖掉。
+2. 最终才可以将切分值放到正确的位置。
+
+![image-20240221004140052.png](https://pic.leetcode.cn/1708448457-ZUsbeF-image-20240221004140052.png)
+
+### 代码
+
+> 双指针交换元素时，必须时刻保证 `i < j`;
+
+一旦 `i >= j`，说明 `j` 左边没有比切分元素小的元素了，全在右侧了，此时就完成了元素的左右切割。 如果还继续移动指针，将导致错误。因为 `i` 还要和 位于`right` 的切分元素交换，需要保证位置 `i` 就是切分元素的最终位置。
+
+![image-20240221005859415.png](https://pic.leetcode.cn/1708448465-tocKBT-image-20240221005859415.png)
+
+> 为什么双指针 `j` 初始为右边界 `right`，而不是 `right - 1`。
+
+右指针 `j` 的初始值只能为 `right`。尽管 `nums[right]` 是切分值肯定不会是搜索的要交换的元素，但是将 `j` 初始为 `right` 是为了在区间 `[left, right]` 的长度为 `2` 时，也能执行一次循环。
+
+![image-20240221005500916.png](https://pic.leetcode.cn/1708448472-NkcRBy-image-20240221005500916.png)
+
+* []
+
+```Java
+class Solution {
+    public int findKthLargest(int[] nums, int k) {
+        return quickSortKthElement(nums, k, 0, nums.length - 1);    // 快排整个区间
+    }
+
+    /**
+     * 对[left, right]范围内的元素进行降序快排，找到第k大元素
+     */
+    private int quickSortKthElement(int[] nums, int k, int left, int right){
+        int mid = left + (right - left) / 2;    // 选取中间元素作为切分值
+        swap(nums, mid, right);          // 将切分值放到右边界避免加入元素的划分
+        int partition = nums[right], i = left, j = right;   // 双指针从左右边界开始，分别找到要交换的元素
+        while(i < j){
+            while(i < j && nums[i] >= partition)i++;    // 找到左侧小于切分值的元素
+            while(j > i && nums[j] <= partition)j--;    // 找到右侧大于切分值的元素【因为是找大于，即使j从right开始，right也不会被选中】
+            if(i < j)
+                swap(nums, i, j);     // 将大于元素放到左侧，小于元素放到右侧
+        }
+        swap(nums, i, right);     // i最后停留的位置一定是右侧首个小于切分值的元素，与切分值交换，则[left, i)都是大于（等于）切分值，[i+1, right]都是小于（等于）切分值
+        if(i == k - 1)return nums[i];   // 如果切分值就是第k大元素，直接返回
+        if(i < k - 1)return quickSortKthElement(nums, k, i + 1, right);     // 切分值是第k大之前的元素，在右区间搜索第k大
+        return quickSortKthElement(nums, k, left, i - 1);   // 切分值是第k大之后的元素，在左区间搜索第k大
+    }
+
+    // 交换位置i和位置j的元素
+    private void swap(int[] nums, int i, int j){
+        if(i == j)return;
+        nums[i] ^= nums[j];
+        nums[j] ^= nums[i];
+        nums[i] ^= nums[j];
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def findKthLargest(self, nums: List[int], k: int) -> int:
+        # 交换位置i和位置j的元素
+        def swap(i: int, j: int):
+            nums[i], nums[j] = nums[j], nums[i]
+
+        # 对[left, right]范围内的元素进行降序快排，找到第k大元素
+        def quick_sort_kth_element(k: int, left: int, right: int) -> int:
+            mid = (right + left) // 2    # 选取中间元素作为切分值
+            swap(mid, right)             # 将切分值放到右边界避免加入元素的划分
+            partition, i, j = nums[right], left, right   # 双指针从左右边界开始，分别找到要交换的元素
+            while i < j:
+                while i < j and nums[i] >= partition: i += 1    # 找到左侧小于切分值的元素
+                while j > i and nums[j] <= partition: j -=1    # 找到右侧大于切分值的元素【因为是找大于，即使j从right开始，right也不会被选中】
+                if i < j:
+                    swap(i, j)     # 将大于元素放到左侧，小于元素放到右侧
+            swap(i, right)     # i最后停留的位置一定是右侧首个小于切分值的元素，与切分值交换，则[left, i)都是大于（等于）切分值，[i+1, right]都是小于（等于）切分值
+            if i == k - 1: return nums[i]   # 如果切分值就是第k大元素，直接返回
+            if i < k - 1: return quick_sort_kth_element(k, i + 1, right)     # 切分值是第k大之前的元素，在右区间搜索第k大
+            return quick_sort_kth_element(k, left, i - 1)   # 切分值是第k大之后的元素，在左区间搜索第k大
+        
+        return quick_sort_kth_element(k, 0, len(nums) - 1)    # 快排整个区间
+```
+
+* []
+
+```C++
+class Solution {
+private:
+    /**
+     * 对[left, right]范围内的元素进行降序快排，找到第k大元素
+    */
+    int quickSortKthElement(vector<int>& nums, int k, int left, int right){
+        int mid = left + (right - left) / 2;    // 选取中间元素作为切分值
+        swap(nums[mid], nums[right]);           // 将切分值放到右边界避免加入元素的划分
+        int partition = nums[right], i = left, j = right;   // 双指针从左右边界开始，分别找到要交换的元素
+        while(i < j){
+            while(i < j && nums[i] >= partition)i++;    // 找到左侧小于切分值的元素
+            while(j > i && nums[j] <= partition)j--;    // 找到右侧大于切分值的元素【因为是找大于，即使j从right开始，right也不会被选中】
+            if(i < j)
+                swap(nums[i], nums[j]);     // 将大于元素放到左侧，小于元素放到右侧
+        }
+        swap(nums[i], nums[right]);     // i最后停留的位置一定是右侧首个小于切分值的元素，与切分值交换，则[left, i)都是大于（等于）切分值，[i+1, right]都是小于（等于）切分值
+        if(i == k - 1)return nums[i];   // 如果切分值就是第k大元素，直接返回
+        if(i < k - 1)return quickSortKthElement(nums, k, i + 1, right);     // 切分值是第k大之前的元素，在右区间搜索第k大
+        return quickSortKthElement(nums, k, left, i - 1);   // 切分值是第k大之后的元素，在左区间搜索第k大
+    };
+public:
+    int findKthLargest(vector<int>& nums, int k) {
+        return quickSortKthElement(nums, k, 0, nums.size() - 1);    // 快排整个区间
+    }
+};
+```
+
