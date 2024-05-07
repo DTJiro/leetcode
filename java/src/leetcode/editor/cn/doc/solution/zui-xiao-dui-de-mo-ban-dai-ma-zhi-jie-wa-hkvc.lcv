@@ -1,0 +1,147 @@
+### 思路
+
+这道题数组是变化的，会有数加进来，但我们始终关心前 k 大的数，所以维护一个最小堆来保存前 k 大的数字。
+
+维护一个的 heap 数组。
+- 当 heap 数组长度不够 k 时，新数从数组末尾推入，执行“上浮”，交换到它合适的位置。
+- 当 heap 数组长度够 k 时，如果新数字比栈顶大，用它替换堆顶，执行“下沉”，交换到合适的位置。
+
+最后 heap 数组存的是前 k 大的数字，堆顶是第 k 大的数字，是最小堆里最小的元素。
+
+### 代码
+
+* []
+
+```golang
+type minHeap struct { // 定义 minHeap 结构体
+	k    int   // k 容量
+	heap []int // heap 数组
+}
+
+func createMinHeap(k int, nums []int) *minHeap { 
+	heap := &minHeap{k: k, heap: []int{}} // 创建 minHeap
+	for _, n := range nums { // 把 nums 的数字放进去初始化
+		heap.add(n)
+	}
+	return heap // 返回出初始化好的 heap
+}
+
+func (this *minHeap) add(num int) { // 给 minHeap 绑定 add 方法
+	if len(this.heap) < this.k {    // heap 数组长度还不够 k
+		this.heap = append(this.heap, num) // 将num加入heap数组
+		this.up(len(this.heap) - 1)        // 数组末尾的数上浮到合适的位置
+	} else if num > this.heap[0] { // 如果num比堆顶数字要大
+		this.heap[0] = num // 堆顶 换人
+		this.down(0)       // 执行下沉，下沉到合适的位置
+	}                      // 其他情况 不加入
+}
+
+func (this *minHeap) up(i int) { // 将索引i上的元素，上浮到合适位置
+	for i > 0 {                  // 上浮到索引0就停止上浮
+		parent := (i - 1) >> 1                // 找到父节点在heap数组中的位置
+		if this.heap[parent] > this.heap[i] { // 如果父节点的数字比插入的数字大
+			this.heap[parent], this.heap[i] = this.heap[i], this.heap[parent] // 交换
+			i = parent                                                        // 更新 i
+		} else { // 父比自己小，满足最小堆的性质，break
+			break
+		}
+	}
+}
+
+func (this *minHeap) down(i int) { // 下沉到合适的位置
+	for 2*i+1 < len(this.heap) {   // 左子节点的索引如果已经越界，终止下沉
+		child := 2*i + 1           // 左子节点在heap数组中的位置
+		if child+1 < len(this.heap) && this.heap[child+1] < this.heap[child] {
+			child++ // 如果右子节点存在且值更小，则用它，去比较
+		}
+		if this.heap[i] > this.heap[child] { // 如果插入的数字比子节点都大
+			this.heap[child], this.heap[i] = this.heap[i], this.heap[child] // 交换
+			i = child                                                       // 更新 i
+		} else { // 子比自己大，满足最小堆的属性，break
+			break
+		}
+	}
+}
+
+type KthLargest struct { // KthLargest 结构体
+	heap *minHeap	
+}
+
+func Constructor(k int, nums []int) KthLargest { // 创建 KthLargest
+	return KthLargest{heap: createMinHeap(k, nums)}
+}
+
+func (this *KthLargest) Add(val int) int { // 执行加入操作，返回第 k 大数字
+	this.heap.add(val)
+	return this.heap.heap[0] // 堆顶即第 k 大数字
+}
+```
+
+* []
+
+```javascript
+class MinHeap {
+    constructor(k, nums) {
+        this.heap = [];
+        this.k = k;
+    }
+    add(num) {
+        if (this.heap.length < this.k) {
+            this.heap.push(num);
+            this.up(this.heap.length - 1);
+        } else if (num > this.heap[0]) {
+            this.heap[0] = num;
+            this.down(0);
+        }
+    }
+    up(i) {
+        while (i > 0) {
+            const parent = (i - 1) >> 1;
+            if (this.heap[parent] > this.heap[i]) {
+                [this.heap[parent], this.heap[i]] = [this.heap[i], this.heap[parent]];
+                i = parent;
+            } else {
+                break;
+            }
+        }
+    }
+    down(i) {
+        while (2 * i + 1 < this.heap.length) {
+            let child = 2 * i + 1;
+            if (child + 1 < this.heap.length && this.heap[child + 1] < this.heap[child]) {
+                child++;
+            }
+            if (this.heap[i] > this.heap[child]) {
+                [this.heap[child], this.heap[i]] = [this.heap[i], this.heap[child]];
+                i = child;
+            } else {
+                break;
+            }
+        }
+    }
+}
+
+var KthLargest = function (k, nums) {
+    this.heap = new MinHeap(k, nums);
+    for (let i = 0; i < nums.length; i++) {
+        this.heap.add(nums[i]);
+    }
+};
+
+KthLargest.prototype.add = function (val) {
+    this.heap.add(val);
+    return this.heap.heap[0];
+};
+```
+
+### 复盘总结
+
+就一个很朴素好记的模板，代码没有特地做精简，应该蛮好理解和记忆
+
+### 可以练练另一道题，一样的
+
+[JS实现最小堆（小根堆）| 347. 前 K 个高频元素](https://leetcode-cn.com/problems/top-k-frequent-elements/solution/jsshi-xian-zui-xiao-dui-xiao-gen-dui-qu-zuo-by-xia/)
+
+### 感谢阅读，欢迎评论给出建议意见，新年快乐
+
+![50785170628_4de0d3f7b0_o.jpg](https://pic.leetcode-cn.com/1612928375-DCnicz-image.png)

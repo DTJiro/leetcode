@@ -1,0 +1,102 @@
+> Problem: [703. 数据流中的第 K 大元素](https://leetcode.cn/problems/kth-largest-element-in-a-stream/description/)
+
+# Code
+
+* []
+
+```Java
+class KthLargest {
+
+    MinHeap heap;
+    public KthLargest(int k, int[] nums) {
+        heap = new MinHeap(k);
+        for (int i = 0; i < nums.length; i++) {//遍历数组，将元素放入堆中
+            if (i < k) heap.offer(nums[i]);//如果堆未满，直接放入堆中
+            else if (heap.peek() < nums[i]) heap.replace(nums[i]);//如果堆已满，且堆顶元素小于当前元素，将堆顶元素替换为当前元素
+        } 
+    }
+    
+    public int add(int val) {
+         if (!heap.isFull()) {//如果堆未满，直接放入堆中
+            heap.offer(val);
+        } else if (heap.peek() < val) {//如果堆已满，且堆顶元素小于当前元素，将堆顶元素替换为当前元素
+            heap.replace(val);
+        }
+        return heap.peek();
+    }
+    class MinHeap {//最小堆
+        int[] array;
+        int size;
+
+        public MinHeap(int capacity) {
+            array = new int[capacity];
+        }
+
+        public int peek() {
+            return array[0];
+        }
+
+        public boolean isFull() {
+            return size == array.length;
+        }
+
+        //替换堆顶元素，并保持堆的性质
+        public void replace(int replaced) {
+            array[0] = replaced;
+            down(0);
+        }
+
+        //向堆中添加一个元素，并保持堆的性质。
+        public void offer(int offered) {
+            array[size] = offered;
+            up(size);
+            size++;
+        }
+
+        //将指定位置的元素向上移动，以保持堆的性质。
+        public void up(int index) {
+            int child = index;
+            while (child > 0) {
+                int parent = (child - 1) >> 1;
+                if (array[child] < array[parent]) {
+                    swap(child, parent);
+                    child = parent;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        //将指定位置的元素向下移动，以保持堆的性质。
+        public void down(int index) {
+            int left = index * 2 + 1;
+            int right = left + 1;
+            int min = index;
+            if (left < size && array[left] < array[min]) {
+                min = left;
+            }
+            if (right < size && array[right] < array[min]) {
+                min = right;
+            }
+            if (min != index) {
+                swap(min, index);
+                down(min);
+            }
+        }
+
+        //交换堆中两个位置的元素。
+        public void swap(int i, int j) {
+            int t = array[i];
+            array[i] = array[j];
+            array[j] = t;
+        }
+    }
+}
+
+/**
+ * Your KthLargest object will be instantiated and called as such:
+ * KthLargest obj = new KthLargest(k, nums);
+ * int param_1 = obj.add(val);
+ */
+```
+

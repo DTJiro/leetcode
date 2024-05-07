@@ -1,0 +1,101 @@
+> Problem: [703. 数据流中的第 K 大元素](https://leetcode.cn/problems/kth-largest-element-in-a-stream/description/)
+
+[TOC]
+
+# 思路
+
+根据场景选择使用大根堆还是小根堆
+堆的几个操作:
+1.初始化
+2.上滤
+3.下滤
+4.排序
+
+# 解题方法
+
+> 手写小根堆
+
+# Code
+
+* []
+
+```Java
+class KthLargest {
+    int[] heap;
+    int k;
+
+    public KthLargest(int k, int[] nums) {
+        this.k = k;
+        heap = new int[k+1];
+        for(int i = 1;i<=k;i++)
+        {
+            heap[i]=Integer.MIN_VALUE;
+        }
+        for(int i =0 ;i<nums.length;i++)
+        {
+            add(nums[i]);
+        }
+    }
+    public int add(int val) {
+        if(val>heap[1]){
+            heap[1]=val;
+            siftdown(1);
+        }
+        return heap[1];
+    }
+    //向上调整
+    void siftup(int i){
+        int flag=0;
+        if(i==1) return;
+        while(i!=1 && flag==0)
+        {
+            if(heap[i]<heap[i/2])
+                swap(i,i/2);
+            else
+                flag=1;
+            i=i/2;
+        }
+        return;
+    }
+    //向下调整
+    void siftdown(int i){
+        int flag = 0;
+        int t=0;
+        while(i*2<=k && flag==0)
+        {
+            if(heap[i]>heap[i*2])
+                t=i*2;
+            else    
+                t=i;
+            if(i*2+1<=k){
+                if(heap[t]>heap[2*i+1])
+                    t=i*2+1;
+            }
+            if(t!=i){
+                swap(i,t);
+                i=t;
+            }else
+                flag=1;
+        }
+        return;
+    }
+    void create(){
+        for(int i = k/2;i>=1;i--)
+        {
+            siftdown(i);
+        }
+    }
+    void swap(int i, int j){
+        int temp = heap[i];
+        heap[i]=heap[j];
+        heap[j]=temp;
+    }
+}
+
+/**
+ * Your KthLargest object will be instantiated and called as such:
+ * KthLargest obj = new KthLargest(k, nums);
+ * int param_1 = obj.add(val);
+ */
+```
+
