@@ -1,0 +1,294 @@
+> [295. 数据流的中位数](https://leetcode.cn/problems/find-median-from-data-stream/)
+
+[TOC]
+
+# 题目
+
+**中位数**是有序整数列表中的中间值。如果列表的大小是偶数，则没有中间值，中位数是两个中间值的平均值。
+
+- 例如 `arr = [2,3,4]` 的中位数是 `3` 。
+- 例如 `arr = [2,3]` 的中位数是 `(2 + 3) / 2 = 2.5` 。
+
+实现 MedianFinder 类:
+
+- `MedianFinder() `初始化 `MedianFinder` 对象。
+- `void addNum(int num)` 将数据流中的整数 `num` 添加到数据结构中。
+- `double findMedian()` 返回到目前为止所有元素的中位数。与实际答案相差 `10-5` 以内的答案将被接受。
+
+# 题目分析
+
+## 思路分析
+
+这道题要求不断变化的数据流的实时中位数。
+
+中位数是指一组有序数据中，位置在最中间的那个元素。如果我们时刻都对已有的数据进行排序则开销太大。
+
+换个思路想，我们真的需要对所有数据进行排序吗？**我们只关心中位数是多少，而并不关心这个元素区间是否有序**。因此我们可以将所有数据一分为二，只需要能够找到左区间的最大值和右区间的最小值，即可以得到中位数。
+
+## 优先队列（堆）
+
+优先队列适用于动态维护一组数据的最值。因此我们可以使用大顶堆维护左区间的元素，堆顶即为左区间最大值。小顶堆维护右区间的元素，堆顶即为右区间最小值。
+
+- 当元素个数为奇数时，中位数为左区间的堆顶元素；
+- 当元素个数为偶数时，中位数为左右区间堆顶元素的均值
+
+具体过程如下图：
+
+![image-20240201234747859.png](https://pic.leetcode.cn/1706935399-MJXXEX-image-20240201234747859.png)
+
+## 入堆时的小优化
+
+上述过程我们是每次都先往将 `num` 加入要**非增加元素区间**，去获得一个淘汰值，然后再将淘汰值加入增加元素的区间。**每次加入 `num` 都要进行两次元素插入**。
+
+我们观察：
+- 对于要加入左区间的元素，我们要保证左区间的元素都小于右区间的元素，**即左区间最大值小于右区间最小值**。如果 `num` **已经小于等于**右区间的最小值，那它一定是左区间的元素，直接加入左区间即可，就没有必要先加入右区间了【加入右区间淘汰的元素也一定是它】；
+- 同理，对于加入右区间的元素，如果 `num` **已经大于等于** 左区间的最大值，那它一定是右区间的元素，直接加入右区间即可。
+
+换句话说，我们之所以要将 `num` 先加入非增加元素区间，是因为我们拿不准这个元素是否是那个增加的元素。如果能够确定，那就直接加入即可。
+
+# 代码
+
+## 直接入堆
+
+* []
+
+```Java
+class MedianFinder {
+    Queue<Integer> leftNums;   // 大顶堆，维护左区间的最大值
+    Queue<Integer> rightNums;  // 小顶堆，维护右区间的最小值
+
+    public MedianFinder() {
+        leftNums = new PriorityQueue<>((a, b) -> b - a);
+        rightNums = new PriorityQueue<>();
+    }
+    
+    public void addNum(int num) {
+        if(leftNums.size() == rightNums.size()){
+            // 左右区间元素相等，再加入元素时左区间加一个元素
+            // 把新的元素先加入右区间，得到一个右区间的最小值
+            // 这个就是要加入左区间的值
+            rightNums.offer(num);
+            leftNums.offer(rightNums.poll());  // 弹出右区间栈顶元素并加入左区间
+        }else{
+            // 左区间元素比右区间多一个，再加入元素时右区间加一个元素【保证两个堆始终各自维护加入元素的一半】
+            // 把新的元素先加入左区间，得到一个左区间的最大值
+            // 这个就是要加入右区间的值
+            leftNums.offer(num);
+            rightNums.offer(leftNums.poll());  // 弹出右区间栈顶元素并加入左区间
+        }
+    }
+    
+    public double findMedian() {
+        if(leftNums.size() == rightNums.size())
+            // 偶数个元素，取左区间的最大值和右区间最小值的平均值作为中间值
+            return (leftNums.peek() + rightNums.peek()) / 2.0;
+        // 奇数个元素，左区间的最大值即为中间值
+        return leftNums.peek();  
+    }
+}
+```
+
+* []
+
+```Python
+class MedianFinder:
+
+    def __init__(self):
+        self.left_nums = []   # 大顶堆，维护左区间的最大值
+        self.right_nums = []  # 小顶堆，维护右区间的最小值
+
+
+    def addNum(self, num: int) -> None:
+        if len(self.left_nums) == len(self.right_nums):
+            # 左右区间元素相等，再加入元素时左区间加一个元素
+            right_top = heapq.heappushpop(self.right_nums, num)     # 把新的元素先加入右区间, 同时得到一个右区间的最小值
+            heapq.heappush(self.left_nums, -right_top)         # 这个就是要加入左区间的值, 大顶堆取反
+        else:
+            # 左区间元素比右区间多一个，再加入元素时右区间加一个元素【保证两个堆始终各自维护加入元素的一半】
+            left_top = -heapq.heappushpop(self.left_nums, -num)     # 把新的元素先加入左区间, 同时得到一个左区间的最大值【大顶堆取反】
+            heapq.heappush(self.right_nums, left_top)         # 这个就是要加入右区间的值
+
+    def findMedian(self) -> float:
+        if len(self.left_nums) == len(self.right_nums):
+            # 偶数个元素，取左区间的最大值(大顶堆，元素取反)和右区间最小值的平均值作为中间值
+            return (self.right_nums[0] - self.left_nums[0]) / 2
+        # 奇数个元素，左区间的最大值即为中间值(大顶堆，元素取反)
+        return -self.left_nums[0] 
+```
+
+* []
+
+```C++
+class MedianFinder {
+private:
+    priority_queue<int> leftNums;   // 大顶堆，维护左区间的最大值
+    priority_queue<int, vector<int>, std::greater<int>> rightNums;  // 小顶堆，维护右区间的最小值
+public:
+    MedianFinder() {
+
+    }
+    
+    void addNum(int num) {
+        if(leftNums.size() == rightNums.size()){
+            // 左右区间元素相等，再加入元素时左区间加一个元素
+            // 把新的元素先加入右区间，得到一个右区间的最小值
+            // 这个就是要加入左区间的值
+            rightNums.emplace(num);
+            leftNums.emplace(rightNums.top());  
+            rightNums.pop();    // 弹出右区间栈顶元素
+        }else{
+            // 左区间元素比右区间多一个，再加入元素时右区间加一个元素【保证两个堆始终各自维护加入元素的一半】
+            // 把新的元素先加入左区间，得到一个左区间的最大值
+            // 这个就是要加入右区间的值
+            leftNums.emplace(num);
+            rightNums.emplace(leftNums.top());  
+            leftNums.pop();    // 弹出右区间栈顶元素
+        }
+    }
+    
+    double findMedian() {
+        if(leftNums.size() == rightNums.size())
+            // 偶数个元素，取左区间的最大值和右区间最小值的平均值作为中间值
+            return (leftNums.top() + rightNums.top()) / 2.0;
+        // 奇数个元素，左区间的最大值即为中间值
+        return leftNums.top();  
+
+    }
+};
+```
+
+## 分类讨论
+
+* []
+
+```Java
+class MedianFinder {
+    Queue<Integer> leftNums;   // 大顶堆，维护左区间的最大值
+    Queue<Integer> rightNums;  // 小顶堆，维护右区间的最小值
+
+    public MedianFinder() {
+        leftNums = new PriorityQueue<>((a, b) -> b - a);
+        rightNums = new PriorityQueue<>();
+    }
+    
+    public void addNum(int num) {
+        if(leftNums.size() == rightNums.size()){
+            // 左右区间元素相等，再加入元素时左区间加一个元素
+            if(rightNums.isEmpty() || num <= rightNums.peek()){
+                // 右区间没有元素 或者 num小于等于右区间最小值，一定是加入左区间的
+                leftNums.offer(num);
+            }else{
+                // 否则应该加入右区间，然后淘汰出一个最小值加入左区间
+                rightNums.offer(num);
+                leftNums.offer(rightNums.poll());  // 弹出右区间栈顶元素并加入左区间
+            }
+        }else{
+            // 左区间元素比右区间多一个，再加入元素时右区间加一个元素【保证两个堆始终各自维护加入元素的一半】
+            if(num >= leftNums.peek()){
+                // num大于等于左区间最大值，一定是加入右区间的
+                rightNums.offer(num);
+            }else{
+                // 否则应该加入左区间，然后淘汰出一个最大值加入右区间
+                leftNums.offer(num);
+                rightNums.offer(leftNums.poll());  // 弹出右区间栈顶元素并加入左区间
+            }
+        }
+    }
+    
+    public double findMedian() {
+        if(leftNums.size() == rightNums.size())
+            // 偶数个元素，取左区间的最大值和右区间最小值的平均值作为中间值
+            return (leftNums.peek() + rightNums.peek()) / 2.0;
+        // 奇数个元素，左区间的最大值即为中间值
+        return leftNums.peek();  
+    }
+}
+```
+
+* []
+
+```Python
+class MedianFinder:
+
+    def __init__(self):
+        self.left_nums = []   # 大顶堆，维护左区间的最大值
+        self.right_nums = []  # 小顶堆，维护右区间的最小值
+
+
+    def addNum(self, num: int) -> None:
+        if len(self.left_nums) == len(self.right_nums):
+            # 左右区间元素相等，再加入元素时左区间加一个元素
+            if not self.right_nums or num <= self.right_nums[0]:
+                # 右区间没有元素 或者 num小于等于右区间最小值，一定是加入左区间的
+                heapq.heappush(self.left_nums, -num)
+            else:
+                # 否则应该加入右区间，然后淘汰出一个最小值加入左区间
+                right_top = heapq.heappushpop(self.right_nums, num)     # 把新的元素先加入右区间, 同时得到一个右区间的最小值
+                heapq.heappush(self.left_nums, -right_top)         # 这个就是要加入左区间的值, 大顶堆取反
+        else:
+            # 左区间元素比右区间多一个，再加入元素时右区间加一个元素【保证两个堆始终各自维护加入元素的一半】
+            if num >= -self.left_nums[0]:
+                # num大于等于左区间最大值，一定是加入右区间的
+                heapq.heappush(self.right_nums, num)
+            else:
+                # 否则应该加入左区间，然后淘汰出一个最大值加入右区间
+                left_top = -heapq.heappushpop(self.left_nums, -num)     # 把新的元素先加入左区间, 同时得到一个左区间的最大值【大顶堆取反】
+                heapq.heappush(self.right_nums, left_top)         # 这个就是要加入右区间的值
+
+    def findMedian(self) -> float:
+        if len(self.left_nums) == len(self.right_nums):
+            # 偶数个元素，取左区间的最大值(大顶堆，元素取反)和右区间最小值的平均值作为中间值
+            return (self.right_nums[0] - self.left_nums[0]) / 2
+        # 奇数个元素，左区间的最大值即为中间值(大顶堆，元素取反)
+        return -self.left_nums[0]  
+```
+
+* []
+
+```C++
+class MedianFinder {
+private:
+    priority_queue<int> leftNums;   // 大顶堆，维护左区间的最大值
+    priority_queue<int, vector<int>, std::greater<int>> rightNums;  // 小顶堆，维护右区间的最小值
+public:
+    MedianFinder() {
+
+    }
+    
+    void addNum(int num) {
+        if(leftNums.size() == rightNums.size()){
+            // 左右区间元素相等，再加入元素时左区间加一个元素
+            if(rightNums.empty() || num <= rightNums.top()){
+                // 右区间没有元素 或者 num小于等于右区间最小值，一定是加入左区间的
+                leftNums.emplace(num);
+            }else{
+                // 否则应该加入右区间，然后淘汰出一个最小值加入左区间
+                rightNums.emplace(num);
+                leftNums.emplace(rightNums.top());  
+                rightNums.pop();    // 弹出右区间栈顶元素
+            }
+        }else{
+            // 左区间元素比右区间多一个，再加入元素时右区间加一个元素【保证两个堆始终各自维护加入元素的一半】
+            if(num >= leftNums.top()){
+                // num大于等于左区间最大值，一定是加入右区间的
+                rightNums.emplace(num);
+            }else{
+                // 否则应该加入左区间，然后淘汰出一个最大值加入右区间
+                leftNums.emplace(num);
+                rightNums.emplace(leftNums.top());  
+                leftNums.pop();    // 弹出右区间栈顶元素
+            }
+        }
+    }
+    
+    double findMedian() {
+        if(leftNums.size() == rightNums.size())
+            // 偶数个元素，取左区间的最大值和右区间最小值的平均值作为中间值
+            return (leftNums.top() + rightNums.top()) / 2.0;
+        // 奇数个元素，左区间的最大值即为中间值
+        return leftNums.top();  
+
+    }
+};
+```
+

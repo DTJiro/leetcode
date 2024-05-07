@@ -1,0 +1,84 @@
+> Problem: [295. 数据流的中位数](https://leetcode.cn/problems/find-median-from-data-stream/description/)
+
+[TOC]
+
+# 堆（最大堆+最小堆）
+
+## 思路
+
+中位数的定义题目描述的很清楚，所以，如果能拿到数据集，排个序，然后就能轻松的找到了。但此题是数据流，也就是说数据是在不断的增加，如果每次找中位数都排序，复杂度太高了。
+
+比较可行的方式就是保持在`addNum`时，能够维护有序，这样在`findMedian`时就能$O(1)$取到中位数了。维护有序，如果是线性结构是$O(n^2)$也可能会TLE。
+
+可以用BST，整体可上升到$O(nlog^n)$。不过手撸BST还是略复杂的，要维护平衡和顺序，因为要保证`root`是中位数。
+
+换一个思路，中位数就是把有序数据分成两半，它是左边的最大值，也是右边的最小值，换句话说，如果能够保证把数据分成两半，且能够较快的从其中取出最小值，从另一个取出最大值，并持续按中位数来分流，不就能轻松的找出最终的中位了么？
+
+在数据中维护最值，已有现成的数据结构堆(Heap)，所以我们用两个堆来保存数据，一个最大堆存前半段数据，一个最小堆存后半段数据，需要维护一种平衡状态：
+1. 优先往`maxHeap`中存放数据
+2. 保持平衡，`maxHeap`的大小要么等于`minHeap`，这时中位数等于两个堆顶的平均值。
+3. 要么比其大$1$，这时中位数是`maxHeap`的堆顶。
+
+## 解题方法
+
+为了维护平衡状态，需要在`addNum`时注意保持平衡：
+1. `maxHeap`为空时，直接放入到`maxHeap`中
+2. 当`maxHeap`元素数量大于`minHeap`时，这时应该往`minHeap`中添加元素，但要把`maxHeap`的堆顶和`num`中的较大者加入`minHeap`
+   1. 如果$num \ge maxHeap.peek()$，直接添加到`minHeap`中即可
+   2. 否则，把`maxHeap`的堆顶`poll`出来加入到`minHeap`中去，然后再把`num`加入到`maxHeap`中去
+3. 如果两个堆元素数量相等时，这时应该往`maxHeap`中添加元素，但要把`minHeap`堆顶和`num`中的较小者加入`maxHeap`
+   1. 如果$num \le minHeap.peek()$，直接添加到`maxHeap`中即可
+   2. 否则，把`minHeap`的堆顶`poll`出来加入到`maxHeap`中去，然后再把`num`加入到`minHeap`中去
+
+## 复杂度
+
+- 时间复杂度: $O(nlog^n)$
+
+- 空间复杂度: $O(n)$
+
+## Code
+
+* []
+
+```Java
+
+class MedianFinder {
+    private PriorityQueue<Integer> maxHeap;
+    private PriorityQueue<Integer> minHeap;
+
+    public MedianFinder() {
+        maxHeap = new PriorityQueue<>((a, b) -> b - a);
+        minHeap = new PriorityQueue<>();
+    }
+    
+    public void addNum(int num) {
+        if (maxHeap.isEmpty()) {
+            maxHeap.offer(num);
+            return;
+        }
+        if (maxHeap.size() > minHeap.size()) {
+            if (num >= maxHeap.peek()) {
+                minHeap.offer(num);
+            } else {
+                minHeap.offer(maxHeap.poll());
+                maxHeap.offer(num);
+            }
+        } else {
+            if (num <= minHeap.peek()) {
+                maxHeap.offer(num);
+            } else {
+                maxHeap.offer(minHeap.poll());
+                minHeap.offer(num);
+            }
+        }
+    }
+    
+    public double findMedian() {
+        if (maxHeap.size() == minHeap.size()) {
+            return (maxHeap.peek() + minHeap.peek()) / 2.0;
+        }
+        return maxHeap.peek();
+    }
+}
+```
+

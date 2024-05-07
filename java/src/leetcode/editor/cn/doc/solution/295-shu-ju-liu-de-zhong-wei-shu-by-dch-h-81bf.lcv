@@ -1,0 +1,58 @@
+> Problem: [295. 数据流的中位数](https://leetcode.cn/problems/find-median-from-data-stream/description/)
+
+思路为：用一个大根堆维护数组中较小的一半的数，用一个小根堆维护数组中较大的一半的数，当数组的长度为偶数时，该数组的中位数等于两个堆顶元素的平均值；当数组的长度为奇数时，该数组的中位数等于小根堆的堆顶元素(因为优先插入的是小根堆，所以当数组长度为奇数时，小根堆中的元素个数比大根堆多一)
+
+​	具体的维护方式为：当小根堆和大根堆中的元素个数相等时，此时如果发生数据的添加，需要往小根堆中添加元素，为了使小根堆中的元素始终是数组中较大的一半，先将该元素插入大根堆中，再将大根堆的堆顶元素插入小根堆中；如果不相等，往大根堆中添加元素，为了使大根堆中的元素始终是数组中较小的一半，先将该元素插入小根堆中，再将小根堆的堆顶元素插入大根堆中。至于数据的删除，也可以按照同样的思路，只要保证小根堆中存储的是较大一半的数，大根堆中存储的是较小一半的数即可。
+
+# Code
+
+* []
+
+```Java
+class MedianFinder {
+    private PriorityQueue<Integer>heapMax;
+    private PriorityQueue<Integer>heapMin;
+    public MedianFinder() {
+        heapMax = new PriorityQueue<>(new Comparator<Integer>(){
+            public int compare(Integer a,Integer b){
+                return b - a;
+            }
+        });
+        heapMin = new PriorityQueue<>();
+    }
+    
+    public void addNum(int num) {
+        int sizeMax = heapMax.size();
+        int sizeMin = heapMin.size();
+
+        if(sizeMax == sizeMin){
+            heapMax.add(num);
+            int top = heapMax.poll();
+            heapMin.add(top);
+        }else{
+            heapMin.add(num);
+            int top = heapMin.poll();
+            heapMax.add(top);
+        }
+    }
+    
+    public double findMedian() {
+        int size = heapMin.size() + heapMax.size();
+        double median;
+        if(size % 2 == 0){
+            median = (double)(heapMin.peek() + heapMax.peek()) / 2;
+        }else {
+            median = heapMin.peek();
+        }
+        return median;
+    }
+}
+
+/**
+ * Your MedianFinder object will be instantiated and called as such:
+ * MedianFinder obj = new MedianFinder();
+ * obj.addNum(num);
+ * double param_2 = obj.findMedian();
+ */
+```
+
