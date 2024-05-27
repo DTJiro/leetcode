@@ -1,0 +1,119 @@
+## 视频讲解
+
+看完这两期视频，对递归的理解更上一层楼！
+
+[【基础算法精讲 09】](https://www.bilibili.com/video/BV1UD4y1Y769/)
+
+[【基础算法精讲 10】](https://www.bilibili.com/video/BV18M411z7bb/)
+
+* [sol-Python3]
+
+```py
+class Solution:
+    # 在【100. 相同的树】的基础上稍加改动
+    def isSameTree(self, p: Optional[TreeNode], q: Optional[TreeNode]) -> bool:
+        if p is None or q is None:
+            return p is q
+        return p.val == q.val and self.isSameTree(p.left, q.right) and self.isSameTree(p.right, q.left)
+
+    def isSymmetric(self, root: Optional[TreeNode]) -> bool:
+        return self.isSameTree(root.left, root.right)
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        return isSameTree(root.left, root.right);
+    }
+
+    // 在【100. 相同的树】的基础上稍加改动
+    private boolean isSameTree(TreeNode p, TreeNode q) {
+        if (p == null || q == null)
+            return p == q;
+        return p.val == q.val && isSameTree(p.left, q.right) && isSameTree(p.right, q.left);
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+    // 在【100. 相同的树】的基础上稍加改动
+    bool isSameTree(TreeNode *p, TreeNode *q) {
+        if (p == nullptr || q == nullptr)
+            return p == q;
+        return p->val == q->val && isSameTree(p->left, q->right) && isSameTree(p->right, q->left);
+    }
+
+public:
+    bool isSymmetric(TreeNode *root) {
+        return isSameTree(root->left, root->right);
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+// 在【100. 相同的树】的基础上稍加改动
+func isSameTree(p, q *TreeNode) bool {
+    if p == nil || q == nil {
+        return p == q
+    }
+    return p.Val == q.Val && isSameTree(p.Left, q.Right) && isSameTree(p.Right, q.Left)
+}
+
+func isSymmetric(root *TreeNode) bool {
+    return isSameTree(root.Left, root.Right)
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var isSymmetric = function (root) {
+    // 在【100. 相同的树】的基础上稍加改动
+    function isSameTree(p, q) {
+        if (p === null || q === null) {
+            return p === q;
+        }
+        return p.val === q.val && isSameTree(p.left, q.right) && isSameTree(p.right, q.left);
+    }
+    return isSameTree(root.left, root.right);
+};
+```
+
+* [sol-Rust]
+
+```rust
+use std::rc::Rc;
+use std::cell::RefCell;
+impl Solution {
+    pub fn is_symmetric(root: Option<Rc<RefCell<TreeNode>>>) -> bool {
+        // 在【100. 相同的树】的基础上稍加改动
+        fn is_same_tree(p: Option<Rc<RefCell<TreeNode>>>, q: Option<Rc<RefCell<TreeNode>>>) -> bool {
+            match (p, q) {
+                (Some(p), Some(q)) => {
+                    let pb = p.borrow();
+                    let qb = q.borrow();
+                    pb.val == qb.val
+                        && is_same_tree(pb.left.clone(), qb.right.clone())
+                        && is_same_tree(pb.right.clone(), qb.left.clone())
+                }
+                (None, None) => true,
+                _ => false,
+            }
+        }
+        is_same_tree(root.clone().unwrap().borrow().left.clone(), root.unwrap().borrow().right.clone())
+    }
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$O(n)$，其中 $n$ 为二叉树的节点个数。
+- 空间复杂度：$O(n)$。最坏情况下，二叉树退化成一条链，递归需要 $O(n)$ 的栈空间。
+
