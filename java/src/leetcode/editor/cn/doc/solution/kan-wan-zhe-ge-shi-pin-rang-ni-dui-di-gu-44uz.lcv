@@ -1,0 +1,147 @@
+视频讲解：[【基础算法精讲 09】](https://www.bilibili.com/video/BV1UD4y1Y769/)，制作不易，欢迎点赞。
+
+# 方法一：不用全局变量
+
+* [sol1-Python3]
+
+```py
+class Solution:
+    def maxDepth(self, root: Optional[TreeNode]) -> int:
+        if root is None: return 0
+        l_depth = self.maxDepth(root.left)
+        r_depth = self.maxDepth(root.right)
+        return max(l_depth, r_depth) + 1
+```
+
+* [sol1-Java]
+
+```java
+class Solution {
+    public int maxDepth(TreeNode root) {
+        if (root == null) return 0;
+        int lDepth = maxDepth(root.left);
+        int rDepth = maxDepth(root.right);
+        return Math.max(lDepth, rDepth) + 1;
+    }
+}
+```
+
+* [sol1-C++]
+
+```cpp
+class Solution {
+public:
+    int maxDepth(TreeNode *root) {
+        if (root == nullptr) return 0;
+        int l_depth = maxDepth(root->left);
+        int r_depth = maxDepth(root->right);
+        return max(l_depth, r_depth) + 1;
+    }
+};
+```
+
+* [sol1-Go]
+
+```go
+func maxDepth(root *TreeNode) int {
+    if root == nil {
+        return 0
+    }
+    lDepth := maxDepth(root.Left)
+    rDepth := maxDepth(root.Right)
+    return max(lDepth, rDepth) + 1
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$O(n)$，其中 $n$ 为二叉树的节点个数。
+- 空间复杂度：$O(n)$。最坏情况下，二叉树退化成一条链，递归需要 $O(n)$ 的栈空间。
+
+# 方法二：用全局变量
+
+* [sol2-Python3]
+
+```py
+class Solution:
+    def maxDepth(self, root: Optional[TreeNode]) -> int:
+        ans = 0
+        def dfs(node, cnt):
+            if node is None:
+                return
+            cnt += 1
+            nonlocal ans
+            ans = max(ans, cnt)
+            dfs(node.left, cnt)
+            dfs(node.right, cnt)
+        dfs(root, 0)
+        return ans
+```
+
+* [sol2-Java]
+
+```java
+class Solution {
+    private int ans;
+
+    public int maxDepth(TreeNode root) {
+        dfs(root, 0);
+        return ans;
+    }
+
+    private void dfs(TreeNode node, int cnt) {
+        if (node == null) return;
+        ++cnt;
+        ans = Math.max(ans, cnt);
+        dfs(node.left, cnt);
+        dfs(node.right, cnt);
+    }
+}
+```
+
+* [sol2-C++]
+
+```cpp
+class Solution {
+    int ans = 0;
+
+    void dfs(TreeNode *node, int cnt) {
+        if (node == nullptr) return;
+        ++cnt;
+        ans = max(ans, cnt);
+        dfs(node->left, cnt);
+        dfs(node->right, cnt);
+    }
+
+public:
+    int maxDepth(TreeNode *root) {
+        dfs(root, 0);
+        return ans;
+    }
+};
+```
+
+* [sol2-Go]
+
+```go
+func maxDepth(root *TreeNode) (ans int) {
+    var dfs func(*TreeNode, int)
+    dfs = func(node *TreeNode, cnt int) {
+        if node == nil {
+            return
+        }
+        cnt++
+        ans = max(ans, cnt)
+        dfs(node.Left, cnt)
+        dfs(node.Right, cnt)
+    }
+    dfs(root, 0)
+    return
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$O(n)$，其中 $n$ 为二叉树的节点个数。
+- 空间复杂度：$O(n)$。最坏情况下，二叉树退化成一条链，递归需要 $O(n)$ 的栈空间。
+
