@@ -1,0 +1,482 @@
+## 方法一：自顶向下「递」
+
+![lc111.jpg](https://pic.leetcode.cn/1712631372-ryxZkR-lc111.jpg)
+
+我们可以在 DFS 这棵树的同时，额外传入一个计数器 $\textit{cnt}$，表示路径上的节点个数，例如上图从根到叶子的路径 $3\rightarrow 20\rightarrow 15$：
+
+1. 递归前，$\textit{cnt}=0$。
+2. 从 $3$ 开始递归，$\textit{cnt}$ 加一，现在 $\textit{cnt}=1$。
+3. 向下递归到 $20$，$\textit{cnt}$ 加一，现在 $\textit{cnt}=2$。
+4. 向下递归到 $15$，$\textit{cnt}$ 加一，现在 $\textit{cnt}=3$。由于 $15$ 是叶子，用 $3$ 更新答案的最小值。
+
+晕递归的同学，可以看视频讲解[【基础算法精讲 09】](https://www.bilibili.com/video/BV1UD4y1Y769/)，制作不易，欢迎点赞关注~
+
+该方法对应视频中讲的第二种写法。
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def minDepth(self, root: Optional[TreeNode]) -> int:
+        ans = inf
+        def dfs(node: Optional[TreeNode], cnt: int) -> None:
+            if node is None:
+                return
+            cnt += 1
+            if node.left is node.right:  # node 是叶子
+                nonlocal ans
+                ans = min(ans, cnt)
+                return
+            dfs(node.left, cnt)
+            dfs(node.right, cnt)
+        dfs(root, 0)
+        return ans if root else 0
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    private int ans = Integer.MAX_VALUE;
+
+    public int minDepth(TreeNode root) {
+        dfs(root, 0);
+        return root != null ? ans : 0;
+    }
+
+    private void dfs(TreeNode node, int cnt) {
+        if (node == null) {
+            return;
+        }
+        cnt++;
+        if (node.left == node.right) { // node 是叶子
+            ans = Math.min(ans, cnt);
+            return;
+        }
+        dfs(node.left, cnt);
+        dfs(node.right, cnt);
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+    int ans = INT_MAX;
+
+    void dfs(TreeNode *node, int cnt) {
+        if (node == nullptr) {
+            return;
+        }
+        cnt++;
+        if (node->left == node->right) { // node 是叶子
+            ans = min(ans, cnt);
+            return;
+        }
+        dfs(node->left, cnt);
+        dfs(node->right, cnt);
+    };
+
+public:
+    int minDepth(TreeNode *root) {
+        dfs(root, 0);
+        return root ? ans : 0;
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+func minDepth(root *TreeNode) int {
+    ans := math.MaxInt
+    var dfs func(*TreeNode, int)
+    dfs = func(node *TreeNode, cnt int) {
+        if node == nil {
+            return
+        }
+        cnt++
+        if node.Left == nil && node.Right == nil { // node 是叶子
+            ans = min(ans, cnt)
+            return
+        }
+        dfs(node.Left, cnt)
+        dfs(node.Right, cnt)
+    }
+    dfs(root, 0)
+    if root != nil {
+        return ans
+    }
+    return 0
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var minDepth = function(root) {
+    let ans = Infinity;
+    const dfs = (node, cnt) => {
+        if (node === null) {
+            return;
+        }
+        cnt++;
+        if (node.left === node.right) { // node 是叶子
+            ans = Math.min(ans, cnt);
+            return;
+        }
+        dfs(node.left, cnt);
+        dfs(node.right, cnt);
+    };
+    dfs(root, 0);
+    return root ? ans : 0;
+};
+```
+
+* [sol-Rust]
+
+```rust
+use std::rc::Rc;
+use std::cell::RefCell;
+
+impl Solution {
+    pub fn min_depth(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        let mut ans = i32::MAX;
+        fn dfs(node: Option<&Rc<RefCell<TreeNode>>>, cnt: i32, ans: &mut i32) {
+            if let Some(node) = node {
+                let node = node.borrow();
+                let cnt = cnt + 1;
+                if node.left.is_none() && node.right.is_none() {
+                    *ans = (*ans as i32).min(cnt);
+                    return;
+                }
+                dfs(node.left.as_ref(), cnt, ans);
+                dfs(node.right.as_ref(), cnt, ans);
+            }
+        }
+        dfs(root.as_ref(), 0, &mut ans);
+        if root.is_some() { ans } else { 0 }
+    }
+}
+```
+
+#### 优化
+
+如果递归中发现 $\textit{cnt}\ge \textit{ans}$，由于继续向下递归也不会让 $\textit{ans}$ 变小，直接返回。
+
+这一技巧叫做「最优性剪枝」。
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def minDepth(self, root: Optional[TreeNode]) -> int:
+        ans = inf
+        def dfs(node: Optional[TreeNode], cnt: int) -> None:
+            if node is None:
+                return
+            nonlocal ans
+            cnt += 1
+            if cnt >= ans:
+                return  # 最优性剪枝
+            if node.left is node.right:  # node 是叶子
+                ans = cnt
+                return
+            dfs(node.left, cnt)
+            dfs(node.right, cnt)
+        dfs(root, 0)
+        return ans if root else 0
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    private int ans = Integer.MAX_VALUE;
+
+    public int minDepth(TreeNode root) {
+        dfs(root, 0);
+        return root != null ? ans : 0;
+    }
+
+    private void dfs(TreeNode node, int cnt) {
+        if (node == null || ++cnt >= ans) {
+            return;
+        }
+        if (node.left == node.right) { // node 是叶子
+            ans = cnt;
+            return;
+        }
+        dfs(node.left, cnt);
+        dfs(node.right, cnt);
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+    int ans = INT_MAX;
+
+    void dfs(TreeNode *node, int cnt) {
+        if (node == nullptr || ++cnt >= ans) {
+            return;
+        }
+        if (node->left == node->right) { // node 是叶子
+            ans = cnt;
+            return;
+        }
+        dfs(node->left, cnt);
+        dfs(node->right, cnt);
+    };
+
+public:
+    int minDepth(TreeNode *root) {
+        dfs(root, 0);
+        return root ? ans : 0;
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+func minDepth(root *TreeNode) int {
+    ans := math.MaxInt
+    var dfs func(*TreeNode, int)
+    dfs = func(node *TreeNode, cnt int) {
+        if node == nil {
+            return
+        }
+        cnt++
+        if cnt >= ans {
+            return // 最优性剪枝
+        }
+        if node.Left == nil && node.Right == nil { // node 是叶子
+            ans = cnt
+            return
+        }
+        dfs(node.Left, cnt)
+        dfs(node.Right, cnt)
+    }
+    dfs(root, 0)
+    if root != nil {
+        return ans
+    }
+    return 0
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var minDepth = function(root) {
+    let ans = Infinity;
+    const dfs = (node, cnt) => {
+        if (node === null || ++cnt >= ans) {
+            return;
+        }
+        if (node.left === node.right) { // node 是叶子
+            ans = cnt;
+            return;
+        }
+        dfs(node.left, cnt);
+        dfs(node.right, cnt);
+    };
+    dfs(root, 0);
+    return root ? ans : 0;
+};
+```
+
+* [sol-Rust]
+
+```rust
+use std::rc::Rc;
+use std::cell::RefCell;
+
+impl Solution {
+    pub fn min_depth(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        let mut ans = i32::MAX;
+        fn dfs(node: Option<&Rc<RefCell<TreeNode>>>, cnt: i32, ans: &mut i32) {
+            if let Some(node) = node {
+                let node = node.borrow();
+                let cnt = cnt + 1;
+                if cnt >= *ans {
+                    return; // 最优性剪枝
+                }
+                if node.left.is_none() && node.right.is_none() { // node 是叶子
+                    *ans = cnt;
+                    return;
+                }
+                dfs(node.left.as_ref(), cnt, ans);
+                dfs(node.right.as_ref(), cnt, ans);
+            }
+        }
+        dfs(root.as_ref(), 0, &mut ans);
+        if root.is_some() { ans } else { 0 }
+    }
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(n)$，其中 $n$ 为二叉树的节点个数。
+- 空间复杂度：$\mathcal{O}(n)$。最坏情况下，二叉树退化成一条链，递归需要 $\mathcal{O}(n)$ 的栈空间。
+
+## 方法二：自底向上「归」
+
+定义 $\textit{dfs}(\textit{node})$ 表示以节点 $\textit{node}$ 为根的**子树**的最小深度。
+
+分类讨论：
+
+1. 如果 $\textit{node}$ 是空节点，由于没有节点，返回 $0$。
+2. 如果 $\textit{node}$ 没有右儿子，那么深度就是左子树的深度加一，即 $\textit{dfs}(\textit{node}) = \textit{dfs}(\textit{node}.\textit{left}) + 1$。
+3. 如果 $\textit{node}$ 没有左儿子，那么深度就是右子树的深度加一，即 $\textit{dfs}(\textit{node}) = \textit{dfs}(\textit{node}.\textit{right}) + 1$。
+4. 如果 $\textit{node}$ 左右儿子都有，那么分别递归计算左子树的深度，以及右子树的深度，二者取最小值再加一，即
+
+$$
+\textit{dfs}(\textit{node}) = \min(\textit{dfs}(\textit{node}.\textit{left}), \textit{dfs}(\textit{node}.\textit{right})) + 1
+$$
+
+注意：并不需要特判 $\textit{node}$ 是叶子的情况，因为在没有右儿子的情况下，我们会递归 $\textit{node}.\textit{left}$，如果它是空节点，递归的返回值是 $0$，加一后得到 $1$，这正是叶子节点要返回的值。
+
+答案：$\textit{dfs}(\textit{root})$。
+
+代码实现时，可以直接递归调用 $\texttt{minDepth}$。
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def minDepth(self, root: Optional[TreeNode]) -> int:
+        if root is None:
+            return 0
+        if root.right is None:
+            return self.minDepth(root.left) + 1
+        if root.left is None:
+            return self.minDepth(root.right) + 1
+        return min(self.minDepth(root.left), self.minDepth(root.right)) + 1
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public int minDepth(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+        if (root.right == null) {
+            return minDepth(root.left) + 1;
+        }
+        if (root.left == null) {
+            return minDepth(root.right) + 1;
+        }
+        return Math.min(minDepth(root.left), minDepth(root.right)) + 1;
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+public:
+    int minDepth(TreeNode *root) {
+        if (root == nullptr) {
+            return 0;
+        }
+        if (root->right == nullptr) {
+            return minDepth(root->left) + 1;
+        }
+        if (root->left == nullptr) {
+            return minDepth(root->right) + 1;
+        }
+        return min(minDepth(root->left), minDepth(root->right)) + 1;
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+func minDepth(root *TreeNode) int {
+    if root == nil {
+        return 0
+    }
+    if root.Right == nil {
+        return minDepth(root.Left) + 1
+    }
+    if root.Left == nil {
+        return minDepth(root.Right) + 1
+    }
+    return min(minDepth(root.Left), minDepth(root.Right)) + 1
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var minDepth = function(root) {
+    if (root === null) {
+        return 0;
+    }
+    if (root.right === null) {
+        return minDepth(root.left) + 1;
+    }
+    if (root.left === null) {
+        return minDepth(root.right) + 1;
+    }
+    return Math.min(minDepth(root.left), minDepth(root.right)) + 1;
+};
+```
+
+* [sol-Rust]
+
+```rust
+use std::rc::Rc;
+use std::cell::RefCell;
+
+impl Solution {
+    pub fn min_depth(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
+        if let Some(node) = root {
+            let mut node = node.borrow_mut();
+            if node.right.is_none() {
+                return Self::min_depth(node.left.take()) + 1;
+            }
+            if node.left.is_none() {
+                return Self::min_depth(node.right.take()) + 1;
+            }
+            return Self::min_depth(node.left.take()).min(Self::min_depth(node.right.take())) + 1;
+        }
+        0
+    }
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(n)$，其中 $n$ 为二叉树的节点个数。
+- 空间复杂度：$\mathcal{O}(n)$。最坏情况下，二叉树退化成一条链，递归需要 $\mathcal{O}(n)$ 的栈空间。
+
+## 相似题目
+
+见[【基础算法精讲 09】](https://www.bilibili.com/video/BV1UD4y1Y769/)及其后续视频的**课后作业**，题目链接在视频简介中。
+
+## 分类题单
+
+1. [滑动窗口（定长/不定长/多指针）](https://leetcode.cn/circle/discuss/0viNMK/)
+2. [二分算法（二分答案/最小化最大值/最大化最小值/第K小）](https://leetcode.cn/circle/discuss/SqopEo/)
+3. [单调栈（矩形系列/字典序最小/贡献法）](https://leetcode.cn/circle/discuss/9oZFK9/)
+4. [网格图（DFS/BFS/综合应用）](https://leetcode.cn/circle/discuss/YiXPXW/)
+5. [位运算（基础/性质/拆位/试填/恒等式/贪心/脑筋急转弯）](https://leetcode.cn/circle/discuss/dHn9Vk/)
+6. [图论算法（DFS/BFS/拓扑排序/最短路/最小生成树/二分图/基环树/欧拉路径）](https://leetcode.cn/circle/discuss/01LUak/)
+7. [动态规划（入门/背包/状态机/划分/区间/状压/数位/数据结构优化/树形/博弈/概率期望）](https://leetcode.cn/circle/discuss/tXLS3i/)
+
+更多题单，点我个人主页 - 讨论发布。
+
+欢迎关注 [B站@灵茶山艾府](https://space.bilibili.com/206214)
+
+[我的题解精选（已分类）](https://github.com/EndlessCheng/codeforces-go/blob/master/leetcode/SOLUTIONS.md)
