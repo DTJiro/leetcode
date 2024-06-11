@@ -1,0 +1,111 @@
+### 1、思路
+
+**(递归)**  $O(n)$
+
+给定两个整数数组`inorder` 和 `postorder` ，其中 `inorder` 是二叉树的中序遍历， `postorder` 是同一棵树的后序遍历，让我们返回这颗二叉树。
+
+**样例：**
+
+![](https://pic.leetcode-cn.com/1644116494-QnSphP-file_1644116498912)
+
+如样例所示，`inorder = [9,3,15,20,7]`, `postorder = [9,15,7,20,3]`，我们可以构造出如上图所示的二叉树。
+
+**二叉树：**
+
+- 二叉树中序遍历的顺序为：左根右；
+- 二叉树后序遍历的顺序为：左右根；
+
+对于这道题目来讲，我们可以递归建立整棵二叉树：即先创建根节点，然后递归创建左右子树，并让指针指向两棵子树。
+
+![image-20220206105103326.png](https://pic.leetcode-cn.com/1644115879-zjoUvl-image-20220206105103326.png)
+
+如上图所示，递归过程就是二叉树的建立过程。对二叉树的建立过程有了大致了解之后，接下来就是确定左右子树在中序和后序数组的边界。
+
+**如何确定子树的左右边界？**
+
+根据二叉树的性质，我们可以依次采取下述步骤：
+
+- 1、先利用后序遍历找根节点：后序遍历的最后一个数，就是根节点的值；
+
+- 2、在中序遍历中找到根节点的位置 `k`，则 `k` 左边是左子树的中序遍历，右边是右子树的中序遍历;
+
+- 3、假设`il`,`ir`对应子树中序遍历区间的左右端点， `pl`,`pr`对应子树后序遍历区间的左右端点。那么左子树的中序遍历的区间为 `[il, k - 1]`，右子树的中序遍历的区间为`[k + 1, ir]`;
+
+- 4、由步骤3可知左子树中序遍历的长度为`k - 1 - il + 1`，由于一棵树的中序遍历和后序遍历的长度相等，因此后序遍历的长度也为`k - 1 - il + 1`。这样，根据后序遍历的长度，我们可以推导出左子树后序遍历的区间为`[pl, pl + k - 1 - il]`，右子树的后序遍历的区间为`[pl + k - 1 - il + 1, pr - 1]`;
+
+仅凭文字可能不太好理解上述推导过程，我们画张图来辅助理解：
+
+![image-20220206105103326.png](https://pic.leetcode-cn.com/1644116494-KxZpGC-file_1644116498940)
+
+左右子树中序和后序遍历的边界确定是这道题最大的难点，理解了这点，这道题也就做完了一大半。
+
+**如何在中序遍历中对根节点快速定位？**
+
+一种简单的方法是直接扫描整个中序遍历的结果并找出根节点，但这样做的时间复杂度较高。我们可以考虑使用哈希表来帮助我们快速地定位根节点。对于哈希映射中的每个键值对，键表示一个元素（节点的值），值表示其在中序遍历中的出现位置。这样在中序遍历中查找根节点位置的操作，只需要 $O(1)$ 的时间。
+
+**如图：**
+
+![image-20220206105103326.png](https://pic.leetcode-cn.com/1644116494-zLcZdB-file_1644116498958)
+
+**具体过程如下：**
+
+- 1、创建一个哈希表`pos`记录记录每个值在中序遍历中的位置。
+- 2、先利用后序遍历找根节点：后序遍历的最后一个数，就是根节点的值；
+- 3、确定左右子树的后序遍历和中序遍历，先递归创建出左右子树，然后创建根节点；
+- 4、最后将根节点的左右指针指向两棵子树；
+
+**时间复杂度分析：** 查找根节点的位置需要$O(1)$ 的时间，创建每个节点需要的时间是 $O(1)$，因此总的时间复杂度是 $O(n)$。
+
+### 3、c++代码
+
+* c
+
+```c
+class Solution {
+public:
+    unordered_map<int, int> pos;
+    TreeNode* buildTree(vector<int>& inorder, vector<int>& postorder) {
+        int n = inorder.size();
+        for(int i = 0; i < n; i++){
+            pos[inorder[i]] = i;     //记录中序遍历的根节点位置
+        }
+        return dfs(inorder, postorder, 0, n - 1, 0, n - 1);
+    }
+    TreeNode* dfs(vector<int>& inorder, vector<int>& postorder,int il, int ir, int pl, int pr){
+        if(il > ir) return nullptr;
+        int k = pos[postorder[pr]];   //中序遍历根节点位置
+        TreeNode* root = new TreeNode(postorder[pr]); //创建根节点
+        root->left = dfs(inorder, postorder, il, k - 1, pl, pl + k - 1 - il);
+        root->right = dfs(inorder, postorder, k + 1, ir, pl + k - 1 - il + 1, pr - 1);
+        return root;
+    }
+};
+```
+
+### 4、Java代码
+
+* java
+
+```java
+class Solution {
+    private Map<Integer,Integer> pos = new HashMap<Integer,Integer>();
+    public TreeNode buildTree(int[] inorder, int[] postorder) {
+        int n = inorder.length;
+        for(int i = 0; i < n; i++)
+            pos.put(inorder[i], i);  //记录中序遍历的根节点位置
+        return dfs( inorder, postorder, 0, n - 1, 0, n - 1);   
+    }
+     public TreeNode dfs(int[] inorder, int[] postorder, int il, int ir,int pl, int pr)
+    {
+        if(pl > pr ) return null;
+        int k = pos.get(postorder[pr]); //中序遍历根节点位置
+        TreeNode root = new TreeNode(postorder[pr]); //创建根节点
+        root.left  = dfs(inorder, postorder, il, k - 1, pl, pl + k - 1 - il);
+        root.right = dfs(inorder, postorder, k + 1, ir, pl + k - 1 - il + 1, pr - 1);
+        return root;     
+    }
+}
+```
+
+![在这里插入图片描述](https://pic.leetcode-cn.com/1644116494-TQrBwm-file_1644116498894)
+
