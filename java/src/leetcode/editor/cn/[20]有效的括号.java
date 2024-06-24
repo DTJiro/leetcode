@@ -44,6 +44,7 @@ package leetcode.editor.cn;
 //
 // Related Topics 栈 字符串 👍 4419 👎 0
 
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -55,41 +56,22 @@ public class ValidParentheses{
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public boolean isValid(String s) {
-
-		// if (s.length() % 2 == 1) {
-		// 	return false;
-		// }
-		// Deque<Character> stack = new LinkedList<>();
-		// for (char c : s.toCharArray()) {
-		// 	if (c == '(') {
-		// 		stack.push(')');
-		// 	} else if (c == '{') {
-		// 		stack.push('}');
-		// 	} else if (c == '[') {
-		// 		stack.push(']');
-		// 	} else {
-		// 		if (stack.isEmpty() || c != stack.pop()) {
-		// 			return false;
-		// 		}
-		// 	}
-		// }
-		// return stack.isEmpty();
-
-		Map<Character, Character> map = new HashMap<>(3){
-			{
-				put(')', '(');
-				put('}', '{');
-				put(']', '[');
-			}
-		};
+		if (s.length() % 2 == 1) {
+			return false;
+		}
 		Deque<Character> stack = new LinkedList<>();
+
 		for (char c : s.toCharArray()) {
-			if (map.containsKey(c)) {
-				if (stack.isEmpty() || !map.get(c).equals(stack.pop())) {
+			if (c == '(') {
+				stack.push(')');
+			} else if (c == '{') {
+				stack.push('}');
+			} else if (c == '[') {
+				stack.push(']');
+			} else {
+				if (stack.isEmpty() || c != stack.pop()) {
 					return false;
 				}
-			} else {
-				stack.push(c);
 			}
 		}
 		return stack.isEmpty();
