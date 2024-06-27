@@ -41,7 +41,9 @@ package leetcode.editor.cn;
 // Related Topics 栈 树 深度优先搜索 二叉树 👍 2082 👎 0
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedList;
+import java.util.List;
 
 public class BinaryTreeInorderTraversal{
 	public static void main(String[] args) {
@@ -66,30 +68,28 @@ public class BinaryTreeInorderTraversal{
  */
 class Solution {
     public List<Integer> inorderTraversal(TreeNode root) {
-		ArrayList<Integer> list = new ArrayList<>();
+		List<Integer> list = new ArrayList<>();
 
-		Deque<TreeNode> stack = new LinkedList<>();
-
-		TreeNode cur = root;
-		TreeNode mid;
-		while (cur != null) {
-			mid = cur.left;
-			if (mid != null) {
-				while (mid.right != null && mid.right != cur) {
-					mid = mid.right;
+		while (root != null) {
+			if (root.left != null) {
+				TreeNode p = root.left;
+				while (p.right != null && p.right != root) {
+					p = p.right;
 				}
-				if (mid.right == null) {
-					mid.right = cur;
-					cur = cur.left;
-					continue;
+				if (p.right == null) {
+					p.right = root;
+					root = root.left;
 				} else {
-					mid.right = null;
+					p.right = null;
+					list.add(root.val);
+					root = root.right;
 				}
+			} else {
+				list.add(root.val);
+				root = root.right;
 			}
-			list.add(cur.val);
-			cur = cur.right;
-		}
 
+		}
 		return list;
 	}
 
