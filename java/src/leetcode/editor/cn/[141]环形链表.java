@@ -55,6 +55,8 @@ package leetcode.editor.cn;
 //
 // Related Topics 哈希表 链表 双指针 👍 2093 👎 0
 
+import java.util.HashSet;
+
 public class LinkedListCycle{
 	public static void main(String[] args) {
 		Solution solution = new LinkedListCycle().new Solution();
@@ -74,17 +76,19 @@ public class LinkedListCycle{
  */
 public class Solution {
     public boolean hasCycle(ListNode head) {
-		ListNode p = head;
-		ListNode q = head;
-		while (p != null && p.next != null) {
-			q = q.next;
-			p = p.next.next;
-			if (q == p) {
+		if (head == null || head.next == null) {
+			return false;
+		}
+		Set<ListNode> set = new HashSet<ListNode>();
+		while (head != null) {
+			if (set.contains(head)) {
 				return true;
 			}
+			set.add(head);
+			head = head.next;
 		}
 		return false;
-    }
+	}
 }
 //leetcode submit region end(Prohibit modification and deletion)
 

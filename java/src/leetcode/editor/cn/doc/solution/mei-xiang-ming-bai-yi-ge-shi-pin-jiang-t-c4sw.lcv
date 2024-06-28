@@ -1,0 +1,97 @@
+视频讲解：[【基础算法精讲 07】](https://www.bilibili.com/video/BV1KG4y1G7cu/)，制作不易，欢迎点赞！
+
+### 答疑
+
+**问**：兔子会不会「跳过」乌龟，从来不会和乌龟相遇呢？
+
+**答**：这是不可能的。如果有环的话，那么兔子和乌龟都会进入环中。这时用「相对速度」思考，乌龟不动，兔子相对乌龟每次只走一步，这样就可以看出兔子一定会和乌龟相遇了。
+
+* [sol1-Python3]
+
+```py
+class Solution:
+    def hasCycle(self, head: Optional[ListNode]) -> bool:
+        slow = fast = head  # 乌龟和兔子同时从起点出发
+        while fast and fast.next:
+            slow = slow.next  # 乌龟走一步
+            fast = fast.next.next  # 兔子走两步
+            if fast is slow:  # 兔子追上乌龟（套圈），说明有环
+                return True
+        return False  # 访问到了链表末尾，无环
+```
+
+* [sol1-Java]
+
+```java
+class Solution {
+    public boolean hasCycle(ListNode head) {
+        ListNode slow = head, fast = head; // 乌龟和兔子同时从起点出发
+        while (fast != null && fast.next != null) {
+            slow = slow.next; // 乌龟走一步
+            fast = fast.next.next; // 兔子走两步
+            if (fast == slow) // 兔子追上乌龟（套圈），说明有环
+                return true;
+        }
+        return false; // 访问到了链表末尾，无环
+    }
+}
+```
+
+* [sol1-C++]
+
+```cpp
+class Solution {
+public:
+    bool hasCycle(ListNode *head) {
+        ListNode *slow = head, *fast = head; // 乌龟和兔子同时从起点出发
+        while (fast && fast->next) {
+            slow = slow->next; // 乌龟走一步
+            fast = fast->next->next; // 兔子走两步
+            if (fast == slow) // 兔子追上乌龟（套圈），说明有环
+                return true;
+        }
+        return false; // 访问到了链表末尾，无环
+    }
+};
+```
+
+* [sol1-Go]
+
+```go
+func hasCycle(head *ListNode) bool {
+    slow, fast := head, head // 乌龟和兔子同时从起点出发
+    for fast != nil && fast.Next != nil {
+        slow = slow.Next // 乌龟走一步
+        fast = fast.Next.Next // 兔子走两步
+        if fast == slow { // 兔子追上乌龟（套圈），说明有环
+            return true
+        }
+    }
+    return false // 访问到了链表末尾，无环
+}
+```
+
+* [sol1-JavaScript]
+
+```js
+var hasCycle = function (head) {
+    let slow = head, fast = head; // 乌龟和兔子同时从起点出发
+    while (fast && fast.next) {
+        slow = slow.next; // 乌龟走一步
+        fast = fast.next.next; // 兔子走两步
+        if (fast === slow) // 兔子追上乌龟（套圈），说明有环
+            return true;
+    }
+    return false; // 访问到了链表末尾，无环
+};
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(n)$，其中 $n$ 为链表的长度。
+- 空间复杂度：$\mathcal{O}(1)$，仅用到若干额外变量。
+
+#### 相似题目
+
+- [142. 环形链表 II](https://leetcode.cn/problems/linked-list-cycle-ii/)
+
