@@ -36,6 +36,7 @@ package leetcode.editor.cn;
 // Related Topics 树 深度优先搜索 广度优先搜索 二叉树 👍 1831 👎 0
 
 import java.util.LinkedList;
+import java.util.Queue;
 
 public class MaximumDepthOfBinaryTree{
 	public static void main(String[] args) {
@@ -63,26 +64,10 @@ class Solution {
 		if (root == null) {
 			return 0;
 		}
-		Queue<TreeNode> queue = new LinkedList<>();
-
-		queue.offer(root);
-		int level = 0;
-
-		while (!queue.isEmpty()) {
-			level++;
-			int size = queue.size();
-			for (int i = 0; i < size; i++) {
-				TreeNode p = queue.poll();
-				if (p.left != null) {
-					queue.offer(p.left);
-				}
-				if (p.right != null) {
-					queue.offer(p.right);
-				}
-			}
-		}
-		return level;
-    }
+		int a = maxDepth(root.left);
+		int b = maxDepth(root.right);
+		return Integer.max(a, b) + 1;
+	}
 }
 //leetcode submit region end(Prohibit modification and deletion)
 
