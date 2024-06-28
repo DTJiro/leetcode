@@ -33,6 +33,9 @@ package leetcode.editor.cn;
 //
 // Related Topics 树 深度优先搜索 广度优先搜索 二叉树 👍 2715 👎 0
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 public class SymmetricTree{
 	public static void main(String[] args) {
 		Solution solution = new SymmetricTree().new Solution();
@@ -56,20 +59,32 @@ public class SymmetricTree{
  */
 class Solution {
     public boolean isSymmetric(TreeNode root) {
-		return a(root.left, root.right);
+		return root == null || t(root.left, root.right);
     }
 
-	public boolean a(TreeNode p, TreeNode q) {
-		if (p == null && q == null) {
-			return true;
+	boolean t(TreeNode p, TreeNode q) {
+		Queue<TreeNode> list = new LinkedList<TreeNode>();
+		list.offer(p);
+		list.offer(q);
+
+		while (!list.isEmpty()) {
+			TreeNode a = list.poll();
+			TreeNode b = list.poll();
+
+			if (a == null && b == null) {
+				continue;
+			}
+			if ((a == null || b == null) || a.val != b.val) {
+				return false;
+			}
+
+			list.offer(a.left);
+			list.offer(b.right);
+
+			list.offer(a.right);
+			list.offer(b.left);
 		}
-		if (p == null || q == null) {
-			return false;
-		}
-		if (p.val != q.val) {
-			return false;
-		}
-		return a(p.left, q.right) && a(p.right, q.left);
+		return true;
 	}
 }
 //leetcode submit region end(Prohibit modification and deletion)
