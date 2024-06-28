@@ -68,12 +68,25 @@ class Solution {
 		if (root == null) {
 			return null;
 		}
-		TreeNode left = invertTree(root.left);
-		TreeNode right = invertTree(root.right);
-		root.left = right;
-		root.right = left;
+		Queue<TreeNode> list = new LinkedList<TreeNode>();
+		list.offer(root);
+		while (!list.isEmpty()) {
+			int size = list.size();
+			for (int i = 0; i < size; i++) {
+				TreeNode p = list.poll();
+				if (p.left != null) {
+					list.offer(p.left);
+				}
+				if (p.right != null) {
+					list.offer(p.right);
+				}
+				TreeNode t = p.left;
+				p.left = p.right;
+				p.right = t;
+			}
+		}
 		return root;
-    }
+	}
 
 }
 //leetcode submit region end(Prohibit modification and deletion)
