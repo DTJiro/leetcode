@@ -90,6 +90,8 @@ package leetcode.editor.cn;
 //
 // Related Topics 哈希表 链表 双指针 👍 2346 👎 0
 
+import java.util.HashSet;
+
 public class IntersectionOfTwoLinkedLists{
 	public static void main(String[] args) {
 		Solution solution = new IntersectionOfTwoLinkedLists().new Solution();
@@ -109,24 +111,15 @@ public class IntersectionOfTwoLinkedLists{
  */
 public class Solution {
     public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+
 		ListNode p = headA;
 		ListNode q = headB;
-		while (true) {
-			if (p == q) {
-				return p;
-			}
-			if (p == null) {
-				p = headB;
-			} else {
-				p = p.next;
-			}
-			if (q == null) {
-				q = headA;
-			} else {
-				q = q.next;
-			}
+		while (p != q) {
+			p = p == null ? p = headB : p.next;
+			q = q == null ? q = headA : q.next;
 		}
-    }
+		return p;
+	}
 }
 //leetcode submit region end(Prohibit modification and deletion)
 
