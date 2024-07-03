@@ -54,21 +54,25 @@ public class PalindromeLinkedList{
  */
 class Solution {
     public boolean isPalindrome(ListNode head) {
-		List<Integer> list = new ArrayList<Integer>();
-		while (head != null) {
-			list.add(head.val);
-			head = head.next;
+		ListNode fast = head;
+		ListNode low = head;
+		while (fast != null && fast.next != null) {
+			low = low.next;
+			fast = fast.next.next;
 		}
-		int i = 0;
-		int j = list.size() - 1;
-		while (i < j) {
-			if (!Objects.equals(list.get(i), list.get(j))) {
-				return false;
-			}
-			i++;
-			j--;
+		fast = head;
+		ListNode t = null;
+		while (low != null) {
+			ListNode a = low.next;
+			low.next = t;
+			t = low;
+			low = a;
 		}
-		return true;
+		while (t != null && t.val == fast.val) {
+			fast = fast.next;
+			t = t.next;
+		}
+		return t == null;
 	}
 
 }
