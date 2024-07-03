@@ -1,0 +1,272 @@
+本篇统一采用如下数组，并且采用双指针。蓝色指针为 $l$，橙色指针为 $r$。初始 $l,r$ 的 index 均为 0。
+
+![283_2.png](https://pic.leetcode.cn/1719234225-XkrsUl-283_2.png)
+
+# 解法一
+
+记元素向左的偏移量为 offset，初始 offset = 0。
+
+每次发现元素为 0 时增加偏移量，发现元素非 0 且偏移量非 0 时偏移元素。
+
+* []
+
+```C++
+class Solution {
+public:
+    void moveZeroes(vector<int>& nums) {
+        int offset = 0;
+
+        for (int i = 0; i < nums.size(); i++) {
+            if (nums[i] == 0) {
+                offset++;
+            } else if (offset != 0) {
+                nums[i - offset] = nums[i];
+                nums[i] = 0;
+            }
+        }
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def moveZeroes(self, nums: List[int]) -> None:
+        offset = 0
+
+        for i in range(len(nums)):
+            if nums[i] == 0:
+                offset += 1
+            elif offset != 0:
+                nums[i - offset] = nums[i]
+                nums[i] = 0
+```
+
+* []
+
+```Java
+class Solution {
+    public void moveZeroes(int[] nums) {
+        int offset = 0;
+
+        for (int i = 0; i < nums.length; i++) {
+            if (nums[i] == 0) {
+                offset++;
+            } else if (offset != 0) {
+                nums[i - offset] = nums[i];
+                nums[i] = 0;
+            }
+        }
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun moveZeroes(nums: IntArray) {
+        var offset = 0 
+
+        for (i in nums.indices){
+            when{
+                nums[i] == 0 -> offset++
+                offset != 0 -> {
+                    nums[i - offset] = nums[i]
+                    nums[i] = 0
+                }
+            }
+        }
+    }
+}
+```
+
+# 解法二
+
+如下所示，我们可以将 $l$ 移动到自身右侧第一个元素为 0 的位置，将 $r$ 移动到 $l$ 右侧第一个元素非 0 的位置，然后交换元素。![283_3.png](https://pic.leetcode.cn/1719235444-bjnQeo-283_3.png)
+然后再执行上一步骤，循环下去，直至 $r$ 抵达边界。
+
+* []
+
+```C++
+class Solution {
+public:
+    void moveZeroes(vector<int>& nums) {
+        int l = 0;
+        int r = 0;
+
+        while (r < nums.size()) {
+            if (r == l || nums[r] == 0) { // 优先检测 r，确保 r 在 l 右侧
+                r++; 
+            } else if (nums[l] != 0) {
+                l++;
+            } else {
+                swap(nums[l], nums[r]);
+            }
+        }
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def moveZeroes(self, nums: List[int]) -> None:
+        l = 0
+        r = 0
+
+        while r < len(nums):
+            if r == l or nums[r] == 0: # 优先检测 r，确保 r 在 l 右侧
+                r += 1  
+            elif nums[l] != 0:
+                l += 1
+            else:
+                nums[l] = nums[r]
+                nums[r] = 0
+
+```
+
+* []
+
+```Java
+class Solution {
+    public void moveZeroes(int[] nums) {
+        int l = 0;
+        int r = 0;
+
+        while (r < nums.length) {
+            if (r == l || nums[r] == 0) { // 优先检测 r，确保 r 在 l 右侧
+                r++; 
+            } else if (nums[l] != 0) {
+                l++;
+            } else {
+                nums[l] = nums[r];
+                nums[r] = 0;
+            }
+        }
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun moveZeroes(nums: IntArray) {
+        var l = 0
+        var r = 0
+
+        while(r < nums.size){
+            when{
+                r == l || nums[r] == 0 -> r++ // 优先检测 r，确保 r 在 l 右侧 
+                nums[l] != 0 -> l++
+                else -> {
+                    nums[l] = nums[r]
+                    nums[r] = 0
+                }
+            }
+        }
+    }
+}
+```
+
+# 解法三
+
+出发点是记录第一个元素为 0 的位置，并在每次交换元素时更新。
+
+* []
+
+```C++
+class Solution {
+public:
+    void moveZeroes(vector<int>& nums) {
+        int l = 0;
+
+        for (int r = 0; r < nums.size(); r++) {
+            if (nums[r] == 0) continue;
+            swap(nums[l++], nums[r]);
+        }
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def moveZeroes(self, nums: List[int]) -> None:
+        l = 0
+
+        for r in range(len(nums)):
+            if nums[r] == 0:
+                continue
+            nums[l], nums[r] = nums[r], nums[l]
+            l += 1
+```
+
+* []
+
+```Java
+class Solution {
+    public void moveZeroes(int[] nums) {
+        int l = 0;
+
+        for (int r = 0; r < nums.length; r++) {
+            if (nums[r] == 0) continue;
+            int temp = nums[l];
+            nums[l] = nums[r];
+            nums[r] = temp;
+            l++;
+        }
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun moveZeroes(nums: IntArray) {
+        var l = 0
+
+        for(r in nums.indices){
+            if(nums[r] == 0) continue
+            nums[l] = nums[r].also{ nums[r] = nums[l] }
+            l++
+        }
+    }
+}
+```
+
+取示例数组如下所示，分析代码的运行过程。
+初始时 $Nums[l] = Nums[r] \neq 0$，交换不产生影响。$l, r$ 同步前进。
+
+![283_2.png](https://pic.leetcode.cn/1719237685-DjoTSL-283_2.png)
+
+如下所示，在发现元素 0 时，$l$ 保持不变，$r$ 前进至 $Nums[r] \neq 0$。
+
+![283_4.png](https://pic.leetcode.cn/1719237782-jnnKMn-283_4.png)
+
+再如下所示，交换元素，$l$ 前进。
+![283_5.png](https://pic.leetcode.cn/1719237787-nBUakl-283_5.png)
+
+此后 $r$ 前进，一直寻找非 0 元素与 $l$ 处的 0 交换即可。
+
+# 复杂度
+
+以上解法复杂度一致。
+
+时间：$\Theta(n)$
+空间：$\Theta(1)$
+
+# 推广
+
+以下皆为个人所著，兼顾了职场面试和本硕阶段的学术考试。
+
+- [附个人题解的双指针题单](https://leetcode.cn/circle/discuss/BI95fj/)
+- [图论入门](https://leetcode.cn/leetbook/detail/introduction-to-graph/)
+- [图论进阶](https://leetcode.cn/leetbook/detail/advanced-graph-theory/)
+
+点赞关注不迷路，祝各位早日上岸，飞黄腾达！

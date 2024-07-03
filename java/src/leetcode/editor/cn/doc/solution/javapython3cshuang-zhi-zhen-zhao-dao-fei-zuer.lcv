@@ -1,0 +1,71 @@
+> [283. 移动零](https://leetcode.cn/problems/move-zeroes/)
+
+[TOC]
+
+# 题目
+
+给定一个数组 `nums`，编写一个函数将所有 `0` 移动到数组的末尾，同时保持非零元素的相对顺序。
+
+**请注意** ，必须在不复制数组的情况下原地对数组进行操作。
+
+# 题目分析
+
+## 思路分析
+
+这道题我们可以先把非零数移动到数组前面，然后把剩下的位置填充为零。我们使用双指针，一个 `read` 去搜索非零数，一个 `write` 去填充找到的非零数。具体过程如下：
+
+![image-20240621154910628.png](https://pic.leetcode.cn/1718988015-tqcJjy-image-20240621154910628.png)
+
+# 代码
+
+* []
+
+```Java
+class Solution {
+    public void moveZeroes(int[] nums) {
+        int write = 0;  // 指向当前要写入数字的位置
+        int n = nums.length;
+        for(int read = 0; read < n; read++){
+            if(nums[read] != 0){
+                nums[write++]=nums[read];   // 找到非零数字，填入当前写入的位置
+            }
+        }
+        while(write < n)nums[write++] = 0;  // 剩下的位置全部置零，相当于把零后移
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def moveZeroes(self, nums: List[int]) -> None:
+        write = 0  # 指向当前要写入数字的位置
+        for read, num in enumerate(nums):
+            if num != 0:
+                nums[write] = num   # 找到非零数字，填入当前写入的位置
+                write += 1
+
+        while write < len(nums):
+            nums[write] = 0  # 剩下的位置全部置零，相当于把零后移
+            write += 1
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    void moveZeroes(vector<int>& nums) {
+        int write = 0;  // 指向当前要写入数字的位置
+        int n = nums.size();
+        for(int read = 0; read < n; read++){
+            if(nums[read] != 0){
+                nums[write++]=nums[read];   // 找到非零数字，填入当前写入的位置
+            }
+        }
+        while(write < n)nums[write++] = 0;  // 剩下的位置全部置零，相当于把零后移
+    }
+};
+```
+
