@@ -1,0 +1,49 @@
+> Problem: [338. 比特位计数](https://leetcode.cn/problems/counting-bits/description/)
+
+![image.png](https://pic.leetcode.cn/1711362806-XNrRBG-image.png)
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int[] countBits(int n) {
+        int[] res=new int[n+1];
+        for(int i=0;i<=n;i++){
+            res[i]=countB(i);
+        }
+        return res;
+    }
+
+    public int countB(int n){
+        int cnt=0;
+        int now=n;
+        while(now>0){
+            int wei=now%2;
+            if(wei==1)cnt++;
+            now=now/2;
+        }
+        return cnt;        
+    }
+}
+```
+
