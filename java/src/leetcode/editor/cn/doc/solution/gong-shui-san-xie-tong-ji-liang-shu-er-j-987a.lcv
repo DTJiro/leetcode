@@ -1,0 +1,89 @@
+## 逐位比较
+
+本身不改变 $x$ 和 $y$，每次取不同的偏移位进行比较，不同则加一。
+
+循环固定取满 $32$ 。
+
+![image.png](https://pic.leetcode-cn.com/1622076908-buohoV-image.png)
+
+代码：
+
+* []
+
+```Java
+class Solution {
+    public int hammingDistance(int x, int y) {
+        int ans = 0;
+        for (int i = 0; i < 32; i++) {
+            int a = (x >> i) & 1 , b = (y >> i) & 1;
+            ans += a ^ b;
+        }
+        return ans;
+    }
+}
+```
+
+* 时间复杂度：$O(C)$，$C$ 固定为 $32$
+* 空间复杂度：$O(1)$
+
+---
+
+## 右移统计
+
+每次都统计当前 $x$ 和 $y$ 的最后一位，统计完则将 $x$ 和 $y$ 右移一位。
+
+当 $x$ 和 $y$ 的最高一位 $1$ 都被统计过之后，循环结束。
+
+![image.png](https://pic.leetcode-cn.com/1622076955-PjLfhh-image.png)
+
+代码：
+
+* []
+
+```Java
+class Solution {
+    public int hammingDistance(int x, int y) {
+        int ans = 0;
+        while ((x | y) != 0) {
+            int a = x & 1, b = y & 1;
+            ans += a ^ b;
+            x >>= 1; y >>= 1;
+        }
+        return ans;
+    }
+}
+```
+
+* 时间复杂度：$O(C)$，$C$ 最多为 $32$
+* 空间复杂度：$O(1)$
+
+---
+
+## lowbit
+
+熟悉树状数组的同学都知道，`lowbit` 可以快速求得 $x$ 二进制表示中最低位 $1$ 表示的值。
+
+因此我们可以先将 $x$ 和 $y$ 进行异或，再统计异或结果中 $1$ 的个数。
+
+![image.png](https://pic.leetcode-cn.com/1622078171-LQURLc-image.png)
+
+代码：
+
+* []
+
+```Java
+class Solution {
+    int lowbit(int x) {
+        return x & -x;
+    }
+    public int hammingDistance(int x, int y) {
+        int ans = 0;
+        for (int i = x ^ y; i > 0; i -= lowbit(i)) ans++;
+        return ans;
+    }
+}
+```
+
+* 时间复杂度：$O(C)$，$C$ 最多为 $32$
+* 空间复杂度：$O(1)$
+
