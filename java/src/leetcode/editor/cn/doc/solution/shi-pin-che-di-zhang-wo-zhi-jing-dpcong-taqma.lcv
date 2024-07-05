@@ -1,0 +1,107 @@
+## 视频讲解
+
+推荐先看 [深入理解递归【基础算法精讲 09】](https://www.bilibili.com/video/BV1UD4y1Y769/)。
+
+本题视频讲解：[树形 DP【基础算法精讲 23】](https://www.bilibili.com/video/BV17o4y187h1/)，制作不易，欢迎点赞！
+
+> APP 用户需要分享到 wx 打开链接。
+
+* [sol1-Python3]
+
+```py
+class Solution:
+    def diameterOfBinaryTree(self, root: Optional[TreeNode]) -> int:
+        ans = 0
+        def dfs(node: Optional[TreeNode]) -> int:
+            if node is None:
+                return -1  # 下面 +1 后，对于叶子节点就刚好是 0
+            l_len = dfs(node.left) + 1  # 左子树最大链长+1
+            r_len = dfs(node.right) + 1  # 右子树最大链长+1
+            nonlocal ans
+            ans = max(ans, l_len + r_len)  # 两条链拼成路径
+            return max(l_len, r_len)  # 当前子树最大链长
+        dfs(root)
+        return ans
+```
+
+* [sol1-Java]
+
+```java
+class Solution {
+    private int ans;
+
+    public int diameterOfBinaryTree(TreeNode root) {
+        dfs(root);
+        return ans;
+    }
+
+    private int dfs(TreeNode node) {
+        if (node == null)
+            return -1; // 下面 +1 后，对于叶子节点就刚好是 0
+        int lLen = dfs(node.left) + 1; // 左子树最大链长+1
+        int rLen = dfs(node.right) + 1; // 右子树最大链长+1
+        ans = Math.max(ans, lLen + rLen); // 两条链拼成路径
+        return Math.max(lLen, rLen); // 当前子树最大链长
+    }
+}
+```
+
+* [sol1-C++]
+
+```cpp
+class Solution {
+public:
+    int diameterOfBinaryTree(TreeNode *root) {
+        int ans = 0;
+        function<int(TreeNode*)> dfs = [&](TreeNode *node) -> int {
+            if (node == nullptr)
+                return -1; // 下面 +1 后，对于叶子节点就刚好是 0
+            int l_len = dfs(node->left) + 1; // 左子树最大链长+1
+            int r_len = dfs(node->right) + 1; // 右子树最大链长+1
+            ans = max(ans, l_len + r_len); // 两条链拼成路径
+            return max(l_len, r_len); // 当前子树最大链长
+        };
+        dfs(root);
+        return ans;
+    }
+};
+```
+
+* [sol1-Go]
+
+```go
+func diameterOfBinaryTree(root *TreeNode) (ans int) {
+    var dfs func(*TreeNode) int
+    dfs = func(node *TreeNode) int {
+        if node == nil {
+            return -1 // 下面 +1 后，对于叶子节点就刚好是 0
+        }
+        lLen := dfs(node.Left) + 1  // 左子树最大链长+1
+        rLen := dfs(node.Right) + 1 // 右子树最大链长+1
+        ans = max(ans, lLen+rLen)   // 两条链拼成路径
+        return max(lLen, rLen)      // 当前子树最大链长
+    }
+    dfs(root)
+    return
+}
+
+func max(a, b int) int { if a < b { return b }; return a }
+```
+
+### 复杂度分析
+
+- 时间复杂度：$O(n)$，其中 $n$ 为二叉树的节点个数。
+- 空间复杂度：$O(n)$。最坏情况下，二叉树退化成一条链，递归需要 $O(n)$ 的栈空间。
+
+### 课上题目
+
+- [543. 二叉树的直径](https://leetcode.cn/problems/diameter-of-binary-tree/)
+- [124. 二叉树中的最大路径和](https://leetcode.cn/problems/binary-tree-maximum-path-sum/)
+- [2246. 相邻字符不同的最长路径](https://leetcode.cn/problems/longest-path-with-different-adjacent-characters/)
+
+### 课后作业
+
+- [687. 最长同值路径](https://leetcode.cn/problems/longest-univalue-path/)
+- [1617. 统计子树中城市之间最大距离](https://leetcode.cn/problems/count-subtrees-with-max-distance-between-cities/)
+- [2539. 最大价值和与最小价值和的差值](https://leetcode.cn/problems/difference-between-maximum-and-minimum-price-sum/)
+
