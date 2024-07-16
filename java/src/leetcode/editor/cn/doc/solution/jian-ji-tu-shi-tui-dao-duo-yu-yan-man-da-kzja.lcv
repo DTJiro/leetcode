@@ -1,0 +1,214 @@
+本题要求读者先掌握 [两数之和 II - 输入有序数组](https://leetcode.cn/problems/two-sum-ii-input-array-is-sorted/description/) 这道题，最好看我的[个人题解](https://leetcode.cn/problems/two-sum-ii-input-array-is-sorted/solutions/2821963/jian-ji-yi-dong-de-shuang-zhi-zhen-tui-d-ud7x/) 以便于衔接本篇思路。
+
+# 思路
+
+先对数组排序，设一非递减的数组示例和初始三指针位置及名字如下所示。
+![15_2.png](https://pic.leetcode.cn/1719482970-puVPmZ-15_2.png)
+固定 $i$，即可转换为寻找满足 $nums[l] + nums[r] = -nums[i]$ 的三元组，借用两数之和的思路即可。
+
+还要注意因为不能包含重复的三元组，以下两个三元组只能取一个，而后我们再考虑其是否满足 $nums[l] + nums[r] = -nums[i]$。
+
+![15_3.png](https://pic.leetcode.cn/1719482985-mihqGp-15_3.png)
+
+所以在移动指针的时候，需要规避连续的重复元素，比如下方的移动 $r$，对于 $i, l$ 同理。
+![15_4.png](https://pic.leetcode.cn/1719482999-EsnRog-15_4.png)
+
+题目中要求不重复，所以从小到大枚举 $i$，$l$ 的初值为 $i+1$，$r$ 的初值一直为 $nums.size - 1$。
+
+下图为 $i = 1$ 的三指针初始位置。
+![Screenshot 2024-06-29 at 5.04.02 PM.png](https://pic.leetcode.cn/1719653680-KnUAqH-Screenshot%202024-06-29%20at%205.04.02%20PM.png)
+
+# 代码
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        // 待返回的三元组
+        vector<vector<int>> triples;
+
+        for (int i = 0; i < nums.size(); ++i) {
+            // 检测重复的 nums[i]
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+
+            int l = i + 1;
+            int r = nums.size() - 1;
+
+            while (l < r) {
+                // 检测重复的 nums[l]
+                if (l > i + 1 && nums[l] == nums[l - 1]) {
+                    ++l;
+                }
+                // 检测重复的 nums[r]
+                else if (r < nums.size() - 1 && nums[r] == nums[r + 1]) {
+                    --r;
+                }
+                // 均不重复再按照两数之和的思路
+                // 等同于判断 nums[l] + nums[r] > -nums[i]
+                else if (nums[i] + nums[l] + nums[r] > 0) {
+                    --r;
+                }
+                // 等同于判断 nums[l] + nums[r] < -nums[i]
+                else if (nums[i] + nums[l] + nums[r] < 0) {
+                    ++l;
+                } else { // nums[l] + nums[r] + nums[i] == 0, 三元组符合，添加入结果
+                    triples.push_back({nums[i], nums[l], nums[r]});
+                    ++l; --r;
+                }
+            }
+        }
+
+        return triples;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def threeSum(self, nums: List[int]) -> List[List[int]]:
+        nums.sort()
+        # 待返回的三元组
+        triples = []
+
+        for i in range(len(nums)):
+            # 检测重复的 nums[i]
+            if i > 0 and nums[i] == nums[i - 1]:
+                continue
+
+            l, r = i + 1, len(nums) - 1
+
+            while l < r:
+                # 检测重复的 nums[l]
+                if l > i + 1 and nums[l] == nums[l - 1]:
+                    l += 1
+
+                # 检测重复的 nums[r]
+                elif r < len(nums) - 1 and nums[r] == nums[r + 1]:
+                    r -= 1
+                
+                # 均不重复再按照两数之和的思路
+                # 等同于判断 nums[l] + nums[r] > -nums[i]
+                elif nums[i] + nums[l] + nums[r] > 0:
+                    r -= 1
+
+                # 等同于判断 nums[l] + nums[r] < -nums[i]
+                elif nums[i] + nums[l] + nums[r] < 0:
+                    l += 1
+                    
+                else: # nums[l] + nums[r] + nums[i] == 0, 三元组符合，添加入结果
+                    triples.append([nums[i], nums[l], nums[r]])
+                    l += 1
+                    r -= 1
+
+        return triples
+```
+
+* []
+
+```Java
+class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        Arrays.sort(nums);
+        // 待返回的三元组
+        List<List<Integer>> triples = new ArrayList<>();
+
+        for (int i = 0; i < nums.length; i++) {
+            // 检测重复的 nums[i]
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+
+            int l = i + 1;
+            int r = nums.length - 1;
+
+            while (l < r) {
+                // 检测重复的 nums[l]
+                if (l > i + 1 && nums[l] == nums[l - 1]) {
+                    l++;
+                }
+                // 检测重复的 nums[r]
+                else if (r < nums.length - 1 && nums[r] == nums[r + 1]) {
+                    r--;
+                }
+                // 均不重复再按照两数之和的思路
+                // 等同于判断 nums[l] + nums[r] > -nums[i]
+                else if (nums[i] + nums[l] + nums[r] > 0) {
+                    r--;
+                }
+                // 等同于判断 nums[l] + nums[r] < -nums[i]
+                else if (nums[i] + nums[l] + nums[r] < 0) {
+                    l++;
+                } else { // nums[l] + nums[r] + nums[i] == 0, 三元组符合，添加入结果
+                    triples.add(Arrays.asList(nums[i], nums[l], nums[r]));
+                    l++;
+                    r--;
+                }
+            }
+        }
+
+        return triples;
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun threeSum(nums: IntArray): List<List<Int>> {
+        nums.sort()
+        // 待返回的三元组
+        val triples = mutableListOf<List<Int>>()
+
+        for(i in nums.indices){
+            // 检测重复的 nums[i]
+            if(i > 0 && nums[i] == nums[i-1]) continue
+
+            var l = i + 1
+            var r = nums.lastIndex
+
+            while(l < r) when{
+                // 检测重复的 nums[l]
+                l > i+1 && nums[l] == nums[l-1] -> l++
+                
+                // 检测重复的 nums[r]
+                r < nums.lastIndex && nums[r] == nums[r+1] -> r--
+                
+                // 均不重复再按照两数之和的思路
+                // 等同于判断 nums[l] + nums[r] > -nums[i]                                        
+                nums[i] + nums[l] + nums[r] > 0 -> r--
+
+                // 等同于判断 nums[l] + nums[r] < -nums[i]                                        
+                nums[i] + nums[l] + nums[r] < 0 -> l++
+                
+                else -> {// nums[l] + nums[r] + nums[i] == 0, 三元组符合，添加入结果
+                    triples += listOf(nums[i], nums[l], nums[r])    
+                    l++; r--
+                }
+            }
+        }
+
+        return triples
+    }
+}
+```
+
+笔者代码中少了一层嵌套循环，但复杂度不变。虽然耗时明显更慢，但在面试中是肯定能通过的。此外这种技巧在实际开发中也能用到，而且实际开发的内部操作繁多，相比之下，这种减少嵌套循环增加的耗时就可以忽略了。
+
+# 复杂度
+
+时间：$O(n^2)$
+空间：$\Theta(log\ n)$，主要考虑排序，忽略返回值。
+
+# 推广
+
+以下皆为个人所著，兼顾了职场面试和本硕阶段的学术考试。
+
+- [附个人题解的双指针题单](https://leetcode.cn/circle/discuss/BI95fj/)
+- [图论入门](https://leetcode.cn/leetbook/detail/introduction-to-graph/)
+- [图论进阶](https://leetcode.cn/leetbook/detail/advanced-graph-theory/)
+
+点赞关注不迷路，祝各位早日上岸，飞黄腾达！
