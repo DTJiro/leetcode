@@ -60,23 +60,22 @@ public class RemoveNthNodeFromEndOfList{
  */
 class Solution {
     public ListNode removeNthFromEnd(ListNode head, int n) {
+		ListNode r = new ListNode(0, head);
+		Deque<ListNode> stack = new LinkedList<>();
+		ListNode p = r;
+		while (p != null) {
+			stack.push(p);
+			p = p.next;
+		}
+		for (int i = 0; i < n; i++) {
+			stack.poll();
+		}
+		ListNode q = stack.peek();
+		q.next = q.next.next;
 
-		ListNode p = new ListNode(0, head);
-		dg(p, n);
-		return p.next;
-
+		return r.next;
     }
 
-	public int dg(ListNode head, int n) {
-		if (head == null) {
-			return 0;
-		}
-		int i = dg(head.next, n);
-		if (i == n) {
-			head.next = head.next.next;
-		}
-		return i + 1;
-	}
 }
 //leetcode submit region end(Prohibit modification and deletion)
 
