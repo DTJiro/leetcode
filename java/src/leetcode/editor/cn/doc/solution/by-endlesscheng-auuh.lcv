@@ -1,0 +1,369 @@
+## 核心思想
+
+把某个数 $x$ 与最后一个数 $\textit{nums}[n-1]$ 比大小：
+
+- 如果 $x > \textit{nums}[n-1]$，那么可以推出以下结论：
+  - $\textit{nums}$ 一定被分成左右两个递增段；
+  - 第一段的所有元素均大于第二段的所有元素；
+  - $x$ 在第一段。
+- 如果 $x \le \textit{nums}[n-1]$，那么 $x$ 一定在第二段。（或者 $\textit{nums}$ 就是递增数组，此时只有一段。）
+
+## 方法一：两次二分
+
+首先用 [153. 寻找旋转排序数组中的最小值](https://leetcode.cn/problems/find-minimum-in-rotated-sorted-array/solution/by-endlesscheng-owgd/) 的方法，找到 $\textit{nums}$ 的最小值的下标 $i$。
+
+然后**分类讨论**：
+
+- 如果 $\textit{target} > \textit{nums}[n-1]$，那么 $\textit{target}$ 一定在第一段 $[0,i-1]$ 中，在 $[0,i-1]$ 中二分查找 $\textit{target}$。
+- 如果 $\textit{target} \le \textit{nums}[n-1]$，那么：
+  - 如果 $i=0$，说明 $\textit{nums}$ 是递增的，直接在 $[0,n-1]$ 中二分查找 $\textit{target}$。
+  - 如果 $i>0$，那么 $\textit{target}$ 一定在第二段 $[i,n-1]$ 中，在 $[i,n-1]$ 中二分查找 $\textit{target}$。
+  - 这两种情况可以合并成：在 $[i,n-1]$ 中二分查找 $\textit{target}$。
+
+**二分基础知识**：[【基础算法精讲 04】](https://www.bilibili.com/video/BV1AP41137w7/)。
+
+**本题视频讲解**：[【基础算法精讲 05】](https://www.bilibili.com/video/BV1QK411d76w/)。
+
+下面代码用的开区间二分，用其他二分写法也是可以的。
+
+* [sol-Python3]
+
+```py
+class Solution:
+    # 153. 寻找旋转排序数组中的最小值
+    def findMin(self, nums: List[int]) -> int:
+        left, right = -1, len(nums) - 1  # 开区间 (-1, n-1)
+        while left + 1 < right:  # 开区间不为空
+            mid = (left + right) // 2
+            if nums[mid] < nums[-1]:  # 蓝色
+                right = mid
+            else:  # 红色
+                left = mid
+        return right
+
+    # 有序数组中找 target 的下标
+    def lower_bound(self, nums: List[int], left: int, right: int, target: int) -> int:
+        while left + 1 < right:  # 开区间不为空
+            mid = (left + right) // 2
+            # 循环不变量：
+            # nums[left] < target
+            # nums[right] >= target
+            if nums[mid] < target:
+                left = mid  # 范围缩小到 (mid, right)
+            else:
+                right = mid  # 范围缩小到 (left, mid)
+        return right if nums[right] == target else -1
+
+    def search(self, nums: List[int], target: int) -> int:
+        i = self.findMin(nums)
+        if target > nums[-1]:  # target 在第一段
+            return self.lower_bound(nums, -1, i, target)  # 开区间 (-1, i)
+        # target 在第二段
+        return self.lower_bound(nums, i - 1, len(nums), target)  # 开区间 (i-1, n)
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        int n = nums.length, i = findMin(nums);
+        if (target > nums[n - 1]) { // target 在第一段
+            return lowerBound(nums, -1, i, target); // 开区间 (-1, i)
+        }
+        // target 在第二段
+        return lowerBound(nums, i - 1, n, target); // 开区间 (i-1, n)
+    }
+
+    // 153. 寻找旋转排序数组中的最小值
+    private int findMin(int[] nums) {
+        int n = nums.length;
+        int left = -1;
+        int right = n - 1; // 开区间 (-1, n-1)
+        while (left + 1 < right) { // 开区间不为空
+            int mid = left + (right - left) / 2;
+            if (nums[mid] < nums[n - 1]) {
+                right = mid;
+            } else {
+                left = mid;
+            }
+        }
+        return right;
+    }
+
+    // 有序数组中找 target 的下标
+    private int lowerBound(int[] nums, int left, int right, int target) {
+        while (left + 1 < right) { // 开区间不为空
+            // 循环不变量：
+            // nums[left] < target
+            // nums[right] >= target
+            int mid = left + (right - left) / 2;
+            if (nums[mid] < target) {
+                left = mid; // 范围缩小到 (mid, right)
+            } else {
+                right = mid; // 范围缩小到 (left, mid)
+            }
+        }
+        return nums[right] == target ? right : -1;
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+    // 153. 寻找旋转排序数组中的最小值
+    int findMin(vector<int>& nums) {
+        int left = -1, right = nums.size() - 1; // 开区间 (-1, n-1)
+        while (left + 1 < right) { // 开区间不为空
+            int mid = left + (right - left) / 2;
+            if (nums[mid] < nums.back()) {
+                right = mid;
+            } else {
+                left = mid;
+            }
+        }
+        return right;
+    }
+
+    // 有序数组中找 target 的下标
+    int lower_bound(vector<int>& nums, int left, int right, int target) {
+        while (left + 1 < right) { // 开区间不为空
+            // 循环不变量：
+            // nums[left] < target
+            // nums[right] >= target
+            int mid = left + (right - left) / 2;
+            if (nums[mid] < target) {
+                left = mid; // 范围缩小到 (mid, right)
+            } else {
+                right = mid; // 范围缩小到 (left, mid)
+            }
+        }
+        return nums[right] == target ? right : -1;
+    }
+
+public:
+    int search(vector<int>& nums, int target) {
+        int i = findMin(nums);
+        if (target > nums.back()) { // target 在第一段
+            return lower_bound(nums, -1, i, target); // 开区间 (-1, i)
+        }
+        // target 在第二段
+        return lower_bound(nums, i - 1, nums.size(), target); // 开区间 (i-1, n)
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+// 153. 寻找旋转排序数组中的最小值
+func findMin(nums []int) int {
+    left, right := -1, len(nums)-1 // 开区间 (-1, n-1)
+    for left+1 < right { // 开区间不为空
+        mid := left + (right-left)/2
+        if nums[mid] < nums[len(nums)-1] {
+            right = mid
+        } else {
+            left = mid
+        }
+    }
+    return right
+}
+
+// 有序数组中找 target 的下标
+func lowerBound(nums []int, left, right, target int) int {
+    for left+1 < right { // 开区间不为空
+        // 循环不变量：
+        // nums[left] < target
+        // nums[right] >= target
+        mid := left + (right-left)/2
+        if nums[mid] < target {
+            left = mid // 范围缩小到 (mid, right)
+        } else {
+            right = mid // 范围缩小到 (left, mid)
+        }
+    }
+    if nums[right] != target {
+        return -1
+    }
+    return right
+}
+
+func search(nums []int, target int) int {
+    i := findMin(nums)
+    if target > nums[len(nums)-1] { // target 在第一段
+        return lowerBound(nums, -1, i, target) // 开区间 (-1, i)
+    }
+    // target 在第二段
+    return lowerBound(nums, i-1, len(nums), target) // 开区间 (i-1, n)
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(\log n)$，其中 $n$ 为 $\textit{nums}$ 的长度。
+- 空间复杂度：$\mathcal{O}(1)$，仅用到若干额外变量。
+
+## 方法二：一次二分
+
+设 $x=\textit{nums}[\textit{mid}]$ 是我们现在二分取到的数。
+
+现在需要判断 $x$ 和 $\textit{target}$ 的位置关系，谁在左边，谁在右边？
+
+### 核心思路
+
+- 如果 $x$ 和 $\textit{target}$ 在不同的递增段：
+  - 如果 $\textit{target}$ 在第一段（左），$x$ 在第二段（右），说明 $x$ 在 $\textit{target}$ 右边；
+  - 如果 $\textit{target}$ 在第二段（右），$x$ 在第一段（左），说明 $x$ 在 $\textit{target}$ 左边。
+- 如果 $x$ 和 $\textit{target}$ 在相同的递增段：
+  - 比较 $x$ 和 $\textit{target}$ 的大小即可。
+
+### 分类讨论
+
+下面只讨论 $x$ 在 $\textit{target}$ 右边，或者等于 $\textit{target}$ 的情况。其余情况 $x$ 一定在 $\textit{target}$ 左边。
+
+- 如果 $x > \textit{nums}[n-1]$，说明 $x$ 在第一段中，那么 $\textit{target}$ 也必须在第一段中（否则 $x$ 一定在 $\textit{target}$ 左边）且 $x$ 必须大于等于 $\textit{target}$。
+  - 写成代码就是 `target > nums[n - 1] && x >= target`。
+- 如果 $x \le \textit{nums}[n-1]$，说明 $x$ 在第二段中（或者 $\textit{nums}$ 只有一段），那么 $\textit{target}$ 可以在第一段，也可以在第二段。
+  - 如果 $\textit{target}$ 在第一段，那么 $x$ 一定在 $\textit{target}$ 右边。
+  - 如果 $\textit{target}$ 在第二段，那么 $x$ 必须大于等于 $\textit{target}$。
+  - 写成代码就是 `target > nums[n - 1] || x >= target`。
+
+根据这两种情况，去判断 $x$ 和 $\textit{target}$ 的位置关系，从而不断地缩小 $\textit{target}$ 所在位置的范围，二分找到 $\textit{target}$。
+
+### 细节
+
+二分的范围可以是 $[0,n-2]$。
+
+这是因为，如果 $\textit{target}$ 在数组中的位置是 $n-1$，那么上面分类讨论中的代码，计算结果均为 $\texttt{false}$。这意味着每次二分更新的都是 $\textit{left}$，那么最终答案自然就是 $n-1$。
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def search(self, nums: List[int], target: int) -> int:
+        def is_blue(i: int) -> bool:
+            x = nums[i]
+            if x > nums[-1]:
+                return target > nums[-1] and x >= target
+            return target > nums[-1] or x >= target
+
+        left, right = -1, len(nums) - 1  # 开区间 (-1, n-1)
+        while left + 1 < right:  # 开区间不为空
+            mid = (left + right) // 2
+            if is_blue(mid):
+                right = mid
+            else:
+                left = mid
+        return right if nums[right] == target else -1
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        int left = -1, right = nums.length - 1; // 开区间 (-1, n-1)
+        while (left + 1 < right) { // 开区间不为空
+            int mid = left + (right - left) / 2;
+            if (isBlue(nums, target, mid)) {
+                right = mid;
+            } else {
+                left = mid;
+            }
+        }
+        return nums[right] == target ? right : -1;
+    }
+
+    private boolean isBlue(int[] nums, int target, int i) {
+        int x = nums[i];
+        int end = nums[nums.length - 1];
+        if (x > end) {
+            return target > end && x >= target;
+        }
+        return target > end || x >= target;
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+public:
+    int search(vector<int>& nums, int target) {
+        auto is_blue = [&](int i) -> bool {
+            int x = nums[i];
+            int end = nums.back();
+            if (x > end) {
+                return target > end && x >= target;
+            }
+            return target > end || x >= target;
+        };
+        int left = -1, right = nums.size() - 1; // 开区间 (-1, n-1)
+        while (left + 1 < right) { // 开区间不为空
+            int mid = left + (right - left) / 2;
+            if (is_blue(mid)) {
+                right = mid;
+            } else {
+                left = mid;
+            }
+        }
+        return nums[right] == target ? right : -1;
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+func search(nums []int, target int) int {
+    isBlue := func(i int) bool {
+        x := nums[i]
+        end := nums[len(nums)-1]
+        if x > end {
+            return target > end && x >= target
+        }
+        return target > end || x >= target
+    }
+    left, right := -1, len(nums)-1 // 开区间 (-1, n-1)
+    for left+1 < right { // 开区间不为空
+        mid := left + (right-left)/2
+        if isBlue(mid) {
+            right = mid
+        } else {
+            left = mid
+        }
+    }
+    if nums[right] != target {
+        return -1
+    }
+    return right
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(\log n)$，其中 $n$ 为 $\textit{nums}$ 的长度。
+- 空间复杂度：$\mathcal{O}(1)$，仅用到若干额外变量。
+
+## 分类题单
+
+[如何科学刷题？](https://leetcode.cn/circle/discuss/RvFUtj/)
+
+1. [滑动窗口（定长/不定长/多指针）](https://leetcode.cn/circle/discuss/0viNMK/)
+2. [二分算法（二分答案/最小化最大值/最大化最小值/第K小）](https://leetcode.cn/circle/discuss/SqopEo/)
+3. [单调栈（基础/矩形面积/贡献法/最小字典序）](https://leetcode.cn/circle/discuss/9oZFK9/)
+4. [网格图（DFS/BFS/综合应用）](https://leetcode.cn/circle/discuss/YiXPXW/)
+5. [位运算（基础/性质/拆位/试填/恒等式/思维）](https://leetcode.cn/circle/discuss/dHn9Vk/)
+6. [图论算法（DFS/BFS/拓扑排序/最短路/最小生成树/二分图/基环树/欧拉路径）](https://leetcode.cn/circle/discuss/01LUak/)
+7. [动态规划（入门/背包/状态机/划分/区间/状压/数位/数据结构优化/树形/博弈/概率期望）](https://leetcode.cn/circle/discuss/tXLS3i/)
+8. [常用数据结构（前缀和/差分/栈/队列/堆/字典树/并查集/树状数组/线段树）](https://leetcode.cn/circle/discuss/mOr1u6/)
+9. [数学算法（数论/组合/概率期望/博弈/计算几何/随机算法）](https://leetcode.cn/circle/discuss/IYT3ss/)
+10. [贪心算法（基本贪心策略/反悔/区间/字典序/数学/思维/脑筋急转弯/构造）](https://leetcode.cn/circle/discuss/g6KTKL/)
+
+[我的题解精选（已分类）](https://github.com/EndlessCheng/codeforces-go/blob/master/leetcode/SOLUTIONS.md)
+
+欢迎关注 [B站@灵茶山艾府](https://space.bilibili.com/206214)
