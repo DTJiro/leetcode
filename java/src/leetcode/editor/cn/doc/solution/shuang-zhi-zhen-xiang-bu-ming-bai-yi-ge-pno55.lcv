@@ -1,0 +1,215 @@
+## 视频讲解
+
+请看 [相向双指针【基础算法精讲】](https://www.bilibili.com/video/BV1bP411c7oJ/)
+
+包含本题的基本思路，以及两处优化点，欢迎点赞关注~
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def threeSum(self, nums: List[int]) -> List[List[int]]:
+        nums.sort()
+        ans = []
+        n = len(nums)
+        for i in range(n - 2):
+            x = nums[i]
+            if i > 0 and x == nums[i - 1]:  # 跳过重复数字
+                continue
+            if x + nums[i + 1] + nums[i + 2] > 0:  # 优化一
+                break
+            if x + nums[-2] + nums[-1] < 0:  # 优化二
+                continue
+            j = i + 1
+            k = n - 1
+            while j < k:
+                s = x + nums[j] + nums[k]
+                if s > 0:
+                    k -= 1
+                elif s < 0:
+                    j += 1
+                else:
+                    ans.append([x, nums[j], nums[k]])
+                    j += 1
+                    while j < k and nums[j] == nums[j - 1]:  # 跳过重复数字
+                        j += 1
+                    k -= 1
+                    while k > j and nums[k] == nums[k + 1]:  # 跳过重复数字
+                        k -= 1
+        return ans
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public List<List<Integer>> threeSum(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> ans = new ArrayList<>();
+        int n = nums.length;
+        for (int i = 0; i < n - 2; ++i) {
+            int x = nums[i];
+            if (i > 0 && x == nums[i - 1]) continue; // 跳过重复数字
+            if (x + nums[i + 1] + nums[i + 2] > 0) break; // 优化一
+            if (x + nums[n - 2] + nums[n - 1] < 0) continue; // 优化二
+            int j = i + 1, k = n - 1;
+            while (j < k) {
+                int s = x + nums[j] + nums[k];
+                if (s > 0) --k;
+                else if (s < 0) ++j;
+                else {
+                    ans.add(List.of(x, nums[j], nums[k]));
+                    for (++j; j < k && nums[j] == nums[j - 1]; ++j); // 跳过重复数字
+                    for (--k; k > j && nums[k] == nums[k + 1]; --k); // 跳过重复数字
+                }
+            }
+        }
+        return ans;
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int> &nums) {
+        sort(nums.begin(), nums.end());
+        vector<vector<int>> ans;
+        int n = nums.size();
+        for (int i = 0; i < n - 2; ++i) {
+            int x = nums[i];
+            if (i && x == nums[i - 1]) continue; // 跳过重复数字
+            if (x + nums[i + 1] + nums[i + 2] > 0) break; // 优化一
+            if (x + nums[n - 2] + nums[n - 1] < 0) continue; // 优化二
+            int j = i + 1, k = n - 1;
+            while (j < k) {
+                int s = x + nums[j] + nums[k];
+                if (s > 0) --k;
+                else if (s < 0) ++j;
+                else {
+                    ans.push_back({x, nums[j], nums[k]});
+                    for (++j; j < k && nums[j] == nums[j - 1]; ++j); // 跳过重复数字
+                    for (--k; k > j && nums[k] == nums[k + 1]; --k); // 跳过重复数字
+                }
+            }
+        }
+        return ans;
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+func threeSum(nums []int) (ans [][]int) {
+    sort.Ints(nums)
+    n := len(nums)
+    for i, x := range nums[:n-2] {
+        if i > 0 && x == nums[i-1] { // 跳过重复数字
+            continue
+        }
+        if x+nums[i+1]+nums[i+2] > 0 { // 优化一
+            break
+        }
+        if x+nums[n-2]+nums[n-1] < 0 { // 优化二
+            continue
+        }
+        j, k := i+1, n-1
+        for j < k {
+            s := x + nums[j] + nums[k]
+            if s > 0 {
+                k--
+            } else if s < 0 {
+                j++
+            } else {
+                ans = append(ans, []int{x, nums[j], nums[k]})
+                for j++; j < k && nums[j] == nums[j-1]; j++ {} // 跳过重复数字
+                for k--; k > j && nums[k] == nums[k+1]; k-- {} // 跳过重复数字
+            }
+        }
+    }
+    return
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var threeSum = function(nums) {
+    nums.sort((a, b) => a - b);
+    const n = nums.length;
+    const ans = [];
+    for (let i = 0; i < n - 2; i++) {
+        const x = nums[i];
+        if (i > 0 && x === nums[i - 1]) continue; // 跳过重复数字
+        if (x + nums[i + 1] + nums[i + 2] > 0) break; // 优化一
+        if (x + nums[n - 2] + nums[n - 1] < 0) continue; // 优化二
+        let j = i + 1, k = n - 1;
+        while (j < k) {
+            const s = x + nums[j] + nums[k];
+            if (s > 0) k--;
+            else if (s < 0) j++;
+            else {
+                ans.push([x, nums[j], nums[k]]);
+                for (j++; j < k && nums[j] === nums[j - 1]; j++); // 跳过重复数字
+                for (k--; k > j && nums[k] === nums[k + 1]; k--); // 跳过重复数字
+            }
+        }
+    }
+    return ans;
+};
+```
+
+* [sol-Rust]
+
+```rust
+impl Solution {
+    pub fn three_sum(nums: Vec<i32>) -> Vec<Vec<i32>> {
+        let mut nums = nums;
+        nums.sort();
+        let mut ans = Vec::new();
+        let n = nums.len();
+        for i in 0..n - 2 {
+            let x = nums[i];
+            if i > 0 && x == nums[i - 1] { // 跳过重复数字
+                continue;
+            }
+            if x + nums[i + 1] + nums[i + 2] > 0 { // 优化一
+                break;
+            }
+            if x + nums[n - 2] + nums[n - 1] < 0 { // 优化二
+                continue;
+            }
+            let mut j = i + 1;
+            let mut k = n - 1;
+            while j < k {
+                let s = x + nums[j] + nums[k];
+                if s > 0 {
+                    k -= 1;
+                } else if s < 0 {
+                    j += 1;
+                } else {
+                    ans.push(vec![x, nums[j], nums[k]]);
+                    j += 1;
+                    while j < k && nums[j] == nums[j - 1] { // 跳过重复数字
+                        j += 1;
+                    }
+                    k -= 1;
+                    while k > j && nums[k] == nums[k + 1] { // 跳过重复数字
+                        k -= 1;
+                    }
+                }
+            }
+        }
+        ans
+    }
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(n^2)$，其中 $n$ 为 $\textit{nums}$ 的长度。排序 $\mathcal{O}(n\log n)$。外层循环枚举第一个数，就变成 [167. 两数之和 II - 输入有序数组](https://leetcode.cn/problems/two-sum-ii-input-array-is-sorted/solution/san-shu-zhi-he-bu-hui-xie-xiang-xiang-sh-6wbq/) 了，做法是 $\mathcal{O}(n)$ 双指针。所以总的时间复杂度为 $\mathcal{O}(n^2)$。
+- 空间复杂度：$\mathcal{O}(1)$，仅用到若干变量（忽略排序的栈开销）。
+
