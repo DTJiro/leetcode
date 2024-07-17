@@ -1,0 +1,141 @@
+> [33. 搜索旋转排序数组](https://leetcode.cn/problems/search-in-rotated-sorted-array/)
+
+[TOC]
+
+# 题目
+
+整数数组 `nums` 按升序排列，数组中的值 **互不相同** 。
+
+在传递给函数之前，`nums` 在预先未知的某个下标 `k`（`0 <= k < nums.length`）上进行了 **旋转**，使数组变为 `[nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]`（下标 **从 0 开始** 计数）。例如， `[0,1,2,4,5,6,7]` 在下标 `3` 处经旋转后可能变为 `[4,5,6,7,0,1,2]` 。
+
+给你 **旋转后** 的数组 `nums` 和一个整数 `target` ，如果 `nums` 中存在这个目标值 `target` ，则返回它的下标，否则返回 `-1` 。
+
+你必须设计一个时间复杂度为 `O(log n)` 的算法解决此问题。
+
+# 题目分析
+
+## 思路分析
+
+这道题要在一个旋转了的有序数组中搜索目标值，要求时间复杂度为 `O(logn)`。这个时间复杂度只能首先尝试二分查找，但是二分查找的前提是数组有序，这个数组并不满足，还可以用吗？
+
+先别急，虽然这个数组不是整体有序，但它是局部有序的，我们尝试二分着去做看看会发生什么。
+
+二分每次都需要取中点 `mid`，对于这个旋转的有序数组：
+
+- 如果当前区间 `[left, right)` 分别在两端有序区间之内，那么就按二分查找去做即可。
+- 如果当前区间 `[left, right)` 是跨越了两端有序子区间的，那么中间点 `mid` 总会把当前区间 `[left, right]` 分成两段，一段是有序的，一段是无序的：
+  - 如果 `nums[mid] > nums[left]`，肯定是左半区间有序；
+  - 如果 `nums[mid] < nums[right-1]`，肯定是右半区间有序；【之所以 `-1`，是因为 `right` 初始为数组长度 `n`，直接取 `right` 会导致越界】
+
+    ![image-20240209222157035.png](https://pic.leetcode.cn/1707489848-myBZyA-image-20240209222157035.png)
+
+二分的策略还是一样的，二分的关键是**要判断 `target` 落在哪个区间**。我们只能取有序的那个区间来比较，因为只有区间有序，才能 **通过端点值的大小比较判断是否落入对应的区间**
+
+![image-20240209222248389.png](https://pic.leetcode.cn/1707489848-zHIvjX-image-20240209222248389.png)
+
+因此我们只要能够每次判断目标值落到哪个区间，就可以通过二分排除另一半的区间，并不一定要求必须整个数组有序。
+
+## 算法过程示例图
+
+![image-20240209222730183.png](https://pic.leetcode.cn/1707489848-WYfVDK-image-20240209222730183.png)
+
+# 代码
+
+* []
+
+```Java
+class Solution {
+    public int search(int[] nums, int target) {
+        int left = 0;              // 二分查找左边界（左闭）
+        int right = nums.length;    // 二分查找右边界（右开）
+        while(left < right){
+            int mid = left + ((right - left) >> 1);   
+            if(nums[mid] == target){
+                // 找到目标值，直接返回索引
+                return mid;
+            }
+            if(nums[left] < nums[mid]){
+                // 左半区间有序
+                if(nums[left] <= target && target < nums[mid]){
+                    right = mid;    // 目标值落入左半区间，更新右边界
+                }else{  
+                    left = mid + 1; // 否则在右半区间查找
+                }
+            }else{
+                // 右半区间有序
+                if(nums[mid] < target && target <= nums[right -1]){
+                    left = mid + 1; // 目标值落入右半区间，更新左边界
+                }else{
+                    right = mid;    // 否则在左半区间查找
+                }
+            }
+        }
+        return -1;  // 如果退出循环，说明没有找到目标值，返回-1
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def search(self, nums: List[int], target: int) -> int:
+        left = 0              # 二分查找左边界（左闭）
+        right = len(nums)    # 二分查找右边界（右开）
+        
+        while left < right:
+            mid = left + ((right - left) >> 1)   
+            if nums[mid] == target:
+                # 找到目标值，直接返回索引
+                return mid
+            if nums[left] < nums[mid]:
+                # 左半区间有序
+                if nums[left] <= target and target < nums[mid]:
+                    right = mid    # 目标值落入左半区间，更新右边界
+                else:  
+                    left = mid + 1 # 否则在右半区间查找
+            else:
+                # 右半区间有序
+                if nums[mid] < target and target <= nums[right -1]:
+                    left = mid + 1 # 目标值落入右半区间，更新左边界
+                else:
+                    right = mid    # 否则在左半区间查找
+
+        return -1  # 如果退出循环，说明没有找到目标值，返回-1
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    int search(vector<int>& nums, int target) {
+        int left = 0;              // 二分查找左边界（左闭）
+        int right = nums.size();    // 二分查找右边界（右开）
+        while(left < right){
+            int mid = left + ((right - left) >> 1);   
+            if(nums[mid] == target){
+                // 找到目标值，直接返回索引
+                return mid;
+            }
+            if(nums[left] < nums[mid]){
+                // 左半区间有序
+                if(nums[left] <= target && target < nums[mid]){
+                    right = mid;    // 目标值落入左半区间，更新右边界
+                }else{  
+                    left = mid + 1; // 否则在右半区间查找
+                }
+            }else{
+                // 右半区间有序
+                if(nums[mid] < target && target <= nums[right -1]){
+                    left = mid + 1; // 目标值落入右半区间，更新左边界
+                }else{
+                    right = mid;    // 否则在左半区间查找
+                }
+            }
+        }
+        return -1;  // 如果退出循环，说明没有找到目标值，返回-1
+    }
+};
+```
+
