@@ -1,0 +1,44 @@
+> Problem: [55. 跳跃游戏](https://leetcode.cn/problems/jump-game/description/)
+
+[TOC]
+
+# 思路
+
+> 定义一个长度变量，初始为0，从后向前遍历，如果前一个点能到达当前点，则len=1，更新上一个点为当前点，继续往前遍历否则，len++继续向前搜索，知道第一个点。
+
+# 解题过程
+
+> 这些方法具体怎么运用？
+
+# 复杂度
+
+- 时间复杂度: $O(n)$每个点只需要遍历一次
+- 空间复杂度: $O(1)$不需要额外变量
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public boolean canJump(int[] nums) {
+        int n=nums.length;
+        boolean ans=false;
+        int len=0;//初始化为0，表示目前点是最后一个点
+        if(n==1) return true;//长度为1的一定true，也可以不判断
+        if(nums[0]==0) return false;//第一个为0的一定false，也可以不判断
+        for(int i=n-1;i>=0;i--){//从后向前遍历
+            if(nums[i]>=len){
+                len=1;//寻找到，长度重新置为1
+                ans=true;
+            }else{
+                len++;//长度加一继续寻找
+                ans=false;
+            }
+        }
+        return ans;
+
+    }
+}
+```
+
