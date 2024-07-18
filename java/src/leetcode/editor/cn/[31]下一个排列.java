@@ -55,7 +55,33 @@
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public void nextPermutation(int[] nums) {
-
+        int i = nums.length - 1;
+        int j = nums.length - 1;
+        for (; i > 0; i--) {
+            if (nums[i] > nums[i - 1]) {
+                break;
+            }
+        }
+        if(i - 1 >= 0){
+            for (; j > i; j--) {
+                if (nums[j] > nums[i - 1]) {
+                    break;
+                }
+            }
+            if (j >= 0) {
+                int t = nums[j];
+                nums[j] = nums[i - 1];
+                nums[i - 1] = t;
+            }
+        }
+        j = nums.length - 1;
+        while (i < j) {
+            int t = nums[j];
+            nums[j] = nums[i];
+            nums[i] = t;
+            i++;
+            j--;
+        }
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)
