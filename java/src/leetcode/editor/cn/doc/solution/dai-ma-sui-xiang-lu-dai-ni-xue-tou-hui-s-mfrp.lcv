@@ -1,0 +1,540 @@
+# 算法公开课
+
+**《代码随想录》算法视频公开课：[组合与排列的区别，回溯算法求解的时候，有何不同？| LeetCode：46.全排列](https://www.bilibili.com/video/BV19v4y1S79W/)，相信结合视频再看本篇题解，更有助于大家对本题的理解**。
+
+## 思路
+
+此时我们已经学习了[77.组合问题](https://programmercarl.com/0077.组合.html)、 [131.分割回文串](https://programmercarl.com/0131.分割回文串.html)和[78.子集问题](https://programmercarl.com/0078.子集.html)，接下来看一看排列问题。
+
+相信这个排列问题就算是让你用for循环暴力把结果搜索出来，这个暴力也不是很好写。
+
+所以正如我们在[关于回溯算法，你该了解这些！](https://programmercarl.com/回溯算法理论基础.html)所讲的为什么回溯法是暴力搜索，效率这么低，还要用它？
+
+**因为一些问题能暴力搜出来就已经很不错了！**
+
+我以[1,2,3]为例，抽象成树形结构如下：
+
+![image.png](https://pic.leetcode.cn/1674875632-abWPjF-image.png)
+
+### 回溯三部曲
+
+* 递归函数参数
+
+**首先排列是有序的，也就是说 [1,2] 和 [2,1] 是两个集合，这和之前分析的子集以及组合所不同的地方**。
+
+可以看出元素1在[1,2]中已经使用过了，但是在[2,1]中还要在使用一次1，所以处理排列问题就不用使用startIndex了。
+
+但排列问题需要一个used数组，标记已经选择的元素，如图橘黄色部分所示:
+
+![image.png](https://pic.leetcode.cn/1674875664-WFuENf-image.png)
+
+代码如下：
+
+* cpp
+
+```cpp
+vector<vector<int>> result;
+vector<int> path;
+void backtracking (vector<int>& nums, vector<bool>& used)
+```
+
+* 递归终止条件
+
+![image.png](https://pic.leetcode.cn/1674875664-WFuENf-image.png)
+
+可以看出叶子节点，就是收割结果的地方。
+
+那么什么时候，算是到达叶子节点呢？
+
+当收集元素的数组path的大小达到和nums数组一样大的时候，说明找到了一个全排列，也表示到达了叶子节点。
+
+代码如下：
+
+* cpp
+
+```cpp
+// 此时说明找到了一组
+if (path.size() == nums.size()) {
+    result.push_back(path);
+    return;
+}
+```
+
+* 单层搜索的逻辑
+
+这里和[77.组合问题](https://programmercarl.com/0077.组合.html)、[131.切割问题](https://programmercarl.com/0131.分割回文串.html)和[78.子集问题](https://programmercarl.com/0078.子集.html)最大的不同就是for循环里不用startIndex了。
+
+因为排列问题，每次都要从头开始搜索，例如元素1在[1,2]中已经使用过了，但是在[2,1]中还要再使用一次1。
+
+**而used数组，其实就是记录此时path里都有哪些元素使用了，一个排列里一个元素只能使用一次**。
+
+代码如下：
+
+* cpp
+
+```cpp
+for (int i = 0; i < nums.size(); i++) {
+    if (used[i] == true) continue; // path里已经收录的元素，直接跳过
+    used[i] = true;
+    path.push_back(nums[i]);
+    backtracking(nums, used);
+    path.pop_back();
+    used[i] = false;
+}
+```
+
+整体C++代码如下：
+
+* CPP
+
+```CPP
+class Solution {
+public:
+    vector<vector<int>> result;
+    vector<int> path;
+    void backtracking (vector<int>& nums, vector<bool>& used) {
+        // 此时说明找到了一组
+        if (path.size() == nums.size()) {
+            result.push_back(path);
+            return;
+        }
+        for (int i = 0; i < nums.size(); i++) {
+            if (used[i] == true) continue; // path里已经收录的元素，直接跳过
+            used[i] = true;
+            path.push_back(nums[i]);
+            backtracking(nums, used);
+            path.pop_back();
+            used[i] = false;
+        }
+    }
+    vector<vector<int>> permute(vector<int>& nums) {
+        result.clear();
+        path.clear();
+        vector<bool> used(nums.size(), false);
+        backtracking(nums, used);
+        return result;
+    }
+};
+```
+
+## 总结
+
+大家此时可以感受出排列问题的不同：
+
+* 每层都是从0开始搜索而不是startIndex
+* 需要used数组记录path里都放了哪些元素了
+
+排列问题是回溯算法解决的经典题目，大家可以好好体会体会。
+
+## 其他语言版本
+
+* []
+
+```java
+class Solution {
+
+    List<List<Integer>> result = new ArrayList<>();// 存放符合条件结果的集合
+    LinkedList<Integer> path = new LinkedList<>();// 用来存放符合条件结果
+    boolean[] used;
+    public List<List<Integer>> permute(int[] nums) {
+        if (nums.length == 0){
+            return result;
+        }
+        used = new boolean[nums.length];
+        permuteHelper(nums);
+        return result;
+    }
+
+    private void permuteHelper(int[] nums){
+        if (path.size() == nums.length){
+            result.add(new ArrayList<>(path));
+            return;
+        }
+        for (int i = 0; i < nums.length; i++){
+            if (used[i]){
+                continue;
+            }
+            used[i] = true;
+            path.add(nums[i]);
+            permuteHelper(nums);
+            path.removeLast();
+            used[i] = false;
+        }
+    }
+}
+
+// 解法2：通过判断path中是否存在数字，排除已经选择的数字
+class Solution {
+    List<List<Integer>> result = new ArrayList<>();
+    LinkedList<Integer> path = new LinkedList<>();
+    public List<List<Integer>> permute(int[] nums) {
+        if (nums.length == 0) return result;
+        backtrack(nums, path);
+        return result;
+    }
+    public void backtrack(int[] nums, LinkedList<Integer> path) {
+        if (path.size() == nums.length) {
+            result.add(new ArrayList<>(path));
+        }
+        for (int i =0; i < nums.length; i++) {
+            // 如果path中已有，则跳过
+            if (path.contains(nums[i])) {
+                continue;
+            } 
+            path.add(nums[i]);
+            backtrack(nums, path);
+            path.removeLast();
+        }
+    }
+}
+```
+
+* []
+
+```python
+# **回溯**
+class Solution:
+    def __init__(self):
+        self.path = []
+        self.paths = []
+
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        '''
+        因为本题排列是有序的，这意味着同一层的元素可以重复使用，但同一树枝上不能重复使用(usage_list)
+        所以处理排列问题每层都需要从头搜索，故不再使用start_index
+        '''
+        usage_list = [False] * len(nums)
+        self.backtracking(nums, usage_list)
+        return self.paths
+
+    def backtracking(self, nums: List[int], usage_list: List[bool]) -> None:
+        # Base Case本题求叶子节点
+        if len(self.path) == len(nums):
+            self.paths.append(self.path[:])
+            return
+
+        # 单层递归逻辑
+        for i in range(0, len(nums)):  # 从头开始搜索
+            # 若遇到self.path里已收录的元素，跳过
+            if usage_list[i] == True:
+                continue
+            usage_list[i] = True
+            self.path.append(nums[i])
+            self.backtracking(nums, usage_list)     # 纵向传递使用信息，去重
+            self.path.pop()
+            usage_list[i] = False
+
+ # **回溯+丢掉usage_list**
+class Solution:
+    def __init__(self):
+        self.path = []
+        self.paths = []
+
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        '''
+        因为本题排列是有序的，这意味着同一层的元素可以重复使用，但同一树枝上不能重复使用
+        所以处理排列问题每层都需要从头搜索，故不再使用start_index
+        '''
+        self.backtracking(nums)
+        return self.paths
+
+    def backtracking(self, nums: List[int]) -> None:
+        # Base Case本题求叶子节点
+        if len(self.path) == len(nums):
+            self.paths.append(self.path[:])
+            return
+
+        # 单层递归逻辑
+        for i in range(0, len(nums)):  # 从头开始搜索
+            # 若遇到self.path里已收录的元素，跳过
+            if nums[i] in self.path:
+                continue
+            self.path.append(nums[i])
+            self.backtracking(nums)
+            self.path.pop()
+```
+
+* []
+
+```Go
+var (
+    res [][]int
+    path  []int
+    st    []bool   // state的缩写
+)
+func permute(nums []int) [][]int {
+    res, path = make([][]int, 0), make([]int, 0, len(nums))
+    st = make([]bool, len(nums))
+    dfs(nums, 0)
+    return res
+}
+
+func dfs(nums []int, cur int) {
+    if cur == len(nums) {
+        tmp := make([]int, len(path))
+        copy(tmp, path)
+        res = append(res, tmp)
+    }
+    for i := 0; i < len(nums); i++ {
+        if !st[i] {
+            path = append(path, nums[i])
+            st[i] = true
+            dfs(nums, cur + 1)
+            st[i] = false
+            path = path[:len(path)-1]
+        }
+    }
+}
+```
+
+* []
+
+```js
+
+/**
+ * @param {number[]} nums
+ * @return {number[][]}
+ */
+var permute = function(nums) {
+    const res = [], path = [];
+    backtracking(nums, nums.length, []);
+    return res;
+    
+    function backtracking(n, k, used) {
+        if(path.length === k) {
+            res.push(Array.from(path));
+            return;
+        }
+        for (let i = 0; i < k; i++ ) {
+            if(used[i]) continue;
+            path.push(n[i]);
+            used[i] = true; // 同支
+            backtracking(n, k, used);
+            path.pop();
+            used[i] = false;
+        }
+    }
+};
+
+```
+
+* []
+
+```typescript
+function permute(nums: number[]): number[][] {
+    const resArr: number[][] = [];
+    const helperSet: Set<number> = new Set();
+    backTracking(nums, []);
+    return resArr;
+    function backTracking(nums: number[], route: number[]): void {
+        if (route.length === nums.length) {
+            resArr.push([...route]);
+            return;
+        }
+        let tempVal: number;
+        for (let i = 0, length = nums.length; i < length; i++) {
+            tempVal = nums[i];
+            if (!helperSet.has(tempVal)) {
+                route.push(tempVal);
+                helperSet.add(tempVal);
+                backTracking(nums, route);
+                route.pop();
+                helperSet.delete(tempVal);
+            }
+        }
+    }
+};
+```
+
+* []
+
+```Rust
+impl Solution {
+    fn backtracking(result: &mut Vec<Vec<i32>>, path: &mut Vec<i32>, nums: &Vec<i32>, used: &mut Vec<bool>) {
+        let len = nums.len();
+        if path.len() == len {
+            result.push(path.clone());
+            return;
+        }
+        for i in 0..len {
+            if used[i] == true { continue; }
+            used[i] = true;
+            path.push(nums[i]);
+            Self::backtracking(result, path, nums, used);
+            path.pop();
+            used[i] = false;
+        }
+    }
+
+    pub fn permute(nums: Vec<i32>) -> Vec<Vec<i32>> {
+        let mut result: Vec<Vec<i32>> = Vec::new();
+        let mut path: Vec<i32> = Vec::new();
+        let mut used = vec![false; nums.len()];
+        Self::backtracking(&mut result, &mut path, &nums, &mut used);
+        result
+    }
+}
+```
+
+* []
+
+```c
+int* path;
+int pathTop;
+int** ans;
+int ansTop;
+
+//将used中元素都设置为0
+void initialize(int* used, int usedLength) {
+    int i;
+    for(i = 0; i < usedLength; i++) {
+        used[i] = 0;
+    }
+}
+
+//将path中元素拷贝到ans中
+void copy() {
+    int* tempPath = (int*)malloc(sizeof(int) * pathTop);
+    int i;
+    for(i = 0; i < pathTop; i++) {
+        tempPath[i] = path[i];
+    }
+    ans[ansTop++] = tempPath;
+}
+
+void backTracking(int* nums, int numsSize, int* used) {
+    //若path中元素个数等于nums元素个数，将nums放入ans中
+    if(pathTop == numsSize) {
+        copy();
+        return;
+    }
+    int i;
+    for(i = 0; i < numsSize; i++) {
+        //若当前下标中元素已使用过，则跳过当前元素
+        if(used[i])
+            continue;
+        used[i] = 1;
+        path[pathTop++] = nums[i];
+        backTracking(nums, numsSize, used);
+        //回溯
+        pathTop--;
+        used[i] = 0;
+    }
+}
+
+int** permute(int* nums, int numsSize, int* returnSize, int** returnColumnSizes){
+    //初始化辅助变量
+    path = (int*)malloc(sizeof(int) * numsSize);
+    ans = (int**)malloc(sizeof(int*) * 1000);
+    int* used = (int*)malloc(sizeof(int) * numsSize);
+    //将used数组中元素都置0
+    initialize(used, numsSize);
+    ansTop = pathTop = 0;
+
+    backTracking(nums, numsSize, used);
+
+    //设置path和ans数组的长度
+    *returnSize = ansTop;
+    *returnColumnSizes = (int*)malloc(sizeof(int) * ansTop);
+    int i;
+    for(i = 0; i < ansTop; i++) {
+        (*returnColumnSizes)[i] = numsSize;
+    }
+    return ans;
+}
+```
+
+* []
+
+```swift
+func permute(_ nums: [Int]) -> [[Int]] {
+    var result = [[Int]]()
+    var path = [Int]()
+    var used = [Bool](repeating: false, count: nums.count) // 记录path中已包含的元素
+    func backtracking() {
+        // 结束条件，收集结果
+        if path.count == nums.count {
+            result.append(path)
+            return
+        }
+
+        for i in 0 ..< nums.count {
+            if used[i] { continue } // 排除已包含的元素
+            used[i] = true
+            path.append(nums[i])
+            backtracking()
+            // 回溯
+            path.removeLast()
+            used[i] = false
+        }
+    }
+    backtracking()
+    return result
+}
+```
+
+* []
+
+```scala
+object Solution {
+  import scala.collection.mutable
+  def permute(nums: Array[Int]): List[List[Int]] = {
+    var result = mutable.ListBuffer[List[Int]]()
+    var path = mutable.ListBuffer[Int]()
+
+    def backtracking(used: Array[Boolean]): Unit = {
+      if (path.size == nums.size) {
+        // 如果path的长度和nums相等，那么可以添加到结果集
+        result.append(path.toList)
+        return
+      }
+      // 添加循环守卫，只有当当前数字没有用过的情况下才进入回溯
+      for (i <- nums.indices if used(i) == false) {
+        used(i) = true
+        path.append(nums(i))
+        backtracking(used) // 回溯
+        path.remove(path.size - 1)
+        used(i) = false
+      }
+    }
+
+    backtracking(new Array[Boolean](nums.size)) // 调用方法
+    result.toList // 最终返回结果集的List形式
+  }
+}
+```
+
+# 回溯算法力扣题目总结
+
+按照如下顺序刷力扣上的题目，相信会帮你在学习回溯算法的路上少走很多弯路。
+
+* [关于回溯算法，你该了解这些！](https://programmercarl.com/回溯算法理论基础.html)
+* 组合问题
+  * [77.组合](https://programmercarl.com/0077.组合.html)
+  * [216.组合总和III](https://programmercarl.com/0216.组合总和III.html)
+  * [17.电话号码的字母组合](https://programmercarl.com/0017.电话号码的字母组合.html)
+  * [39.组合总和](https://programmercarl.com/0039.组合总和.html)
+  * [40.组合总和II](https://programmercarl.com/0040.组合总和II.html)
+* 分割问题
+  * [131.分割回文串](https://programmercarl.com/0131.分割回文串.html)
+  * [93.复原IP地址](https://programmercarl.com/0093.复原IP地址.html)
+* 子集问题
+  * [78.子集](https://programmercarl.com/0078.子集.html)
+  * [90.子集II](https://programmercarl.com/0090.子集II.html)
+* 排列问题
+  * [46.全排列](https://programmercarl.com/0046.全排列.html)
+  * [47.全排列II](https://programmercarl.com/0047.全排列II.html)
+* 棋盘问题
+  * [51.N皇后](https://programmercarl.com/0051.N皇后.html)
+  * [37.解数独](https://programmercarl.com/0037.解数独.html)
+* 其他
+  * [491.递增子序列](https://programmercarl.com/0491.递增子序列.html)
+  * [332.重新安排行程](https://programmercarl.com/0332.重新安排行程.html)
+* [回溯算法总结篇](https://programmercarl.com/回溯总结.html)
+
+-----------
+
+大家好，我是程序员Carl，如果你还在没有章法的刷题，**建议按照[代码随想录刷题路线](https://programmercarl.com/)来刷**，并提供[PDF下载](https://programmercarl.com/other/algo_pdf.html)，刷题路线同时也开源在[Github](https://github.com/youngyangyang04/leetcode-master)上，你会发现详见很晚！
+
+**如果感觉题解对你有帮助，不要吝啬给一个👍吧！**
+
