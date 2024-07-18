@@ -1,0 +1,122 @@
+视频讲解：[【基础算法精讲 16】](https://www.bilibili.com/video/BV1mY411D7f6/)，制作不易，欢迎点赞！
+
+> APP 用户需要分享到 wx 打开。
+
+* [sol1-Python3]
+
+```py
+class Solution:
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        n = len(nums)
+        ans = []
+        path = [0] * n
+        on_path = [False] * n
+        def dfs(i: int) -> None:
+            if i == n:
+                ans.append(path.copy())
+                return
+            for j, on in enumerate(on_path):
+                if not on:
+                    path[i] = nums[j]
+                    on_path[j] = True
+                    dfs(i + 1)
+                    on_path[j] = False  # 恢复现场
+        dfs(0)
+        return ans
+```
+
+* [sol1-Java]
+
+```java
+class Solution {
+    private int[] nums;
+    private List<Integer> path;
+    private boolean[] onPath;
+    private final List<List<Integer>> ans = new ArrayList<>();
+
+    public List<List<Integer>> permute(int[] nums) {
+        this.nums = nums;
+        path = Arrays.asList(new Integer[nums.length]);
+        onPath = new boolean[nums.length];
+        dfs(0);
+        return ans;
+    }
+
+    private void dfs(int i) {
+        if (i == nums.length) {
+            ans.add(new ArrayList<>(path));
+            return;
+        }
+        for (int j = 0; j < nums.length; ++j) {
+            if (!onPath[j]) {
+                path.set(i, nums[j]);
+                onPath[j] = true;
+                dfs(i + 1);
+                onPath[j] = false; // 恢复现场
+            }
+        }
+    }
+}
+```
+
+* [sol1-C++]
+
+```cpp
+class Solution {
+public:
+    vector<vector<int>> permute(vector<int> &nums) {
+        int n = nums.size();
+        vector<vector<int>> ans;
+        vector<int> path(n), on_path(n);
+        function<void(int)> dfs = [&](int i) {
+            if (i == n) {
+                ans.emplace_back(path);
+                return;
+            }
+            for (int j = 0; j < n; ++j) {
+                if (!on_path[j]) {
+                    path[i] = nums[j];
+                    on_path[j] = true;
+                    dfs(i + 1);
+                    on_path[j] = false; // 恢复现场
+                }
+            }
+        };
+        dfs(0);
+        return ans;
+    }
+};
+```
+
+* [sol1-Go]
+
+```go
+func permute(nums []int) (ans [][]int) {
+    n := len(nums)
+    path := make([]int, n)
+    onPath := make([]bool, n)
+    var dfs func(int)
+    dfs = func(i int) {
+        if i == n {
+            ans = append(ans, append([]int(nil), path...))
+            return
+        }
+        for j, on := range onPath {
+            if !on {
+                path[i] = nums[j]
+                onPath[j] = true
+                dfs(i + 1)
+                onPath[j] = false
+            }
+        }
+    }
+    dfs(0)
+    return
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$O(n\cdot n!)$，其中 $n$ 为 $\textit{nums}$ 的长度。视频中提到，搜索树中的节点个数低于 $3\cdot n!$。实际上，精确值为 $\left\lfloor e\cdot n!\right\rfloor$，其中 $e=2.718\cdots$ 为自然常数。每个非叶节点要花费 $O(n)$ 的时间遍历 $\textit{onPath}$ 数组，每个叶结点也要花费 $O(n)$ 的时间复制 $\textit{path}$ 数组，因此时间复杂度为 $O(n\cdot n!)$。
+- 空间复杂度：$O(n)$。返回值的空间不计入。
+
