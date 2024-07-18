@@ -35,23 +35,27 @@ import java.util.Arrays;
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public List<String> generateParenthesis(int n) {
-        if (n == 1) {
-            return Arrays.asList("()");
-        }
-        if (n == 2) {
-            return Arrays.asList("(())", "()()");
-        }
-        List<String> list = generateParenthesis(--n);
         List<String> res = new ArrayList<>();
-        for (int i = 0; i < list.size(); i++) {
-            res.add("(" + list.get(i) + ")");
-            res.add("()" + list.get(i));
-            if (i != list.size() - 1) {
-                res.add(list.get(i) + "()");
-            }
-        }
+        a(res, new StringBuilder(), 0, 0, n);
 
         return res;
+    }
+
+    void a(List<String> list, StringBuilder sb, int i, int j, int n) {
+        if (sb.length() == n * 2) {
+            list.add(sb.toString());
+            return;
+        }
+        if (i < n) {
+            sb.append("(");
+            a(list, sb, i + 1, j, n);
+            sb.deleteCharAt(sb.length() - 1);
+        }
+        if (j < i) {
+            sb.append(")");
+            a(list, sb, i, j + 1, n);
+            sb.deleteCharAt(sb.length() - 1);
+        }
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)
