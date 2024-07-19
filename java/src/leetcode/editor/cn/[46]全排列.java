@@ -39,7 +39,24 @@
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public List<List<Integer>> permute(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        List<Integer> list = new ArrayList<>();
+        for (int num : nums) {
+            list.add(num);
+        }
+        a(res, list, 0);
+        return res;
+    }
 
+    void a(List<List<Integer>> res, List<Integer> list, int i) {
+        if (i == list.size()) {
+            res.add(new ArrayList<>(list));
+        }
+        for (int j = i; j < list.size(); j++) {
+            Collections.swap(list, j, i);
+            a(res, list, i + 1);
+            Collections.swap(list, j, i);
+        }
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)
