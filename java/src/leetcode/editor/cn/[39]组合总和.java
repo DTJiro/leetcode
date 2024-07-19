@@ -44,10 +44,32 @@
 // Related Topics 数组 回溯 👍 2840 👎 0
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        List<List<Integer>> res = new ArrayList<>();
+        List<Integer> list = new ArrayList<>();
+        Arrays.sort(candidates);
+        a(candidates, target, res, list, 0);
+        return res;
+    }
 
+    void a(int[] candidates, int target, List<List<Integer>> res, List<Integer> list, int idx) {
+        if (target == 0) {
+            res.add(new ArrayList<>(list));
+            return;
+        }
+        for (int i = idx; i < candidates.length; i++) {
+            if (target - candidates[i] < 0) {
+                break;
+            }
+            list.add(candidates[i]);
+            a(candidates, target - candidates[i], res, list, i);
+            list.remove(list.size() - 1);
+        }
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)
