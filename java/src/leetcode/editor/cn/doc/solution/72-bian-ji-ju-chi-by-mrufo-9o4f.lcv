@@ -1,0 +1,41 @@
+### 解题思路
+
+/*
+使用动态规划
+dp[i][j]表示word1中前i个字符转成word2中前j个字符所使用的最少操作数
+如果word1[i-1] == word2[j-1] 则dp[i][j] = dp[i-1][j-1]
+否则需考虑通过插入、删除、替换3种情况得来的最小值即可
+其中，插入是dp[i][j-1],删除是dp[i-1][j],替换是dp[i-1][j-1]
+考虑两种特殊情况，当word1为空时，只能通过插入操作，当word2为空只能通过删除操作
+*/
+
+### 代码
+
+* cpp
+
+```cpp
+
+class Solution {
+public:
+    int minDistance(string word1, string word2) {
+        int n = word1.size(),m = word2.size();
+        if(n * m == 0) return n + m; //考虑至少其中一个为空的特殊情况
+        vector<vector<int>> dp(n+1,vector<int>(m+1,0));
+        for(int i = 0;i < n+1;i++)
+            dp[i][0] = i;
+        for(int j = 1;j < m+1;j++)
+            dp[0][j] = j;
+        for(int i = 1;i < n+1;i++)
+            for(int j = 1;j < m+1;j++)
+            {
+                if(word1[i-1] == word2[j-1])
+                    dp[i][j] = dp[i-1][j-1];
+                else
+                    dp[i][j] = min(dp[i-1][j-1],min(dp[i-1][j],dp[i][j-1])) + 1;
+            }
+        return dp[n][m];
+
+    }
+};
+```
+

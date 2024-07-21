@@ -1,0 +1,257 @@
+> [64. 最小路径和](https://leetcode.cn/problems/minimum-path-sum/)
+
+[TOC]
+
+# 题目
+
+给定一个包含非负整数的 `m x n` 网格 `grid` ，请找出一条从左上角到右下角的路径，使得路径上的数字总和为最小。
+
+**说明：**每次只能向下或者向右移动一步。
+
+# 题目分析
+
+## 思路分析
+
+这道题算是网格图动态规划的基础题，要求从左上角转移到右下角的最小路径和，每次只能往右走或者往下走。换句话说，对于位置 `(i, j)`，其只能从 `(i-1, j)` 和 `(i, j-1)` 两个位置转移而来。我们设 `dp[i][j]` 表示到达位置 `(i, j)` 的最小路径和。那么 `dp[i][j]` 肯定要从 `dp[i-1][j]` 和 `dp[i][j-1]` 中那个更小的状态转移过来，因此状态转移方程为：`dp[i][j] = min(dp[i][j-1], dp[i-1][j]) + grid[i][j]`。
+
+![image-20240407221330244.png](https://pic.leetcode.cn/1712500459-bMZJFY-image-20240407221330244.png)
+
+边界条件：
+
+- 当 `i = 0, j = 0` 时，即左上角位置，其左侧和上侧单元格都不存在，`dp[0][0] = grid[0][0]`；
+- 当 `i = 0, j ≠ 0` 时，即首行元素，其上侧单元格不存在，`dp[0][j] = dp[0][j-1] + grid[0][j]`;
+- 当 `i ≠ 0, j = 0` 时，即首列元素，其左侧单元格不存在，`dp[i][0] = dp[i-1][0] + grid[i][0]`;
+
+因此我们需要对这部分边界条件进行单独处理，再进行常规的状态转移。
+
+### 代码
+
+* []
+
+```Java
+class Solution {
+    public int minPathSum(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        int[][] dp = new int[m][n];     // dp[i][j]表示到达grid[i][j]的最小路径和
+        dp[0][0] = grid[0][0];          // 特殊处理左上角元素
+        for(int j = 1; j < n; j++){
+            dp[0][j] = dp[0][j - 1] + grid[0][j];   // 特殊处理首行非左上角元素，仅能从左侧转移
+        }
+        for(int i = 1; i < m; i++){
+            dp[i][0] = dp[i-1][0] + grid[i][0];   // 特殊处理首列非左上角元素，仅能从上侧转移
+        }
+        // 处理非首行首列网格状态
+        for(int i = 1; i < m; i++){
+            for(int j = 1; j < n; j++){
+                dp[i][j] = Math.min(dp[i][j-1], dp[i-1][j]) + grid[i][j]; 
+            }
+        }
+        return dp[m-1][n-1];   // 最终存储的是到达grid[m-1][n-1]的最小路径和
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def minPathSum(self, grid: List[List[int]]) -> int:
+        m = len(grid)
+        n = len(grid[0])
+        dp = [[0] * n for _ in range(m)]     # dp[i][j]表示到达grid[i][j]的最小路径和
+        dp[0][0] = grid[0][0]             # 特殊处理左上角元素
+        for j in range(1, n):
+            dp[0][j] = dp[0][j - 1] + grid[0][j]   # 特殊处理首行非左上角元素，仅能从左侧转移
+        for i in range(1, m):
+            dp[i][0] = dp[i-1][0] + grid[i][0]   # 特殊处理首列非左上角元素，仅能从上侧转移
+        # 处理非首行首列网格状态
+        for i in range(1, m):
+            for j in range(1, n):
+                dp[i][j] = min(dp[i][j-1], dp[i-1][j]) + grid[i][j] 
+        return dp[m-1][n-1]   # 最终存储的是到达grid[m-1][n-1]的最小路径和
+```
+
+* c++
+
+```c++
+class Solution {
+public:
+    int minPathSum(vector<vector<int>>& grid) {
+        int m = grid.size();
+        int n = grid[0].size();
+        vector<vector<int>> dp(m, vector<int>(n)); // dp[i][j]表示到达grid[i][j]的最小路径和
+        dp[0][0] = grid[0][0];  // 特殊处理左上角元素
+        for(int j = 1; j < n; j++){
+            dp[0][j] = dp[0][j - 1] + grid[0][j];   // 特殊处理首行非左上角元素，仅能从左侧转移
+        }
+        for(int i = 1; i < m; i++){
+            dp[i][0] = dp[i-1][0] + grid[i][0];   // 特殊处理首列非左上角元素，仅能从上侧转移
+        }
+        // 处理非首行首列网格状态
+        for(int i = 1; i < m; i++){
+            for(int j = 1; j < n; j++){
+                dp[i][j] = min(dp[i][j-1], dp[i-1][j]) + grid[i][j]; 
+            }
+        }
+        return dp[m-1][n-1];   // 最终存储的是到达grid[m-1][n-1]的最小路径和
+    }
+};
+```
+
+## 统一处理
+
+由上可知，首行和首列网格各自都少一个转移方向，是因为索引添加了。那如果分别补上一行和一列呢？则 `i - 1` 和 `j - 1` 不在越界。同时由于多加了一行一列，因此原本 `dp[i][j]` 表示 `(i,j)` 的状态就变成了 `dp[i+1][j+1]`，状态转移方程则变为 `dp[i+1][j+1] = min(dp[i][j+1], dp[i+1][j]) + grid[i][j]`。
+
+![image-20240407223124390.png](https://pic.leetcode.cn/1712500459-aacDDk-image-20240407223124390.png)
+
+虽然我们补上了一行一列， 但我们并不能改变首行首列只能获取一个方向的转移状态。比如首行元素，`dp[1][j+1] = min(dp[0][j+1], dp[1][j]) + grid[i][j]`，我们要保证最小值操作一定取到的是 `dp[1][j]`，因此应该让 `dp[0][j+1]` 是一个极大值，保证不会取到它。同理首列元素，`dp[i+1][1] = min(dp[i][1], dp[i+1][0]) + grid[i][j]`，应该让 `dp[i+1][0]`是一个极大值，保证不会取到它。
+
+即**我们可以初始令 `dp` 都所有元素都为一个极大值**。
+
+**特别的，对于起点 `(0, 0)`**，`dp[1][1] = grid[0][0]`，即 `min(dp[0][1], dp[1][0]) = 0`，因此我们应该让 `dp[0][1] = dp[1][0] = 1`。
+
+### 代码
+
+* []
+
+```Java
+class Solution {
+    public int minPathSum(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        int[][] dp = new int[m+1][n+1];     // dp[i+1][j+1]表示到达grid[i][j]的最小路径和
+        for(int i = 0; i <= m; i++){
+            Arrays.fill(dp[i], Integer.MAX_VALUE);
+        }
+        dp[0][1] = dp[1][0] = 0;  // 特殊处理处理dp[1][1]的左侧和上侧的状态，保证dp[1][1]=grid[0][0]
+        // 状态转移
+        for(int i = 0; i < m; i++){
+            for(int j = 0; j < n; j++){
+                dp[i+1][j+1] = Math.min(dp[i+1][j], dp[i][j+1]) + grid[i][j]; 
+            }
+        }
+        return dp[m][n];   // 最终存储的是到达grid[m-1][n-1]的最小路径和
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def minPathSum(self, grid: List[List[int]]) -> int:
+        MAX = 200 * 200 * 200 + 1
+        
+        m = len(grid)
+        n = len(grid[0])
+        dp = [[MAX] * (n+1) for _ in range(m+1)]     # dp[i][j]表示到达grid[i][j]的最小路径和
+        dp[0][1] = dp[1][0] = 0             # 特殊处理处理dp[1][1]的左侧和上侧的状态，保证dp[1][1]=grid[0][0]
+        
+        # 状态转移
+        for i in range(m):
+            for j in range(n):
+                dp[i+1][j+1] = min(dp[i+1][j], dp[i][j+1]) + grid[i][j] 
+        
+        return dp[m][n]   # 最终存储的是到达grid[m-1][n-1]的最小路径和
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    int minPathSum(vector<vector<int>>& grid) {
+        int m = grid.size();
+        int n = grid[0].size();
+        vector<vector<int>> dp(m+1, vector<int>(n+1, INT_MAX)); // dp[i+1][j+1]表示到达grid[i][j]的最小路径和
+        dp[0][1] = dp[1][0] = 0;  // 特殊处理处理dp[1][1]的左侧和上侧的状态，保证dp[1][1]=grid[0][0]
+        // 状态转移
+        for(int i = 0; i < m; i++){
+            for(int j = 0; j < n; j++){
+                dp[i+1][j+1] = min(dp[i+1][j], dp[i][j+1]) + grid[i][j]; 
+            }
+        }
+        return dp[m][n];   // 最终存储的是到达grid[m-1][n-1]的最小路径和
+    }
+};
+```
+
+## 空间优化
+
+我们可以看到，`dp[i+1][j+1]` 的状态转移，仅为其上一行状态 `dp[i][j+1]`和前一位状态 `dp[i+1][j]`有关。
+
+![image-20240407223325692.png](https://pic.leetcode.cn/1712500459-slQWXM-image-20240407223325692.png)
+
+因此我们完全没有必要用一个二维数组存储那么多个状态，而可以使用一个长度为 `j + 1` 的一维数组重复使用 `m` 次【`m`为行数】。
+
+![image-20240407223146727.png](https://pic.leetcode.cn/1712500459-dFcOKt-image-20240407223146727.png)
+
+### 代码
+
+* []
+
+```Java
+class Solution {
+    public int minPathSum(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        int[] dp = new int[n+1];    // dp[j+1]表示到达grid[i][j]的最小路径和
+        Arrays.fill(dp, Integer.MAX_VALUE);
+        dp[1] = 0;  // dp[1] = 0保证grid[0][0]的最小路径和为它本身
+        for(int i = 0; i < m; i++){
+            for(int j = 0; j < n; j++){
+                // dp[j+1] 等价于dp[i][j+1] 表示到达grid[i-1][j]的最小路径和
+                // dp[j] 等价于 dp[i+1][j] 表示到达grid[i][j-1]的最小路径和
+                dp[j + 1] = Math.min(dp[j + 1], dp[j]) + grid[i][j]; 
+            }
+        }
+        return dp[n];   // 最终存储的是到达grid[m-1][n-1]的最小路径和
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def minPathSum(self, grid: List[List[int]]) -> int:
+        MAX = 200 * 200 * 200 + 1
+        
+        m = len(grid)
+        n = len(grid[0])
+        dp = [MAX] * (n+1)    # dp[j+1]表示到达grid[i][j]的最小路径和
+        dp[1] =  0            # dp[1] = 0保证grid[0][0]的最小路径和为它本身
+        
+        # 状态转移
+        for i in range(m):
+            for j in range(n):
+                # dp[j+1] 等价于dp[i][j+1] 表示到达grid[i-1][j]的最小路径和
+                # dp[j] 等价于 dp[i+1][j] 表示到达grid[i][j-1]的最小路径和
+                dp[j + 1] = min(dp[j + 1], dp[j]) + grid[i][j]; 
+        
+        return dp[n]   # 最终存储的是到达grid[m-1][n-1]的最小路径和
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    int minPathSum(vector<vector<int>>& grid) {
+        int m = grid.size();
+        int n = grid[0].size();
+        vector<int> dp(n + 1, INT_MAX); // dp[j+1]表示到达grid[i][j]的最小路径和
+        dp[1] = 0;  // dp[1] = 0保证grid[0][0]的最小路径和为它本身
+        for(int i = 0; i < m; i++){
+            for(int j = 0; j < n; j++){
+                // dp[j+1] 等价于dp[i][j+1] 表示到达grid[i-1][j]的最小路径和
+                // dp[j] 等价于 dp[i+1][j] 表示到达grid[i][j-1]的最小路径和
+                dp[j + 1] = min(dp[j + 1], dp[j]) + grid[i][j]; 
+            }
+        }
+        return dp[n];   // 最终存储的是到达grid[m-1][n-1]的最小路径和
+    }
+};
+```
+
