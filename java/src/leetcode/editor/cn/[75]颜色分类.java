@@ -49,15 +49,16 @@
 class Solution {
     public void sortColors(int[] nums) {
         int p = 0;
-        int q = nums.length - 1;
-        for (int i = 0; i <= q; i++) {
-            while (i <= q && nums[i] == 2) {
-                int t = nums[q];
-                nums[q] = nums[i];
-                nums[i] = t;
-                q--;
-            }
+        for (int i = 0; i < nums.length; i++) {
             if (nums[i] == 0) {
+                int t = nums[i];
+                nums[i] = nums[p];
+                nums[p] = t;
+                p++;
+            }
+        }
+        for (int i = p; i < nums.length; i++) {
+            if (nums[i] == 1) {
                 int t = nums[i];
                 nums[i] = nums[p];
                 nums[p] = t;
