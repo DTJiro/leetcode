@@ -1,0 +1,57 @@
+上下左右搜索
+
+* 
+
+```
+class Solution {
+    boolean[][] vaild;
+    boolean res = false;
+    public boolean exist(char[][] board, String word) {
+        if ( board.length * board[0].length < word.length() ){
+            return false;
+        }
+        vaild = new boolean[board.length][board[0].length];
+        for ( int i = 0; i < board.length; i ++){
+            for ( int j = 0; j < board[i].length; j++){
+                if ( word.charAt(0) == board[i][j]){
+                vaild[i][j] = true;
+                helper(board,word,1,i,j);
+                vaild[i][j]= false;
+                }
+            }
+        }
+        return res;
+    }
+    private  void helper( char[][] board, String word, int index, int i, int j){
+        if ( word.length() == index){
+            res = true;
+            return ;
+        }
+        //上
+        if ( i > 0 && word.charAt(index) == board[i-1][j] && !vaild[i-1][j]){
+            vaild[i-1][j] = true;
+            helper(board,word,index+1,i - 1,j );
+            vaild[i-1][j] = false;
+        }
+        //下
+        if ( i < board.length - 1 && word.charAt(index) == board[i+1][j] && !vaild[i+1][j]){
+            vaild[i+1][j] = true;
+            helper(board,word,index+1,i + 1,j );
+            vaild[i+1][j] = false;
+        }
+        //左
+        if ( j > 0 && word.charAt(index) == board[i][j-1] && !vaild[i][j-1]){
+            vaild[i][j-1] = true;
+            helper(board,word,index+1,i,j - 1 );
+            vaild[i][j-1] = false;
+        }
+        //右
+        if ( j < board[0].length - 1 && word.charAt(index) == board[i][j+1] && !vaild[i][j + 1]){
+            vaild[i][j + 1] = true;
+            helper(board,word,index+1,i,j + 1 );
+            vaild[i][j + 1] = false;
+        }
+    }
+}
+```
+

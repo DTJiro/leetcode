@@ -1,0 +1,94 @@
+![image.png](https://pic.leetcode-cn.com/1646705272-OBzYKG-image.png)
+
+# 递归思考过程
+
+1. 首先，我们要知道二叉搜索树的性质，对于一个二叉搜索树，其 【**左边的节点值 < 中间的节点值 < 右边的节点值**】，也就是说，对于一个二叉搜索树，其中序遍历之后形成的数组应该是一个递增的序列，如下图：
+   ![image.png](https://pic.leetcode-cn.com/1646704427-qjlkfx-image.png)
+2. 我们不妨就假设我们拿到了一个中序遍历的数组**nums = [1,2,3,4,5,6,7]**，来思考一个这样的数组能延伸出多少种二叉搜索树。
+3. 首先，对于数组中的每一个元素，都有可能成为二叉树最顶部的root节点，例如上图中，是nums[4]这个值，即5，充当了root节点。
+4. 还拿5这个节点为例，即上图，其左边有四个节点，右边有两个节点。对于左边的四个节点，假设能延伸出 **n** 种二叉搜索树子树，对于右边的两个节点，假设能延伸出 **m** 种二叉搜索树子树。则以5为root节点时的二叉搜索树总数为 **m*n**
+5. 这样我们遍历刚刚的nums数组，以值i（注意不是下标）当做根节点，其左边有i-1个节点，右边有n-i个节点，计算出可能的二叉搜索树数量，添加到总结果里即可，我们初步写出的代码如下
+
+### 解法一
+
+* 
+
+```
+public int numTrees(int n) {
+
+        //如果只有0，或者1个节点，则可能的子树情况为1种
+        if (n == 0 || n == 1){
+            return 1;
+        }
+
+        int count = 0;
+        for (int i = 1; i <= n; i++) {
+
+            //当用i这个节点当做根节点时
+
+            //左边有多少种子树
+            int leftNum = numTrees(i-1);
+
+            //右边有多少种子树
+            int rightNum = numTrees(n-i);
+
+            //乘起来就是当前节点的子树个数
+            count+=leftNum*rightNum;
+        }
+
+        return count;
+
+        //此方法重复计算太多，见解法二
+    }
+```
+
+6. 上面的代码递归的计算左边可能的数量，右边可能的数量，二者相乘即为当前以值i为root节点的二叉搜索树数量。
+7. 但是当我提交了上述代码之后，惨不忍睹
+
+![image.png](https://pic.leetcode-cn.com/1646705210-fXYndE-image.png)
+
+8. 尼玛2624ms，属实是过分了。
+
+### 改进
+
+我们观察上述过程，其实是出现了很多次重复计算过程，举例[1,2,3]
+![image.png](https://pic.leetcode-cn.com/1646706237-xctPRL-image.png)
+大量的重复计算造成我们时间过长，因此我们可以用一个HashMap存储n和子树数量的映射，如果已经计算过了当前n的子树数量，直接取出用即可
+
+* 
+
+```
+    Map<Integer, Integer> map = new HashMap<>();
+
+    public int numTrees(int n) {
+        //如果只有0，或者1个节点，则可能的子树情况为1种
+        if (n == 0 || n == 1){
+            return 1;
+        }
+
+        if (map.containsKey(n)){
+            return map.get(n);
+        }
+
+        int count = 0;
+        for (int i = 1; i <= n; i++) {
+            //当用i这个节点当做根节点时
+
+            //左边有多少种子树
+            int leftNum = numTrees(i-1);
+
+            //右边有多少种子树
+            int rightNum = numTrees(n-i);
+
+            //乘起来就是当前节点的子树个数
+            count+=leftNum*rightNum;
+        }
+
+        map.put(n,count);
+
+        return count;
+    }
+```
+
+成功，时间显著降低
+![image.png](https://pic.leetcode-cn.com/1646706393-ODOKSK-image.png)
