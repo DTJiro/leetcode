@@ -1,0 +1,331 @@
+## 视频讲解
+
+请看[【基础算法精讲 11】](https://www.bilibili.com/video/BV14G411P7C1/)，制作不易，欢迎点赞关注~
+
+## 方法一：前序遍历
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def isValidBST(self, root: Optional[TreeNode], left=-inf, right=inf) -> bool:
+        if root is None:
+            return True
+        x = root.val
+        return left < x < right and \
+               self.isValidBST(root.left, left, x) and \
+               self.isValidBST(root.right, x, right)
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return isValidBST(root, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+
+    private boolean isValidBST(TreeNode node, long left, long right) {
+        if (node == null) {
+            return true;
+        }
+        long x = node.val;
+        return left < x && x < right &&
+               isValidBST(node.left, left, x) &&
+               isValidBST(node.right, x, right);
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+public:
+    bool isValidBST(TreeNode* root, long left = LONG_MIN, long right = LONG_MAX) {
+        if (root == nullptr) {
+            return true;
+        }
+        long x = root->val;
+        return left < x && x < right &&
+               isValidBST(root->left, left, x) &&
+               isValidBST(root->right, x, right);
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+func dfs(node *TreeNode, left, right int) bool {
+    if node == nil {
+        return true
+    }
+    x := node.Val
+    return left < x && x < right &&
+        dfs(node.Left, left, x) &&
+        dfs(node.Right, x, right)
+}
+
+func isValidBST(root *TreeNode) bool {
+    return dfs(root, math.MinInt, math.MaxInt)
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var isValidBST = function(root, left=-Infinity, right=Infinity) {
+    if (root == null) {
+        return true;
+    }
+    const x = root.val;
+    return left < x && x < right &&
+           isValidBST(root.left, left, x) &&
+           isValidBST(root.right, x, right);
+};
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(n)$，其中 $n$ 为二叉搜索树的节点个数。
+- 空间复杂度：$\mathcal{O}(n)$。最坏情况下，二叉搜索树退化成一条链（注意题目没有保证它是**平衡**树），因此递归需要 $\mathcal{O}(n)$ 的栈空间。
+
+## 方法二：中序遍历
+
+* [sol-Python3]
+
+```py
+class Solution:
+    pre = -inf
+    def isValidBST(self, root: Optional[TreeNode]) -> bool:
+        if root is None:
+            return True
+        if not self.isValidBST(root.left) or root.val <= self.pre:
+            return False
+        self.pre = root.val
+        return self.isValidBST(root.right)
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    private long pre = Long.MIN_VALUE;
+
+    public boolean isValidBST(TreeNode root) {
+        if (root == null) {
+            return true;
+        }
+        if (!isValidBST(root.left) || root.val <= pre) {
+            return false;
+        }
+        pre = root.val;
+        return isValidBST(root.right);
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+    long pre = LONG_MIN;
+public:
+    bool isValidBST(TreeNode* root) {
+        if (root == nullptr) {
+            return true;
+        }
+        if (!isValidBST(root->left) || root->val <= pre) {
+            return false;
+        }
+        pre = root->val;
+        return isValidBST(root->right);
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+func isValidBST(root *TreeNode) bool {
+    pre := math.MinInt
+    var dfs func(*TreeNode) bool
+    dfs = func(node *TreeNode) bool {
+        if node == nil {
+            return true
+        }
+        if !dfs(node.Left) || node.Val <= pre {
+            return false
+        }
+        pre = node.Val
+        return dfs(node.Right)
+    }
+    return dfs(root)
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var isValidBST = function(root) {
+    let pre = -Infinity;
+    function dfs(node) {
+        if (node == null) {
+            return true;
+        }
+        if (!dfs(node.left) || node.val <= pre) {
+            return false;
+        }
+        pre = node.val;
+        return dfs(node.right);
+    }
+    return dfs(root);
+};
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(n)$，其中 $n$ 为二叉搜索树的节点个数。
+- 空间复杂度：$\mathcal{O}(n)$。最坏情况下，二叉搜索树退化成一条链（注意题目没有保证它是**平衡**树），因此递归需要 $\mathcal{O}(n)$ 的栈空间。
+
+## 方法三：后序遍历
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def isValidBST(self, root: Optional[TreeNode]) -> bool:
+        def dfs(node: Optional[TreeNode]) -> Tuple:
+            if node is None:
+                return inf, -inf
+            l_min, l_max = dfs(node.left)
+            r_min, r_max = dfs(node.right)
+            x = node.val
+            # 也可以在递归完左子树之后立刻判断，如果发现不是二叉搜索树，就不用递归右子树了
+            if x <= l_max or x >= r_min:
+                return -inf, inf
+            return min(l_min, x), max(r_max, x)
+        return dfs(root)[1] != inf
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return dfs(root)[1] != Long.MAX_VALUE;
+    }
+
+    private long[] dfs(TreeNode node) {
+        if (node == null) {
+            return new long[]{Long.MAX_VALUE, Long.MIN_VALUE};
+        }
+        long[] left = dfs(node.left);
+        long[] right = dfs(node.right);
+        long x = node.val;
+        // 也可以在递归完左子树之后立刻判断，如果发现不是二叉搜索树，就不用递归右子树了
+        if (x <= left[1] || x >= right[0]) {
+            return new long[]{Long.MIN_VALUE, Long.MAX_VALUE};
+        }
+        return new long[]{Math.min(left[0], x), Math.max(right[1], x)};
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+    pair<long, long> dfs(TreeNode* node) {
+        if (node == nullptr) {
+            return {LONG_MAX, LONG_MIN};
+        }
+        auto[l_min, l_max] = dfs(node->left);
+        auto[r_min, r_max] = dfs(node->right);
+        long x = node->val;
+        // 也可以在递归完左子树之后立刻判断，如果发现不是二叉搜索树，就不用递归右子树了
+        if (x <= l_max || x >= r_min) {
+            return {LONG_MIN, LONG_MAX};
+        }
+        return {min(l_min, x), max(r_max, x)};
+    }
+
+public:
+    bool isValidBST(TreeNode* root) {
+        return dfs(root).second != LONG_MAX;
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+func dfs(node *TreeNode) (int, int) {
+    if node == nil {
+        return math.MaxInt, math.MinInt
+    }
+    lMin, lMax := dfs(node.Left)
+    rMin, rMax := dfs(node.Right)
+    x := node.Val
+    if x <= lMax || x >= rMin { // 也可以在递归完左子树之后立刻判断，如果发现不是二叉搜索树，就不用递归右子树了
+        return math.MinInt, math.MaxInt
+    }
+    return min(lMin, x), max(rMax, x)
+}
+
+func isValidBST(root *TreeNode) bool {
+    _, mx := dfs(root)
+    return mx != math.MaxInt
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var isValidBST = function(root) {
+    function dfs(node) {
+        if (node == null) {
+            return [Infinity, -Infinity];
+        }
+        const [lMin, lMax] = dfs(node.left);
+        const [rMin, rMax] = dfs(node.right);
+        const x = node.val;
+        // 也可以在递归完左子树之后立刻判断，如果发现不是二叉搜索树，就不用递归右子树了
+        if (x <= lMax || x >= rMin) {
+            return [-Infinity, Infinity];
+        }
+        return [Math.min(lMin, x), Math.max(rMax, x)];
+    }
+    return dfs(root)[1] !== Infinity;
+};
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(n)$，其中 $n$ 为二叉搜索树的节点个数。
+- 空间复杂度：$\mathcal{O}(n)$。最坏情况下，二叉搜索树退化成一条链（注意题目没有保证它是**平衡**树），因此递归需要 $\mathcal{O}(n)$ 的栈空间。
+
+## 点评
+
+- **前序遍历**在某些数据下不需要递归到叶子节点就能返回（比如根节点左儿子的值大于根节点的值，左儿子就不会继续往下递归了），而中序遍历和后序遍历至少要递归到一个叶子节点。从这个角度上来说，前序遍历是最快的。
+- **中序遍历**很好地利用了二叉搜索树的性质，使用到的变量最少。
+- **后序遍历**的思想是最通用的，即自底向上计算子问题的过程。**想要学好动态规划的话，请务必掌握自底向上的思想。**
+
+## 分类题单
+
+以下题单没有特定的顺序，可以按照个人喜好刷题。
+
+1. [滑动窗口（定长/不定长/多指针）](https://leetcode.cn/circle/discuss/0viNMK/)
+2. [二分算法（二分答案/最小化最大值/最大化最小值/第K小）](https://leetcode.cn/circle/discuss/SqopEo/)
+3. [单调栈（基础/矩形面积/贡献法/最小字典序）](https://leetcode.cn/circle/discuss/9oZFK9/)
+4. [网格图（DFS/BFS/综合应用）](https://leetcode.cn/circle/discuss/YiXPXW/)
+5. [位运算（基础/性质/拆位/试填/恒等式/贪心/脑筋急转弯）](https://leetcode.cn/circle/discuss/dHn9Vk/)
+6. [图论算法（DFS/BFS/拓扑排序/最短路/最小生成树/二分图/基环树/欧拉路径）](https://leetcode.cn/circle/discuss/01LUak/)
+7. [动态规划（入门/背包/状态机/划分/区间/状压/数位/数据结构优化/树形/博弈/概率期望）](https://leetcode.cn/circle/discuss/tXLS3i/)
+8. [常用数据结构（前缀和/差分/栈/队列/堆/字典树/并查集/树状数组/线段树）](https://leetcode.cn/circle/discuss/mOr1u6/)
+9. [数学算法（数论/组合/概率期望/博弈/计算几何/随机算法）](https://leetcode.cn/circle/discuss/IYT3ss/)
+
+欢迎关注 [B站@灵茶山艾府](https://space.bilibili.com/206214)
+
+[我的题解精选（已分类）](https://github.com/EndlessCheng/codeforces-go/blob/master/leetcode/SOLUTIONS.md)

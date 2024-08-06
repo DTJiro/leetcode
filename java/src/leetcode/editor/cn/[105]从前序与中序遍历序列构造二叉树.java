@@ -59,24 +59,32 @@ public class ConstructBinaryTreeFromPreorderAndInorderTraversal{
  * }
  */
 class Solution {
-    int[] preorder;
-    HashMap<Integer, Integer> dic = new HashMap<>();
 
     public TreeNode buildTree(int[] preorder, int[] inorder) {
-        this.preorder = preorder;
-        for (int i = 0; i < inorder.length; i++) dic.put(inorder[i], i);
-        return recur(0, 0, inorder.length - 1);
+        int preRight = preorder.length;
+        int inRight = inorder.length;
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < inRight; i++) {
+            map.put(inorder[i], i);
+        }
+        return a(preorder, 0, preRight - 1, map, 0, inRight - 1);
     }
 
-    TreeNode recur(int root, int left, int right) {
-        if (left > right)
-            return null; // 递归终止
-        TreeNode node = new TreeNode(preorder[root]); // 建立根节点
-        int i = dic.get(preorder[root]); // 划分根节点、左子树、右子树
-        node.left = recur(root + 1, left, i - 1); // 开启左子树递归
-        node.right = recur(root + i - left + 1, i + 1, right); // 开启右子树递归
-        return node; // 回溯返回根节点
+    TreeNode a(int[] preorder, int preLeft, int preRight, Map<Integer, Integer> map, int inLeft, int inRight) {
+        if (preLeft > preRight || inLeft > inRight) {
+            return null;
+        }
+        TreeNode root = new TreeNode(preorder[preLeft]);
+        Integer index = map.get(preorder[preLeft]);
+
+        root.left = a(preorder, preLeft + 1, preLeft + index - inLeft,
+                map, inLeft, index - 1);
+        root.right = a(preorder, preLeft + index - inLeft + 1, preRight,
+                map, index + 1, inRight);
+
+        return root;
     }
+
 }
 //leetcode submit region end(Prohibit modification and deletion)
 
