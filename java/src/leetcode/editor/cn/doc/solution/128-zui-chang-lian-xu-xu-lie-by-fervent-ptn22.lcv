@@ -1,0 +1,38 @@
+> Problem: [128. 最长连续序列](https://leetcode.cn/problems/longest-consecutive-sequence/description/)
+
+[TOC]
+
+# 思路
+
+**核心：**
+判断num是否可以作为连续序列的开始：num-1不存在
+判断num是否可以作为连续序列的结束：num+1不存在
+
+本题采用数据结构HashSet
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int longestConsecutive(int[] nums) {
+        int maxLen = 0;
+        HashSet<Integer> set = new HashSet<>();
+        for (int num : nums) {
+            set.add(num);
+        }
+        int len = 0;
+        for (Integer num : set) {
+            if(!set.contains(num-1)){
+                len = 1;
+                while (set.contains(++num))
+                    len++;
+                maxLen = Math.max(len,maxLen);
+            }
+        }
+        return maxLen;
+    }
+}
+```
+
