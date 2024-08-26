@@ -1,0 +1,32 @@
+### 解题思路
+
+检查dp数组中每个出现true的位置，到当前i位置，做substr，如果子串在wordDick中出现过的话，则i的位置置为true
+要考虑开始位置（即前n个值都为false时），这时候应该是字符串的首位到第i位取substr
+这样做的道理是什么呢？
+如果字符串第i个位置之前的子串可以被拆分，要么0到i这个串在字典中，要么从上一个或上几个可以拆开的地方 到i 这个子串出现在字典中
+
+### 代码
+
+* java
+
+```java
+class Solution {
+    public boolean wordBreak(String s, List<String> wordDict) {
+        HashSet<String> dict = new HashSet<>(wordDict);
+        boolean[] dp = new boolean[s.length() + 1];
+        for (int i = 1; i < dp.length; ++i) {
+            int j = i;
+            boolean ans = false;
+            while (j >= 0) {
+                if (dp[j--]) {
+                    ans |= wordDict.contains(s.substring(j + 1, i));
+                }
+            }
+            ans |= wordDict.contains(s.substring(j + 1, i));
+            dp[i] = ans;
+        }
+        return dp[s.length()];
+    }
+}
+```
+

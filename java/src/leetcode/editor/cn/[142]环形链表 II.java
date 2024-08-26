@@ -77,20 +77,18 @@ public class LinkedListCycleIi{
  */
 public class Solution {
     public ListNode detectCycle(ListNode head) {
-		ListNode t = head; // 龟
-		ListNode h = head; // 兔
-		while (h != null && h.next != null) {
-			t = t.next;
-			h = h.next.next;
-			if (h == t) {
-				t = head;
-				while (true) {
-					if (h == t) {
-						return h;
-					}
-					h = h.next;
-					t = t.next;
+		ListNode p = head;
+		ListNode q = head;
+		while (q != null && q.next != null) {
+			p = p.next;
+			q = q.next.next;
+			if (p == q) {
+				q = head;
+				while (q != p) {
+					q = q.next;
+					p = p.next;
 				}
+				return p;
 			}
 		}
 		return null;

@@ -1,0 +1,65 @@
+> Problem: [114. 二叉树展开为链表](https://leetcode.cn/problems/flatten-binary-tree-to-linked-list/description/)
+
+[TOC]
+
+# 思路：新递归三部曲
+
+# 解题过程：
+
+1. .首先要明确函数的作用：其实这个函数的作用就是传入一棵树，然后把这棵树变形为一个“右线树”
+   极小情况：指的是传入函数的树是那种极限最小的情况，比如树为空或者树只有一个节点
+   极大情况：传入的树就是题中给出的整棵大树，直接处理整棵大树。
+2. 考虑极小情况：如果传入的是null 那就不用变形，直接返回；如果传入的只有一个节点，那么也不用变形，直接返回
+3. 考虑极大情况：如果整棵大树的左子树为null，那只需要把右子树变形，就可以直接返回；如果左子树不为null：
+   1 把整棵树的左右子树都变形
+   2 把右子树拼到左子树的右下角
+   3 把左子树移动到右侧，变为根节点的右子树
+   4 把根节点的左子树置为null
+
+# 复杂度
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    //新递归三部曲
+    //part1： 函数作用：传入一棵树 把这棵树变为右斜线树
+    public void flatten(TreeNode root) {
+        //part2: 极小
+        //如果root==null 那不用变 直接返回
+        if (root==null){
+            return;
+        }
+        //如果树中只有一个节点 也不用变换 直接返回
+        if (root.left==null&&root.right==null){
+            return;
+        }
+        //part3:极大
+       //1. 如果根节点没有左子树，那只需要把右子树变为线条型后，即可返回
+        if (root.left==null){
+            flatten(root.right);
+            return;
+        }
+        //2. 如果根节点左右子树都有：
+        else{
+            //2.1 那就都要变为线条型
+            flatten(root.left);
+            flatten(root.right);
+            //2.2 把右子树拼接到左子树的右下角
+            TreeNode temp=root.left;
+            while(temp.right!=null){
+                temp=temp.right;
+            }
+            temp.right=root.right;
+            //2.3 再把左子树移动到右边变为root的右子树
+            root.right=root.left;
+            //2.4 最后把root的左子树置为null
+            root.left=null;
+            return;
+        }
+    }
+}
+```
+
