@@ -1,0 +1,251 @@
+> [148. 排序链表](https://leetcode.cn/problems/sort-list/)
+
+[TOC]
+
+# 题目
+
+给你链表的头结点 `head` ，请将其按 **升序** 排列并返回 **排序后的链表** 。
+
+# 题目分析
+
+## 思路分析
+
+对链表排序，可以参考对数组的排序算法。其中归并排序是比较适合用在链表上的。并且可以满足时间复杂度为 `O(nlogn)`和常数级空间复杂度。因此这道题首先要理解 [归并排序](https://www.runoob.com/w3cnote/merge-sort.html) 这个算法。
+
+归并排序的核心思想：每次将待排序的区间 `[left, right)` 一分为二，分别对两个子区间 `[left, mid)` 和 `[mid, right)` 进行递归排序（`mid = (right + left) / 2`）。然后对排序好的两个子区间再进行合并，即先自顶向下拆分区间，再自底向上合并。递归终点就是 `right - left = 1`，区间只有一个元素无需排序。
+
+![image-20240111010721972.png](https://pic.leetcode.cn/1705075385-DSksME-image-20240111010721972.png)
+
+对应到链表上：
+
+1. 对待排序的链表 `head` 一分为二 -> 因此我们首先要找到链表的中间节点 `mid`，**在 `mid` 处将链表断开**，分成 `head`为头节点 和 `mid.next` 为头节点的两条子链表；【必须将链表断开成两个独立的链表，否则后续操作会有问题】
+2. 其次对两条子链表进行递归排序；
+3. 然后将两条排序好的子链表合并 -> 合并两个有序链表；
+4. 递归终点就是链表为空或者只有头节点一个节点；
+
+![image-20240112235019754.png](https://pic.leetcode.cn/1705075385-MwBMwD-image-20240112235019754.png)
+
+## 获取链表中间节点
+
+获取链表的中间节点我们可以使用快慢指针来实现。
+快慢指针是指使用两个移动速度不一样的指针同时遍历一遍链表：
+
+1. 起始快慢指针都在头节点；
+2. 快指针每次移动两个节点，慢指针每次移动一个节点；
+3. 那么当快指针到达链表末尾时（为空或者为最后一个节点），慢指针一定是到达链表正中间的那个节点。
+
+![image-20240109225922969.png](https://pic.leetcode.cn/1705075385-AbiRPH-image-20240109225922969.png)
+快慢指针都在头节点的时候，如果链表长度为偶数，慢指针最终指向**中间靠后的那个节点**。
+
+如果想要指向**中间靠前的那个节点**，我们可以**让慢指针从头节点出发，快指针从头节点的下一个节点出发**。
+
+![image-20240109232112290.png](https://pic.leetcode.cn/1705075385-HTNDWQ-image-20240109232112290.png)
+
+由前述操作，我们需要在 `mid` 处断开两个链表，需要保证断开后的两段子链表节点数相差不超过 `1`。
+
+![image-20240113000047745.png](https://pic.leetcode.cn/1705075385-GlOdMM-image-20240113000047745.png)
+
+即我们**应该使用第二种方式去获取中间节点**。
+
+## 合并两个有序链表
+
+[21. 合并两个有序链表](https://leetcode.cn/problems/merge-two-sorted-lists/)
+
+参考题解 [[Java/Python3/C++]双指针+模拟：依次选择两条链表中较小的节点【图解】](https://leetcode.cn/problems/merge-two-sorted-lists/solutions/2373964/javapython3cshuang-zhi-zhen-mo-ni-yi-ci-jyinf/)，合并两个有序链表的核心就是每次选出两个链表当前维护节点中值较小的那个，依次拼接成新链表。
+
+# 代码
+
+* []
+
+```Java
+class Solution {
+    public ListNode sortList(ListNode head) {
+        return mergeSort(head);
+    }
+    
+    /**
+     * 对给定的链表进行归并排序
+    */
+    ListNode mergeSort(ListNode head){
+        // 如果链表为空或只有一个节点，无需排序直接返回
+        if(head == null || head.next == null){
+            return head;    
+        }
+        // 获取链表的中间节点，分别对左右子链表进行排序
+        ListNode mid = getMid(head);
+        ListNode rightSorted = mergeSort(mid.next);   // 排序右子链表
+        mid.next = null;                     // 断开两段子链表
+        ListNode leftSorted = mergeSort(head);         // 排序左子链表
+        return mergeTwoLists(leftSorted, rightSorted);  // 两个子链表必然有序，合并两个有序的链表
+    }
+
+    /**
+     * 获取以head为头节点的链表中间节点
+     * 如果链表长度为奇数，返回最中间的那个节点
+     * 如果链表长度为偶数，返回中间靠左的那个节点
+    */
+    ListNode getMid(ListNode head){
+        if(head == null)return head;   
+        ListNode slow = head, fast = head.next;          // 快慢指针，慢指针初始为
+        while(fast != null && fast.next != null)     
+        {
+            fast = fast.next.next;    // 快指针每次移动两个节点
+            slow = slow.next;         // 慢指针每次移动一个节点
+        }
+        return slow;    // 快指针到达链表尾部时，慢指针即指向中间节点
+    }
+
+    /**
+     * 合并两个有序链表list1和list2
+    */
+    ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        ListNode dummy = new ListNode();   // 伪头节点，用于定位合并链表的头节点
+        ListNode node = dummy;             // 新链表当前的最后一个节点，初始为伪头节点
+        // 直到两个链表都遍历完了，合并结束
+        while(list1 != null || list2 != null){
+            int val1 = list1 == null ? 50001 : list1.val;   // 如果链表1已经遍历完，val1取最大值，保证链表2的节点被选择到       
+            int val2 = list2 == null ? 50001 : list2.val;   // 如果链表2已经遍历完，val2取最大值，保证链表1的节点被选择到 
+            if(val1 < val2){
+                // 链表1的节点值更小，加入到合并链表，并更新链表1指向的节点
+                node.next = list1;
+                list1 = list1.next;
+            }else{
+                // 链表2的节点值更小，加入到合并链表，并更新链表2指向的节点
+                node.next = list2;
+                list2 = list2.next;
+            }
+            node = node.next;    // 更新合并链表当前的最后一个节点指向
+        }
+        return dummy.next;       // 伪头节点的下一个节点即为合并链表的头节点
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def sortList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        return self.merge_sort(head)
+    
+
+    """
+    对给定的链表进行归并排序
+    """
+    def merge_sort(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        # 如果链表为空或只有一个节点，无需排序直接返回
+        if not head or not head.next:
+            return head    
+        # 获取链表的中间节点，分别对左右子链表进行排序
+        mid = self.get_mid(head)
+        right_sorted = self.merge_sort(mid.next)   # 排序右子链表
+        mid.next = None                     # 断开两段子链表
+        left_sorted = self.merge_sort(head)         # 排序左子链表
+        return self.merget_two_lists(left_sorted, right_sorted)  # 两个子链表必然有序，合并两个有序的链表
+
+    """
+    获取以head为头节点的链表中间节点
+    如果链表长度为奇数，返回最中间的那个节点
+    如果链表长度为偶数，返回中间靠左的那个节点
+    """
+    def get_mid(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        if not head: return head   
+        
+        slow, fast = head, head.next          # 快慢指针，慢指针初始为
+        while fast and fast.next:     
+            fast = fast.next.next    # 快指针每次移动两个节点
+            slow = slow.next         # 慢指针每次移动一个节点
+     
+        return slow    # 快指针到达链表尾部时，慢指针即指向中间节点
+    
+    """
+    合并两个有序链表list1和list2
+    """
+    def merget_two_lists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
+        dummy = ListNode()   # 伪头节点，用于定位合并链表的头节点
+        node = dummy         # 新链表当前的最后一个节点，初始为伪头节点
+
+        # 直到两个链表都遍历完了，合并结束
+        while list1 or list2:
+            val1 = 50001 if not list1 else list1.val   # 如果链表1已经遍历完，val1取最大值，保证链表2的节点被选择到       
+            val2 = 50001 if not list2 else list2.val   # 如果链表2已经遍历完，val2取最大值，保证链表1的节点被选择到 
+            if val1 < val2:
+                # 链表1的节点值更小，加入到合并链表，并更新链表1指向的节点
+                node.next = list1
+                list1 = list1.next
+            else:
+                # 链表2的节点值更小，加入到合并链表，并更新链表2指向的节点
+                node.next = list2
+                list2 = list2.next
+            node = node.next    # 更新合并链表当前的最后一个节点指向
+
+        return dummy.next       # 伪头节点的下一个节点即为合并链表的头节点
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    ListNode* sortList(ListNode* head) { 
+        return mergeSort(head);
+    }
+
+    /**
+     * 对给定的链表进行归并排序
+    */
+    ListNode* mergeSort(ListNode* head){
+        // 如果链表为空或只有一个节点，无需排序直接返回
+        if(!head || !head->next){
+            return head;    
+        }
+        // 获取链表的中间节点，分别对左右子链表进行排序
+        ListNode* mid = getMid(head);
+        ListNode* rightSorted = mergeSort(mid->next);   // 排序右子链表
+        if(mid)mid->next = nullptr;                     // 断开两段子链表
+        ListNode* leftSorted = mergeSort(head);         // 排序左子链表
+        return mergeTwoLists(leftSorted, rightSorted);  // 两个子链表必然有序，合并两个有序的链表
+    }
+
+    /**
+     * 获取以head为头节点的链表中间节点
+     * 如果链表长度为奇数，返回最中间的那个节点
+     * 如果链表长度为偶数，返回中间靠左的那个节点
+    */
+    ListNode* getMid(ListNode* head){
+        if(!head)return head;   
+        ListNode* slow = head, *fast = head->next;          // 快慢指针，慢指针初始为
+        while(fast != nullptr && fast->next != nullptr)     
+        {
+            fast = fast->next->next;    // 快指针每次移动两个节点
+            slow = slow->next;          // 慢指针每次移动一个节点
+        }
+        return slow;    // 快指针到达链表尾部时，慢指针即指向中间节点
+    }
+
+    /**
+     * 合并两个有序链表list1和list2
+    */
+    ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
+        ListNode* dummy = new ListNode();   // 伪头节点，用于定位合并链表的头节点
+        ListNode* node = dummy;             // 新链表当前的最后一个节点，初始为伪头节点
+        // 直到两个链表都遍历完了，合并结束
+        while(list1 != nullptr || list2 != nullptr){
+            int val1 = list1 == nullptr ? 50001 : list1 -> val;   // 如果链表1已经遍历完，val1取最大值，保证链表2的节点被选择到       
+            int val2 = list2 == nullptr ? 50001 : list2 -> val;   // 如果链表2已经遍历完，val2取最大值，保证链表1的节点被选择到 
+            if(val1 < val2){
+                // 链表1的节点值更小，加入到合并链表，并更新链表1指向的节点
+                node -> next = list1;
+                list1 = list1 -> next;
+            }else{
+                // 链表2的节点值更小，加入到合并链表，并更新链表2指向的节点
+                node -> next = list2;
+                list2 = list2 -> next;
+            }
+            node = node -> next;    // 更新合并链表当前的最后一个节点指向
+        }
+        return dummy -> next;       // 伪头节点的下一个节点即为合并链表的头节点
+    }
+};
+```
+

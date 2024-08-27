@@ -1,0 +1,226 @@
+在实际应用中，我们绝大多数情况都不会直接对链表进行排序，而是将链表转为数组再进行排序，然后还原链表，这样的速度要比我们直接对链表排序要更快。实际上我们可以从力扣的通过记录里看到，排名靠前的有些就是这么写的。不过对于这种题目来说，这应该算作作弊吧。
+
+（以下代码大家主要看看注释即可）
+
+那么一本正经按照题目要求，对于使用了自顶向下归并排序方式的代码，需要利用下表中所列题目中的技巧。将这么多题目综合起来，难度不应该只是中等。
+
+| 涉及题目                                                     | 涉及技巧                       | 题目难度 |
+| ------------------------------------------------------------ | ------------------------------ | -------- |
+| [206. 反转链表](https://leetcode.cn/problems/reverse-linked-list/) | 利用前一节点的指针、迭代法迭代 | 简单     |
+| [876. 链表的中间结点](https://leetcode.cn/problems/middle-of-the-linked-list/) | 利用快慢指针                   | 简单     |
+| [21. 合并两个有序链表](https://leetcode.cn/problems/merge-two-sorted-lists/) | 迭代法迭代                     | 简单     |
+| 归并排序自顶向下                                              |                                | 中等+     |
+
+对于采用自底向上的归并排序，更加复杂。
+
+| 涉及题目                                                     | 涉及技巧                       | 题目难度 |
+| ------------------------------------------------------------ | ------------------------------ | -------- |
+| [206. 反转链表](https://leetcode.cn/problems/reverse-linked-list/) | 利用前一节点的指针、迭代法迭代 | 简单     |
+| [25. K 个一组翻转链表](https://leetcode.cn/problems/reverse-nodes-in-k-group/) | K个一组进行反转                | 困难-    |
+| [21. 合并两个有序链表](https://leetcode.cn/problems/merge-two-sorted-lists/) | 迭代法迭代                     | 简单     |
+| 归并排序自底向上                                             |                                | 中等+    |
+
+如果是使用快排实现的，那么更是少不了要熟悉快排算法和题目《[86. 分隔链表](https://leetcode.cn/problems/partition-list/)》。
+
+所以如果感觉此题困难，也许不是你的问题，而是你的学习路线也许应该变化一下。我总结了一下力扣上的一些高频基础链表题，大家可以按照最下面的表格顺序，由上到下依次进行练习。相信即便到最后，我们做出此题有困难，也会感觉更容易理解。当然，也许你更应该先练习一下归并排序和快排。
+
+## 归并排序自顶向下题解
+
+* []
+
+```java
+class Solution {
+
+    public ListNode sortList(ListNode head) {
+        if (head == null || head.next == null) return head; // 单个节点无需排序
+
+        // 使用快慢指针，寻找中间节点（涉及题目《876. 链表的中间结点》）
+        ListNode s = head, f = head, ps = head; // 不为 ps 设置值 Java 编译器会报错，随便指了一个值。实际上ps不设置值，也一定不会为 null，因为 head 至少有两个节点。
+        while (f != null && f.next != null) {
+            f = f.next.next;
+            ps = s;
+            s = s.next;
+        }
+
+        // 分割链表（利用 ps，与题目《206. 反转链表》有异曲同工之处）
+        ps.next = null;
+
+        // 继续分割链表（涉及归并排序）
+        var l = sortList(head);
+        var r = sortList(s);
+
+        // 合并有序链表（涉及题目《21. 合并两个有序链表》）
+        return merge(l, r);
+    }
+
+    ListNode merge(ListNode l, ListNode r) {
+        var dummy = new ListNode();
+        var curr = dummy;
+        while (l != null && r != null) {
+            if (l.val <= r.val) {
+                curr.next = l;
+                l = l.next;
+            } else {
+                curr.next = r;
+                r = r.next;
+            }
+            curr = curr.next;
+        }
+        if (l == null) {
+            curr.next = r;
+        } else {
+            curr.next = l;
+        }
+        return dummy.next;
+    }
+
+}
+```
+
+* []
+
+```go
+func sortList(head *ListNode) *ListNode {
+	if head == nil || head.Next == nil { // 只有一个节点，无需排序
+		return head
+	}
+
+	// 寻找中间节点（涉及题目《876. 链表的中间结点》）
+	var f, s = head, head
+	var ps *ListNode
+	for f != nil && f.Next != nil {
+		f = f.Next.Next
+		ps = s
+		s = s.Next
+	}
+	// 拆分为两个链表（利用 ps，与题目《206. 反转链表》有异曲同工之处）
+	ps.Next = nil
+
+	// 继续拆分为最小单位（涉及归并排序）
+	l := sortList(head)
+	r := sortList(s)
+
+	// 合并有序链表（涉及题目《21. 合并两个有序链表》）
+	return merge(l, r)
+}
+
+// 合并有序链表
+func merge(l *ListNode, r *ListNode) *ListNode {
+	var dummy = &ListNode{}
+	var curr = dummy
+	for l != nil && r != nil {
+		if l.Val < r.Val {
+			curr.Next = l
+			l = l.Next
+		} else {
+			curr.Next = r
+			r = r.Next
+		}
+		curr = curr.Next
+	}
+	if l == nil {
+		curr.Next = r
+	} else {
+		curr.Next = l
+	}
+	return dummy.Next
+}
+
+```
+
+## 归并排序自底向上解法
+
+* go
+
+```go
+func sortList(head *ListNode) *ListNode {
+	if head == nil || head.Next == nil {
+		return head
+	}
+
+	var ln = 0
+	var curr = head
+
+	// 获取链表长度
+	for ; curr != nil; ln++ {
+		curr = curr.Next
+	}
+
+	var dummy = &ListNode{Next: head}
+	var prev, l, p, r *ListNode
+	var cnt int
+
+	// 归并排序、分治法、自底向上
+	for sz := 1; sz < ln; sz += sz {
+		// sz 个节点一组排序（类似《25. K 个一组翻转链表》）
+		curr = dummy.Next
+		prev = dummy
+		cnt = 0
+		for curr != nil && ln-cnt >= sz {
+			l = curr
+			for i := 1; i <= sz && curr != nil; i, cnt = i+1, cnt+1 {
+				p = curr
+				curr = curr.Next
+			}
+			p.Next = nil
+			r = curr
+			for i := 1; i <= sz && curr != nil; i, cnt = i+1, cnt+1 {
+				p = curr
+				curr = curr.Next
+			}
+			p.Next = nil
+            // 合并有序链表
+			prev.Next = merge(l, r)
+			for prev.Next != nil {
+				prev = prev.Next
+			}
+			prev.Next = curr
+		}
+	}
+
+	return dummy.Next
+}
+
+// 合并有序链表
+func merge(l *ListNode, r *ListNode) *ListNode {
+	var dummy = &ListNode{}
+	var curr = dummy
+	for l != nil && r != nil {
+		if l.Val < r.Val {
+			curr.Next = l
+			l = l.Next
+		} else {
+			curr.Next = r
+			r = r.Next
+		}
+		curr = curr.Next
+	}
+	if l == nil {
+		curr.Next = r
+	} else {
+		curr.Next = l
+	}
+	return dummy.Next
+}
+```
+
+## 力扣链表题目总结
+
+| 题目                                                         | 剑指Offer / 其他                                             | 难度 | 难点                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ---- | ---------------------------- |
+| [剑指 06. 从尾到头打印链表](https://leetcode.cn/problems/cong-wei-dao-tou-da-yin-lian-biao-lcof/) | [剑指 Offer 06. 从尾到头打印链表](https://leetcode.cn/problems/cong-wei-dao-tou-da-yin-lian-biao-lcof/) | 简单 |                              |
+| [206. 反转链表](https://leetcode.cn/problems/reverse-linked-list/) | [剑指 Offer 24. 反转链表](https://leetcode.cn/problems/fan-zhuan-lian-biao-lcof/) | 简单 |                              |
+| [92. 反转链表 II](https://leetcode.cn/problems/reverse-linked-list-ii/) |                                                              | 中等 |                              |
+| [剑指 22. 链表中倒数第k个节点](https://leetcode.cn/problems/lian-biao-zhong-dao-shu-di-kge-jie-dian-lcof/) | [剑指 Offer 22. 链表中倒数第k个节点](https://leetcode.cn/problems/lian-biao-zhong-dao-shu-di-kge-jie-dian-lcof/) | 简单 | 利用快慢指针                 |
+| [19. 删除链表的倒数第 N 个结点](https://leetcode.cn/problems/remove-nth-node-from-end-of-list/) | [剑指 Offer II 021. 删除链表的倒数第 n 个结点](https://leetcode.cn/problems/SLwz0R/) | 中等 |                              |
+| [876. 链表的中间结点](https://leetcode.cn/problems/middle-of-the-linked-list/) |                                                              | 简单 | 定位中间节点位置             |
+| [141. 环形链表](https://leetcode.cn/problems/linked-list-cycle/) |                                                              | 简单 |                              |
+| [142. 环形链表 II](https://leetcode.cn/problems/linked-list-cycle-ii/) | [剑指 Offer II 022. 链表中环的入口节点](https://leetcode.cn/problems/c32eOV/) | 中等 | 快慢指针算法公式推导         |
+| [160. 相交链表](https://leetcode.cn/problems/intersection-of-two-linked-lists/) | [剑指 Offer 52. 两个链表的第一个公共节点](https://leetcode.cn/problems/liang-ge-lian-biao-de-di-yi-ge-gong-gong-jie-dian-lcof/) | 简单 | 双指针方式降低空间复杂度     |
+| [21. 合并两个有序链表](https://leetcode.cn/problems/merge-two-sorted-lists/) | [剑指 Offer 25. 合并两个排序的链表](https://leetcode.cn/problems/he-bing-liang-ge-pai-xu-de-lian-biao-lcof/) | 简单 |                              |
+| [23. 合并 K 个升序链表](https://leetcode.cn/problems/merge-k-sorted-lists/) | [剑指 Offer II 078. 合并排序链表](https://leetcode.cn/problems/vvXgSW/) | 困难 | 利用数据结构，降低时间复杂度 |
+| [86. 分隔链表](https://leetcode.cn/problems/partition-list/) |                                                              | 中等 |                              |
+| [剑指 Offer 35. 复杂链表的复制](https://leetcode.cn/problems/fu-za-lian-biao-de-fu-zhi-lcof/) | [剑指 Offer 35. 复杂链表的复制](https://leetcode.cn/problems/fu-za-lian-biao-de-fu-zhi-lcof/) | 中等 | 仅使用O1额外空间             |
+| [234. 回文链表](https://leetcode.cn/problems/palindrome-linked-list/) |                                                              | 简单 |                              |
+| [25. K 个一组翻转链表](https://leetcode.cn/problems/reverse-nodes-in-k-group/) |                                                              | 困难 | 仅使用O1额外空间             |
+| 148. 排序链表                                                |                                                              | 中等 |                              |
