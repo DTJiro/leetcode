@@ -1,0 +1,538 @@
+## Trie 树
+
+$Trie$ 树（又叫「前缀树」或「字典树」）是一种用于快速查询「某个字符串/字符前缀」是否存在的数据结构。
+
+其核心是使用「边」来代表有无字符，使用「点」来记录是否为「单词结尾」以及「其后续字符串的字符是什么」。
+
+![IMG_1659.PNG](https://pic.leetcode-cn.com/1618369228-slAfrQ-IMG_1659.PNG)
+
+***
+
+## 二维数组
+
+一个朴素的想法是直接使用「二维数组」来实现 $Trie$ 树。
+
+* 使用二维数组 $trie[]$ 来存储我们所有的单词字符。
+* 使用 $index$ 来自增记录我们到底用了多少个格子（相当于给被用到格子进行编号）。
+* 使用 $count[]$ 数组记录某个格子被「被标记为结尾的次数」（当 $idx$ 编号的格子被标记了 $n$ 次，则有 $cnt[idx] = n$）。
+
+**代码（感谢 [@🍭可乐可乐吗QAQ](/u/littletime_cc/)、[@Benhao](/u/qubenhao/) 同学提供的其他语言版本） ：**
+
+* []
+
+```Java
+class Trie {
+    int N = 100009; // 直接设置为十万级
+    int[][] trie;
+    int[] count;
+    int index;
+
+    public Trie() {
+        trie = new int[N][26];
+        count = new int[N];
+        index = 0;
+    }
+    
+    public void insert(String s) {
+        int p = 0;
+        for (int i = 0; i < s.length(); i++) {
+            int u = s.charAt(i) - 'a';
+            if (trie[p][u] == 0) trie[p][u] = ++index;
+            p = trie[p][u];
+        }
+        count[p]++;
+    }
+    
+    public boolean search(String s) {
+        int p = 0;
+        for (int i = 0; i < s.length(); i++) {
+            int u = s.charAt(i) - 'a';
+            if (trie[p][u] == 0) return false;
+            p = trie[p][u];
+        }
+        return count[p] != 0;
+    }
+    
+    public boolean startsWith(String s) {
+        int p = 0;
+        for (int i = 0; i < s.length(); i++) {
+            int u = s.charAt(i) - 'a';
+            if (trie[p][u] == 0) return false;
+            p = trie[p][u];
+        }
+        return true;
+    }
+}
+```
+
+* []
+
+```C++
+const int maxn = 1e5 + 50;
+bool vis[maxn];
+int son[maxn][26],idx;
+class Trie {
+public:
+    Trie() {
+        memset(vis,false,sizeof vis);
+        memset(son,0,sizeof son);
+        idx = 0;
+    }
+    
+    void insert(string word) {
+        int p = 0;
+        for(auto x : word){
+            int u = x - 'a';
+            if(!son[p][u]) son[p][u] = ++idx;
+            p = son[p][u];
+        }
+        vis[p] = true;
+    }
+    
+    bool search(string word) {
+        int p = 0;
+        for(auto x : word){
+            int u = x - 'a';
+            if(!son[p][u]) return false;
+            p = son[p][u];
+        }
+        return vis[p];
+    }
+    
+    bool startsWith(string prefix) {
+        int p = 0;
+        for(auto x : prefix){
+            int u = x - 'a';
+            if(!son[p][u]) return false;
+            p = son[p][u];
+        }
+        return true;
+    }
+};
+```
+
+* []
+
+```Python
+class Trie(object):
+    N = 100009
+    def __init__(self):
+        """
+        Initialize your data structure here.
+        """
+        self.trie = [[0] * self.N for i in range(26)]
+        self.count = [0] * self.N
+        self.index = 0
+
+    def insert(self, word):
+        """
+        Inserts a word into the trie.
+        :type word: str
+        :rtype: None
+        """
+        p = 0
+        for i in range(len(word)):
+            u = ord(word[i]) - ord('a')
+            if self.trie[u][p] == 0:
+                self.index += 1
+                self.trie[u][p] = self.index
+            p = self.trie[u][p]
+        self.count[p] += 1
+
+    def search(self, word):
+        """
+        Returns if the word is in the trie.
+        :type word: str
+        :rtype: bool
+        """
+        p = 0
+        for i in range(len(word)):
+            u = ord(word[i]) - ord('a')
+            if self.trie[u][p] == 0:
+                return False
+            p = self.trie[u][p]
+        return self.count[p] != 0
+
+    def startsWith(self, prefix):
+        """
+        Returns if there is any word in the trie that starts with the given prefix.
+        :type prefix: str
+        :rtype: bool
+        """
+        p = 0
+        for i in range(len(prefix)):
+            u = ord(prefix[i]) - ord('a')
+            if self.trie[u][p] == 0:
+                return False
+            p = self.trie[u][p]
+        return True
+
+```
+
+* 时间复杂度：$Trie$ 树的每次调用时间复杂度取决于入参字符串的长度。复杂度为 $O(Len)$。
+* 空间复杂度：二维数组的高度为 $n$，字符集大小为 $k$。复杂度为 $O(nk)$。
+
+***
+
+## TrieNode
+
+相比二维数组，更加常规的做法是建立 $TrieNode$ 结构节点。
+
+随着数据的不断插入，根据需要不断创建 $TrieNode$ 节点。
+
+**代码（感谢 [@🍭可乐可乐吗QAQ](/u/littletime_cc/)、[@Benhao](/u/qubenhao/) 同学提供的其他语言版本） ：**
+
+* []
+
+```Java
+class Trie {
+    class TrieNode {
+        boolean end;
+        TrieNode[] tns = new TrieNode[26];
+    }
+
+    TrieNode root;
+    public Trie() {
+        root = new TrieNode();
+    }
+
+    public void insert(String s) {
+        TrieNode p = root;
+        for(int i = 0; i < s.length(); i++) {
+            int u = s.charAt(i) - 'a';
+            if (p.tns[u] == null) p.tns[u] = new TrieNode();
+            p = p.tns[u]; 
+        }
+        p.end = true;
+    }
+
+    public boolean search(String s) {
+        TrieNode p = root;
+        for(int i = 0; i < s.length(); i++) {
+            int u = s.charAt(i) - 'a';
+            if (p.tns[u] == null) return false;
+            p = p.tns[u]; 
+        }
+        return p.end;
+    }
+
+    public boolean startsWith(String s) {
+        TrieNode p = root;
+        for(int i = 0; i < s.length(); i++) {
+            int u = s.charAt(i) - 'a';
+            if (p.tns[u] == null) return false;
+            p = p.tns[u]; 
+        }
+        return true;
+    }
+}
+```
+
+* []
+
+```C++
+class Trie {
+private:
+    Trie* son[26];
+    bool isWord;
+public:
+    Trie() {
+        isWord = false;
+        for(int i = 0; i < 26; i++) son[i] = nullptr;
+    }
+    
+    ~Trie(){
+        for(int i = 0; i < 26 ; i++){
+            if(son[i] != nullptr) delete son[i];
+        }
+    }
+
+    void insert(string word) {
+        Trie* root = this;
+        for(char x: word){
+            int cur = x - 'a';
+            if(root->son[cur] == nullptr) root->son[cur] = new Trie();
+            root = root->son[cur];
+        }
+        root->isWord = true;
+    }
+    
+    bool search(string word) {
+        Trie* root = this;
+        for(char x : word){
+            int cur = x - 'a';
+            if(root->son[cur] == nullptr) return false;
+            root = root->son[cur];
+        }
+        return root->isWord;
+    }
+    
+    bool startsWith(string prefix) {
+        Trie* root = this;
+        for(char x : prefix){
+            int cur = x - 'a';
+            if(root->son[cur] == nullptr) return false;
+            root = root->son[cur];
+        }
+        return true;
+    }
+};
+```
+
+* []
+
+```Python
+# 字典实现
+class Trie(object):
+    def __init__(self):
+        """
+        Initialize your data structure here.
+        """
+        self.root = TrieNode()
+
+    def insert(self, word):
+        """
+        Inserts a word into the trie.
+        :type word: str
+        :rtype: None
+        """
+        node = self.root
+        for c in word:
+            if c not in node.children:
+                node.children[c] = TrieNode()
+            node = node.children[c]
+        node.is_word = True
+
+    def search_prefix(self, word):
+        node = self.root
+        for c in word:
+            if c not in node.children:
+                return None
+            node = node.children[c]
+        return node
+
+    def search(self, word):
+        """
+        Returns if the word is in the trie.
+        :type word: str
+        :rtype: bool
+        """
+        node = self.search_prefix(word)
+        return node is not None and node.is_word
+
+    def startsWith(self, prefix):
+        """
+        Returns if there is any word in the trie that starts with the given prefix.
+        :type prefix: str
+        :rtype: bool
+        """
+        return self.search_prefix(prefix) is not None
+
+
+class TrieNode(object):
+    def __init__(self):
+        self.children = {}
+        self.is_word = False
+```
+
+* []
+
+```Python
+# 标准实现
+class Trie(object):
+    def __init__(self):
+        """
+        Initialize your data structure here.
+        """
+        self.root = TrieNode()
+
+    def insert(self, word):
+        """
+        Inserts a word into the trie.
+        :type word: str
+        :rtype: None
+        """
+        node = self.root
+        for i in range(len(word)):
+            if not node.containsKey(word[i]):
+                node.put(word[i], TrieNode())
+            node = node.get(word[i])
+        node.isEnd = True
+
+    def searchPrefix(self, word):
+        node = self.root
+        for i in range(len(word)):
+            if node.containsKey(word[i]):
+                node = node.get(word[i])
+            else:
+                return None
+        return node
+
+    def search(self, word):
+        """
+        Returns if the word is in the trie.
+        :type word: str
+        :rtype: bool
+        """
+        node = self.searchPrefix(word)
+        return node is not None and node.isEnd
+
+    def startsWith(self, prefix):
+        """
+        Returns if there is any word in the trie that starts with the given prefix.
+        :type prefix: str
+        :rtype: bool
+        """
+        node = self.searchPrefix(prefix)
+        return node is not None
+
+
+class TrieNode:
+    def __init__(self):
+        self.__R = 26
+        self.isEnd = False
+        self.links = [None] * self.__R
+
+    def containsKey(self, ch):
+        return self.links[ord(ch) - ord('a')] is not None
+
+    def get(self, ch):
+        return self.links[ord(ch) - ord('a')]
+
+    def put(self, ch, node):
+        self.links[ord(ch) - ord('a')] = node
+```
+
+* 时间复杂度：$Trie$ 树的每次调用时间复杂度取决于入参字符串的长度。复杂度为 $O(Len)$。
+* 空间复杂度：结点数量为 $n$，字符集大小为 $k$。复杂度为 $O(nk)$。
+
+***
+
+## 两种方式的对比
+
+使用「二维数组」的好处是写起来飞快，同时没有频繁 $new$ 对象的开销。但是需要根据数据结构范围估算我们的「二维数组」应该开多少行。
+
+坏处是使用的空间通常是「$TrieNode$」方式的数倍，而且由于通常对行的估算会很大，导致使用的二维数组开得很大，如果这时候每次创建 $Trie$ 对象时都去创建数组的话，会比较慢，而且当样例多的时候甚至会触发 $GC$（因为 $OJ$ 每测试一个样例会创建一个 $Trie$ 对象）。
+
+因此还有一个小技巧是将使用到的数组转为静态，然后利用 $index$ 自增的特性在初始化 $Trie$ 时执行清理工作 & 重置逻辑。
+
+这样的做法能够使评测时间降低一半，运气好的话可以得到一个与「$TrieNode$」方式差不多的时间。
+
+* []
+
+```Java
+class Trie {
+    // 以下 static 成员独一份，被创建的多个 Trie 共用
+    static int N = 100009; // 直接设置为十万级
+    static int[][] trie = new int[N][26];
+    static int[] count = new int[N];
+    static int index = 0;
+
+    // 在构造方法中完成重置 static 成员数组的操作
+    // 这样做的目的是为减少 new 操作（无论有多少测试数据，上述 static 成员只会被 new 一次）
+    public Trie() {
+        for (int row = index; row >= 0; row--) {
+            Arrays.fill(trie[row], 0);
+        }
+        Arrays.fill(count, 0);
+        index = 0;
+    }
+    
+    public void insert(String s) {
+        int p = 0;
+        for (int i = 0; i < s.length(); i++) {
+            int u = s.charAt(i) - 'a';
+            if (trie[p][u] == 0) trie[p][u] = ++index;
+            p = trie[p][u];
+        }
+        count[p]++;
+    }
+    
+    public boolean search(String s) {
+        int p = 0;
+        for (int i = 0; i < s.length(); i++) {
+            int u = s.charAt(i) - 'a';
+            if (trie[p][u] == 0) return false;
+            p = trie[p][u];
+        }
+        return count[p] != 0;
+    }
+    
+    public boolean startsWith(String s) {
+        int p = 0;
+        for (int i = 0; i < s.length(); i++) {
+            int u = s.charAt(i) - 'a';
+            if (trie[p][u] == 0) return false;
+            p = trie[p][u];
+        }
+        return true;
+    }
+}
+
+```
+
+***
+
+## 关于「二维数组」是如何工作 & 1e5 大小的估算
+
+要搞懂为什么行数估算是 1e5，首先要搞清楚「二维数组」是如何工作的。
+
+在「二维数组」中，我们是通过 $index$ 自增来控制使用了多少行的。
+
+当我们有一个新的字符需要记录，我们会将 $index$ 自增（代表用到了新的一行），然后将这新行的下标记录到当前某个前缀的格子中。
+
+举个🌰，假设我们先插入字符串 `abc` 这时候，前面三行会被占掉。
+
+* 第 0 行 `a` 所对应的下标有值，值为 1，代表前缀 `a` 后面接的字符串会被记录在下标为 1 的行内
+
+* 第 1 行 `b` 所对应的下标有值，值为 2，代表前缀 `ab` 后面接的字符串会被记录在下标为 2 的行内
+
+* 第 2 行 `c` 所对应的下标有值，值为 3，代表前缀 `abc` 后面接的字符串会被记录在下标为 3 的行内
+
+当再插入 `abcl` 的时候，这时候会先定位到 `abl` 的前缀行（第 3 行），将 `l` 的下标更新为 4，代表 `abcl` 被加入前缀树，并且前缀 `abcl` 接下来会用到第 4 行进行记录。
+
+但当插入 `abl` 的时候，则会定位到 `ab` 的前缀行（第 2 行），然后将 `l` 的下标更新为 5，代表 `abl` 被加入前缀树，并且前缀 `abl` 接下来会使用第 5 行进行记录。
+
+当搞清楚了「二维数组」是如何工作之后，我们就能开始估算会用到多少行了，调用次数为 $10^4$，传入的字符串长度为 $10^3$，假设每一次的调用都是 $insert$，并且每一次调用都会使用到新的 $10^3$ 行。那么我们的行数需要开到 $10^7$。
+
+**但由于我们的字符集大小只有 26，因此不太可能在 $10^4$ 次调用中都用到新的 $10^3$ 行。**
+
+**而且正常的测试数据应该是 $search$ 和 $startsWith$ 调用次数大于 $insert$ 才有意义的，一个只有 $insert$ 调用的测试数据，任何实现方案都能 AC。**
+
+**因此我设定了 $10^5$ 为行数估算，当然直接开到 $10^6$ 也没有问题。**
+
+***
+
+## 关于 Trie 的应用面
+
+评论区两位小可爱提醒到我，没有讲到「Trie 的应用面」问题，那就补充一下 ~
+
+首先，在纯算法领域，前缀树算是一种较为常用的数据结构。
+
+不过如果在工程中，不考虑前缀匹配的话，基本上使用 hash 就能满足。
+
+如果考虑前缀匹配的话，工程也不会使用 Trie 。
+
+一方面是字符集大小不好确定（题目只考虑 26 个字母，字符集大小限制在较小的 26 内）因此可以使用 Trie，但是工程一般兼容各种字符集，一旦字符集大小很大的话，Trie 将会带来很大的空间浪费。
+
+另外，对于个别的超长字符 Trie 会进一步变深。
+
+这时候如果 Trie 是存储在硬盘中，Trie 结构过深带来的影响是多次随机 IO，随机 IO 是成本很高的操作。
+
+同时 Trie 的特殊结构，也会为分布式存储将会带来困难。
+
+因此在工程领域中 Trie 的应用面不广。
+
+至于一些诸如「联想输入」、「模糊匹配」、「全文检索」的典型场景在工程主要是通过 ES (ElasticSearch) 解决的。
+
+而 ES 的实现则主要是依靠「倒排索引」。
+
+---
+
+## 最后
+
+**如果有帮助到你，请给题解点个赞和收藏，让更多的人看到 ~ ("▔□▔)/**
+
+也欢迎你 [关注我](https://oscimg.oschina.net/oscnet/up-19688dc1af05cf8bdea43b2a863038ab9e5.png)（公主号后台回复「送书」即可参与长期看题解学算法送实体书活动）或 加入[「组队打卡」](https://leetcode-cn.com/u/ac_oier/)小群 ，提供写「证明」&「思路」的高质量题解。
+
+所有题解已经加入 [刷题指南](https://github.com/SharingSource/LogicStack-LeetCode/wiki)，欢迎 star 哦 ~
