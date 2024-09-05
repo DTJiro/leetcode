@@ -1,0 +1,29 @@
+class Solution {
+    public int[] productExceptSelf(int[] nums) {
+        int[] a = new int[nums.length];
+        int[] b = new int[nums.length];
+        int[] c = new int[nums.length];
+
+        for (int i = 0; i < nums.length; i++) {
+            if (i == 0) {
+                a[i] = 1;
+            } else {
+                a[i] = a[i - 1] * nums[i - 1];
+            }
+        }
+        for (int i = nums.length - 1; i >= 0; i--) {
+            if (i == nums.length - 1) {
+                b[i] = 1;
+            } else {
+                b[i] = b[i + 1] * nums[i + 1];
+            }
+        }
+        for (int i = 0; i < nums.length; i++) {
+            c[i] = a[i] * b[i];
+        }
+        return c;
+    }
+}
+
+//runtime:2 ms
+//memory:54.3 MB
