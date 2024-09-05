@@ -43,17 +43,36 @@ public class KthLargestElementInAnArray{
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public int findKthLargest(int[] nums, int k) {
-		Queue<Integer> queue = new PriorityQueue<>();
-		for (int i = 0; i < k; i++) {
-			queue.offer(nums[i]);
+		int n = nums.length;
+		return a(nums, 0, n - 1, n - k);
+	}
+
+	int a(int[] nums, int l, int r, int k) {
+		if (l == r) {
+			return nums[k];
 		}
-		for (int i = k; i < nums.length; i++) {
-			if (nums[i] > queue.peek()) {
-				queue.poll();
-				queue.offer(nums[i]);
+		int x = nums[l];
+		int i = l - 1;
+		int j = r + 1;
+		while (i < j) {
+			do {
+				i++;
+			} while (nums[i] < x);
+			do {
+				j--;
+			} while (nums[j] > x);
+			if (i < j) {
+				int t = nums[i];
+				nums[i] = nums[j];
+				nums[j] = t;
 			}
 		}
-		return queue.peek();
+		if (k <= j) {
+			return a(nums, l, j, k);
+		} else {
+			return a(nums, j + 1, r, k);
+		}
+
 	}
 }
 //leetcode submit region end(Prohibit modification and deletion)

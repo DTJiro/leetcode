@@ -1,0 +1,251 @@
+> [208. 实现 Trie (前缀树)](https://leetcode.cn/problems/implement-trie-prefix-tree/)
+
+[TOC]
+
+# 题目
+
+**[Trie](https://baike.baidu.com/item/字典树/9825209?fr=aladdin)**（发音类似 "try"）或者说 **前缀树** 是一种树形数据结构，用于高效地存储和检索字符串数据集中的键。这一数据结构有相当多的应用情景，例如自动补完和拼写检查。
+
+请你实现 Trie 类：
+
+- `Trie()` 初始化前缀树对象。
+- `void insert(String word)` 向前缀树中插入字符串 `word` 。
+- `boolean search(String word)` 如果字符串 `word` 在前缀树中，返回 `true`（即，在检索之前已经插入）；否则，返回 `false` 。
+- `boolean startsWith(String prefix)` 如果之前已经插入的字符串 `word` 的前缀之一为 `prefix` ，返回 `true` ；否则，返回 `false` 。
+
+# 题目分析
+
+## 思路分析
+
+这道题如果只是实现插入与查找，那么一个哈希表就足够了。但是还需要能够判断给定的前缀是否是加入的字符串的前缀，这个哈希表解决不了。
+
+因此就产生了前缀树这样的结构来对前缀进行快速查找。
+
+我们在已加入的字符串中查找前缀有两种方式：
+
+- 枚举所有字符串，判断给定前缀是否为字符串前缀；
+- 枚举给定前缀的每一位，查看字符串中是否存在字符的当前位是这个位；如果存在，就在这些字符串中去查找下一位。
+
+![image-20240120231624748.png](https://pic.leetcode.cn/1705852091-NfxcAY-image-20240120231624748.png)
+
+## 前缀树的构造
+
+基于第二种思路，我们实际上要根据前缀对字符串进行分组。通过树的结构可以实现这个策略。
+
+![image-20240302095546093.png](https://pic.leetcode.cn/1709344595-HaJKeO-image-20240302095546093.png)
+
+基于前缀树这样的结构，**每一层的节点并不是直接存储了某个字符，而是记录这一层节点对应字符串的位置是否出现了某个字符**。比如根节点就是记录了字符串首个位置，第二层节点就是记录了字符串索引`1`的位置，... 。整个结构其实也是一个嵌套哈希表。
+
+我们可以将每一个字符串存储到树中，并且对于**相同前缀只存储一次**【从根节点出发到任一个节点都是一个前缀】。对于每个加入的字符串我们一定能在树中找到一条路径还原它。
+
+因为字符串中只存在小写字母，因此每个节点最多有 `26` 个子节点。
+
+我们可以使用长度为 `26` 的列表来存储当前节点对应出现过的字符**的子节点**。初始都为空。
+
+### 加入一个字符串
+
+假设当前节点为 `node`，当前要加入的字符为 `ch`：
+
+- 如果当前节点 `node` 的子节点列表中，`ch` 位置没有节点，则新建一个节点；
+- 然后更新 `node` 为子节点，加入下一个字符；
+- `node` 初始为前缀树的根节点 `root`；
+
+![image-20240121233200906.png](https://pic.leetcode.cn/1705852091-LnbIrQ-image-20240121233200906.png)
+
+### 查找一个前缀
+
+查找一个前缀的过程与插入一个前缀的过程是相似的：
+
+假设当前节点为 `node`，当前要查找的字符为 `ch`：
+
+- 如果当前节点 `node` 的子节点列表中，`ch` 位置没有节点，说明这个字符没有匹配上，**前缀不存在退出查找**；
+- 否则更新 `node` 为子节点，寻找下一个字符；
+- `node` 初始为前缀树的根节点 `root`；
+
+![image-20240121233831238.png](https://pic.leetcode.cn/1705852091-YnaVlW-image-20240121233831238.png)
+
+## 标志位标记完整字符串
+
+我们通过树的方式可以快速找到任一一个前缀。但是如果要查找一个完整的字符串，当我们找到时，我们如何知道找到的这部分是一个完整的字符串还是某个字符串的前缀呢？
+
+![image-20240121234320181.png](https://pic.leetcode.cn/1708854943-VdkgQm-image-20240121234320181.png)
+
+因此我们对每个节点引入一个标志 `isEnd` 标记当前节点对应一个完整字符串，我们在插入字符串的时候将最后一个字符对应的节点的标志位置为 `True`。
+
+当我们**查找一个完整字符串**时，既要能找到对应的节点，同时节点的标志位还必须为 `true`。
+
+![image-20240121234502211.png](https://pic.leetcode.cn/1705852091-TvIojy-image-20240121234502211.png)
+
+# 代码
+
+* []
+
+```Java
+class Trie {
+    private Node root;     // 根节点
+
+    public Trie() {
+        root = new Node();
+    }
+    
+    public void insert(String word) {
+        Node node = root;      // 从根节点开始构造这个word对应的路径节点
+        int n = word.length();
+        for(int i = 0; i < n; i++){
+            // 将当前字符添加到当前节点对应的子节点位置，然后递归更新
+            int id = word.charAt(i) - 'a'; 
+            if(node.children[id] == null){
+                node.children[id] = new Node();
+            }
+            node = node.children[id];
+        }
+        node.isEnd = true; // 最后一个节点的isEnd置为true，表示一个完整的字符串
+    }
+    
+    public boolean search(String word) {
+        Node node = searchPrefix(word);
+        return node != null && node.isEnd;  // 返回不为空且节点标记为尾节点，则包含word这个完整的字符串
+
+    }
+    
+    public boolean startsWith(String prefix) {
+        return searchPrefix(prefix) != null; // 返回不为空，则包含了prefix前缀
+    }
+    
+    /**
+     * 查找字典树是否包含word前缀
+    */
+    private Node searchPrefix(String word){
+        Node node = root;  // 从根节点依次开始匹配每个字符
+        int n = word.length();
+        for(int i = 0; i < n; i++){
+            node = node.children[word.charAt(i) - 'a']; // 根据当前字符获取对应的子节点
+            if(node == null){
+                return null;     // 只要当前节点为空，则不包含这个字符串，直接返回空指针
+            }
+        }
+        return node;    // 否则匹配成功返回node
+    }
+}
+
+/**
+ * 字典树节点
+ */
+class Node{
+    Node[] children;     // 子节点列表
+    boolean isEnd;       // 标记是否尾节点
+
+    public Node(){
+        children = new Node[26];
+        isEnd = false;
+    }
+}
+```
+
+* []
+
+```Python
+"""
+字典树节点
+"""
+class Node:
+    def __init__(self):
+        self.children = [None] * 26     # 子节点列表
+        self.isEnd = False              # 标记是否尾节点
+
+
+class Trie:
+
+    def __init__(self):
+        self.root = Node()
+
+    def insert(self, word: str) -> None:
+        node = self.root      # 从根节点开始构造这个word对应的路径节点
+        for char in word:
+            # 将当前字符添加到当前节点对应的子节点位置，然后递归更新
+            id_ = ord(char) - ord('a') 
+            if not node.children[id_]:
+                node.children[id_] = Node()
+            node = node.children[id_]
+        node.isEnd = True # 最后一个节点的isEnd置为true，表示一个完整的字符串
+
+    def search(self, word: str) -> bool:
+        node = self.__search_prefix(word)
+        return node != None and node.isEnd  # 返回不为空且节点标记为尾节点，则包含word这个完整的字符串
+
+    def startsWith(self, prefix: str) -> bool:
+        return self.__search_prefix(prefix) != None # 返回不为空，则包含了prefix前缀
+    
+    """
+    查找字典树是否包含word前缀
+    """
+    def __search_prefix(self, word: str) -> Node:
+        node = self.root  # 从根节点依次开始匹配每个字符
+        for char in word:
+            node = node.children[ord(char) - ord('a')]  # 根节点开始构造这个word对应的路径节点
+            if not node:
+                return     # 只要当前节点为空，则不包含这个字符串，直接返回空指针
+        return node    # 否则匹配成功返回node
+```
+
+* []
+
+```C++
+/**
+ * 字典树节点
+ */
+struct Node{
+    vector<Node*> children;     // 子节点列表
+    bool isEnd;                 // 标记是否尾节点
+
+    Node(): children(26), isEnd(false){};
+};
+
+class Trie {
+private:
+    Node* root;     // 根节点
+
+    /**
+     * 查找字典树是否包含word前缀
+    */
+    Node* searchPrefix(string word){
+        Node* node = root;  // 从根节点依次开始匹配每个字符
+        for(auto& char_: word){
+            int id = char_ - 'a';
+            if(!node){
+                return nullptr;     // 只要当前节点为空，则不包含这个字符串，直接返回空指针
+            }
+            node = node->children[id];
+        }
+        return node;    // 否则匹配成功返回node
+    }
+
+public:
+    Trie() {
+        root = new Node();  // 初始化根节点
+    }
+    
+    void insert(string word) {
+        Node* node = root;      // 从根节点开始构造这个word对应的路径节点
+        for(auto& char_: word){
+            // 将当前字符添加到当前节点对应的子节点位置，然后递归更新
+            int id = char_ - 'a'; 
+            if(!node->children[id]){
+                node->children[id] = new Node();
+            }
+            node = node->children[id];
+        }
+        node->isEnd = true; // 最后一个节点的isEnd置为true，表示一个完整的字符串
+    }
+    
+    bool search(string word) {
+        Node* node = searchPrefix(word);
+        return node != nullptr && node->isEnd;  // 返回不为空且节点标记为尾节点，则包含word这个完整的字符串
+    }
+    
+    bool startsWith(string prefix) {
+        return searchPrefix(prefix) != nullptr; // 返回不为空，则包含了prefix前缀
+    }
+};
+```
+
