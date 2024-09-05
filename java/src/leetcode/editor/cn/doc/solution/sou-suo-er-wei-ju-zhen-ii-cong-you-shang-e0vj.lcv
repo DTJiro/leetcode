@@ -1,0 +1,74 @@
+### 1、思路
+
+**(单调性扫描)** $O(n+m)$
+
+给定一个`m x n` 矩阵 `matrix`，要求我们在这个矩阵中查找目标值 `target` 。如样例一所示，`target = 5`，`m x n`矩阵 `matrix`中包含`5`,因此返回`true`，下面来讲解单调性扫描的做法。
+
+在`m x n`矩阵 `matrix`中我们可以发现一个性质：对于每个子矩阵右上角的数`x`，`x`左边的数都小于等于`x`，`x`下边的数都大于`x`，如下图所示：
+
+![](https://pic.leetcode-cn.com/1630577659-fMJNlp-file_1630577661650)
+
+因此我们可以从整个矩阵的右上角开始枚举，假设当前枚举的数是 `x`：
+
+- 如果 `x` 等于`target`，则说明我们找到了目标值，返回`true`；
+- 如果 `x`小于`target`，则 `x`左边的数一定都小于`target`，我们可以直接排除当前一整行的数；
+- 如果` x` 大于`target`，则 `x` 下边的数一定都大于`target`，我们可以直接排除当前一整列的数；
+
+排除一整行就是让枚举的点的横坐标加一，排除一整列就是让纵坐标减一。当我们排除完整个矩阵后仍没有找到目标值时，就说明目标值不存在，返回`false`。
+
+对于样例一，如果`target == 13`,其扫描过程如下：
+
+![image.png](https://pic.leetcode-cn.com/1630592743-TRGLzA-image.png)
+
+**具体过程如下：**
+
+- 1、初始化`i = 0`, `j = matrix[0].size() - 1`。
+- 2、如果`matrix[i][j] == target`，返回`true`。
+- 3、如果`matrix[i][j] < target`，`i++`，排除一行。
+- 4、如果`matrix[i][j] > target`，`j--`，排除一列。
+- 5、如果出界了还未找到`target`，则返回`false`。
+
+**时间复杂度分析：** 每一步会排除一行或者一列，矩阵一共有 $n$ 行，$m$ 列，所以最多会进行$n+m$步。所以时间复杂度是 $O(n+m)$。
+
+### 2、c++代码
+
+* c
+
+```c
+class Solution {
+public:
+    bool searchMatrix(vector<vector<int>>& matrix, int target) {
+        if(!matrix.size() && !matrix[0].size()) return false;
+        int i = 0, j = matrix[0].size() - 1;  //矩阵右上角
+        while(i < matrix.size() && j >= 0)
+        {
+            if(matrix[i][j] == target)  return true;
+            else if( matrix[i][j] < target) i++;  //排除一行
+            else if( matrix[i][j] > target) j--;  //排除一列
+        }
+        return false;
+    }
+};
+```
+
+### 3、java代码
+
+* java
+
+```java
+class Solution {
+    public boolean searchMatrix(int[][] matrix, int target) {
+        if(matrix.length == 0 && matrix[0].length == 0) return false;
+        int i = 0, j = matrix[0].length - 1;  //矩阵右上角
+        while(i < matrix.length && j >= 0)
+        {
+            if(matrix[i][j] == target)  return true;
+            else if( matrix[i][j] < target) i++;  //排除一行
+            else if( matrix[i][j] > target) j--;  //排除一列
+        }
+        return false;
+    }
+}
+```
+
+![在这里插入图片描述](https://pic.leetcode-cn.com/1630577659-RSQCjI-file_1630577661647)
