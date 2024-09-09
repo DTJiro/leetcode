@@ -1,0 +1,260 @@
+# 解法一：二分查找
+
+> 读者最好能先掌握二分查找的基础知识。
+
+> 先填个坑，$[3,3,3,3,3]$ 在本题中被视为只存在一个重复的整数。
+
+> $\lfloor\rfloor$ 为向下取整的符号，比如 $\lfloor1.6\rfloor = 1$。
+
+因为在区间 $[1, n]$ 内存在重复的数。
+
+我们先累计大小在 $[1, \lfloor{\frac{n}{2}}\rfloor]$ 之间的数字个数，如果重复数在这个范围内，则个数 $> \lfloor{\frac{n}{2}}\rfloor$，否则可确定区间 $(\lfloor{\frac{n}{2}}\rfloor, n]$ 内存在重复数。
+
+即可通过二分查找求解。
+
+* []
+
+```C++
+class Solution {
+public:
+    int findDuplicate(vector<int>& nums) {
+        int min = 1; // 所查找数字范围的最小值
+        int max = nums.size(); // 所查找数字范围的最大值
+
+        while (min < max) {
+            int mid = (min + max) / 2;
+            // 计数
+            int cnt = 0;
+            for (int v : nums) {
+                if (v >= min && v <= mid) {
+                    cnt++;
+                }
+            }
+
+            if (cnt > mid - min + 1) // 个数超出范围长度，即存在重复数
+                max = mid;
+            else
+                min = mid + 1;
+        }
+
+        return min;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def findDuplicate(self, nums: List[int]) -> int:
+        min_val = 1 # 所查找数字范围的最小值
+        max_val = len(nums) # 所查找数字范围的最大值
+
+        while min_val < max_val:
+            mid = (min_val + max_val) // 2
+            # 计数
+            cnt = sum(min_val <= num <= mid for num in nums)
+
+            if cnt > mid - min_val + 1: # 个数超出范围长度，即存在重复数
+                max_val = mid
+            else:
+                min_val = mid + 1
+
+        return min_val
+```
+
+* []
+
+```Java
+class Solution {
+public:
+    int findDuplicate(vector<int>& nums) {
+        int min = 1; // 所查找数字范围的最小值
+        int max = nums.size(); // 所查找数字范围的最大值
+
+        while (min < max) {
+            int mid = (min + max) / 2;
+            // 计数
+            int cnt = 0;
+            for (int v : nums) {
+                if (v >= min && v <= mid) {
+                    cnt++;
+                }
+            }
+
+            if (cnt > mid - min + 1) // 个数超出范围长度，即存在重复数
+                max = mid;
+            else
+                min = mid + 1;
+        }
+
+        return min;
+    }
+};
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun findDuplicate(nums: IntArray): Int {
+        var min = 1 // 所查找数字范围的最小值
+        var max = nums.size  // 所查找数字范围的最大值
+
+        while(min < max){
+            val mid = (min + max) / 2
+            // 计数
+            val cnt = nums.count{ it in min..mid }
+
+            if(cnt > mid - min + 1) // 个数超出范围长度，即存在重复数
+                max = mid 
+            else 
+                min = mid + 1            
+        }
+
+        return min
+    }
+}
+```
+
+时间复杂度：$\Theta(n\cdot log\ n)$
+空间复杂度：$\Theta(1)$
+
+> 官方还提供了[二进制](https://leetcode.cn/problems/find-the-duplicate-number/solutions/261119/xun-zhao-zhong-fu-shu-by-leetcode-solution/)的解法，但也用到了二分法的性质，并且复杂度和本解法相同，此处不作详述。
+
+# 解法二：快慢指针
+
+将 $i$ 和 $nums[i]$ 视为链表中的父子节点，一直传递下去。
+
+那么如下所示，2 -> 3 -> 4 -> 3 -> 4 形成环。可转换为此前“快慢前后指针”中的[环形链表||](https://leetcode.cn/problems/linked-list-cycle-ii/description/)，最好看我的[个人精品题解](https://leetcode.cn/problems/linked-list-cycle-ii/solutions/2832831/jian-ji-qing-xi-yan-jin-de-tu-shi-tui-da-nak2/)。
+
+![Screenshot 2024-07-07 at 1.16.25 PM.png](https://pic.leetcode.cn/1720329418-BRSTZo-Screenshot%202024-07-07%20at%201.16.25%20PM.png)
+
+我们还需考虑自环的影响。（$nums[i] = i$, 指向自身。这会导致快慢指针相遇，但不能根据这点算重复数）
+
+对于 $nums[0]$，因为题中明确提出 $nums[i] \in [1, n]$，所以 $nums[0] \neq 0$，所以我们可以令初始指针在 $nums[0]$ 处，这样就不用考虑初始指针直接进入自环。
+
+如果 $nums[i] = i$, 比如图中的元素 1，这处于自环中，如果没有其它元素为 1，便不会前进到此处。
+
+* []
+
+```C++
+class Solution {
+public:
+    int findDuplicate(vector<int>& nums) {
+        int slow = 0;
+        int fast = 0;
+
+        while (true) {
+            // fast 前进两次，slow 前进一次
+            fast = nums[fast];
+            fast = nums[fast];
+            slow = nums[slow];
+            if (slow == fast) break;
+        }
+
+        // ptr == slow 时说明检测到重复元素，两个重复元素同时指向环的入口。
+        int ptr = 0;
+        while (ptr != slow) {
+            ptr = nums[ptr];
+            slow = nums[slow];
+        }
+
+        return ptr;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def findDuplicate(self, nums: List[int]) -> int:
+        slow = 0
+        fast = 0
+
+        while True:
+            # fast 前进两次，slow 前进一次
+            fast = nums[fast]
+            fast = nums[fast]
+            slow = nums[slow]
+            if slow == fast:
+                break
+
+        # ptr == slow 时说明检测到重复元素，两个重复元素同时指向环的入口。
+        ptr = 0
+        while ptr != slow:
+            ptr = nums[ptr]
+            slow = nums[slow]
+
+        return ptr
+```
+
+* []
+
+```Java
+class Solution {
+    public int findDuplicate(int[] nums) {
+        int slow = 0;
+        int fast = 0;
+
+        while (true) {
+            // fast 前进两次，slow 前进一次
+            fast = nums[fast];
+            fast = nums[fast];
+            slow = nums[slow];
+            if (slow == fast) break;
+        }
+
+        // ptr == slow 时说明检测到重复元素，两个重复元素同时指向环的入口。
+        int ptr = 0;
+        while (ptr != slow) {
+            ptr = nums[ptr];
+            slow = nums[slow];
+        }
+
+        return ptr;
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun findDuplicate(nums: IntArray): Int {
+        var slow = 0
+        var fast = 0
+
+        while(true){
+            // fast 前进两次，slow 前进一次
+            fast = nums[fast]
+            fast = nums[fast]
+            slow = nums[slow]
+            if(slow == fast) break 
+        }
+
+        // ptr == slow 时说明检测到重复元素，两个重复元素同时指向环的入口。
+        var ptr = 0
+        while(ptr != slow){
+            ptr = nums[ptr]
+            slow = nums[slow]
+        }
+
+        return ptr
+    }
+}
+```
+
+时间复杂度：$\Theta(n)$
+空间复杂度：$\Theta(1)$
+
+# 推广
+
+以下皆为个人所著，兼顾了职场面试和本硕阶段的学术考试。
+- [不同层次的面试算法学习规划](https://leetcode.cn/circle/discuss/xV68NV/)
+- [附个人题解的双指针题单](https://leetcode.cn/circle/discuss/BI95fj/)
+- [图论入门](https://leetcode.cn/leetbook/detail/introduction-to-graph/)
+- [图论进阶](https://leetcode.cn/leetbook/detail/advanced-graph-theory/)
+
+点赞关注不迷路，祝各位早日上岸，飞黄腾达！
