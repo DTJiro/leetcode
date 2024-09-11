@@ -1,0 +1,130 @@
+## 视频讲解
+
+请看 [树形DP②【基础算法精讲 24】](https://www.bilibili.com/video/BV1vu4y1f7dn/)。制作不易，欢迎点赞！
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def rob(self, root: Optional[TreeNode]) -> int:
+        def dfs(node: Optional[TreeNode]) -> (int, int):
+            if node is None:  # 递归边界
+                return 0, 0  # 没有节点，怎么选都是 0
+            l_rob, l_not_rob = dfs(node.left)  # 递归左子树
+            r_rob, r_not_rob = dfs(node.right)  # 递归右子树
+            rob = l_not_rob + r_not_rob + node.val  # 选
+            not_rob = max(l_rob, l_not_rob) + max(r_rob, r_not_rob)  # 不选
+            return rob, not_rob
+        return max(dfs(root))  # 根节点选或不选的最大值
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public int rob(TreeNode root) {
+        int[] res = dfs(root);
+        return Math.max(res[0], res[1]); // 根节点选或不选的最大值
+    }
+
+    private int[] dfs(TreeNode node) {
+        if (node == null) { // 递归边界
+            return new int[]{0, 0}; // 没有节点，怎么选都是 0
+        }
+        int[] left = dfs(node.left); // 递归左子树
+        int[] right = dfs(node.right); // 递归右子树
+        int rob = left[1] + right[1] + node.val; // 选
+        int notRob = Math.max(left[0], left[1]) + Math.max(right[0], right[1]); // 不选
+        return new int[]{rob, notRob};
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+    pair<int, int> dfs(TreeNode *node) {
+        if (node == nullptr) { // 递归边界
+            return {0, 0}; // 没有节点，怎么选都是 0
+        }
+        auto [l_rob, l_not_rob] = dfs(node->left); // 递归左子树
+        auto [r_rob, r_not_rob] = dfs(node->right); // 递归右子树
+        int rob = l_not_rob + r_not_rob + node->val; // 选
+        int not_rob = max(l_rob, l_not_rob) + max(r_rob, r_not_rob); // 不选
+        return {rob, not_rob};
+    }
+
+public:
+    int rob(TreeNode *root) {
+        auto [root_rob, root_not_rob] = dfs(root);
+        return max(root_rob, root_not_rob); // 根节点选或不选的最大值
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+func dfs(node *TreeNode) (int, int) {
+    if node == nil { // 递归边界
+        return 0, 0 // 没有节点，怎么选都是 0
+    }
+    lRob, lNotRob := dfs(node.Left)  // 递归左子树
+    rRob, rNotRob := dfs(node.Right) // 递归右子树
+    rob := lNotRob + rNotRob + node.Val // 选
+    notRob := max(lRob, lNotRob) + max(rRob, rNotRob) // 不选
+    return rob, notRob
+}
+
+func rob(root *TreeNode) int {
+    return max(dfs(root)) // 根节点选或不选的最大值
+}
+```
+
+* [sol-JavaScript]
+
+```js
+function dfs(node) {
+    if (node === null) { // 递归边界
+        return [0, 0]; // 没有节点，怎么选都是 0
+    }
+    const [lRob, lNotRob] = dfs(node.left); // 递归左子树
+    const [rRob, rNotRob] = dfs(node.right); // 递归右子树
+    const rob = lNotRob + rNotRob + node.val; // 选
+    const notRob = Math.max(lRob, lNotRob) + Math.max(rRob, rNotRob); // 不选
+    return [rob, notRob];
+}
+
+var rob = function (root) {
+    return Math.max(...dfs(root)); // 根节点选或不选的最大值
+};
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(n)$，其中 $n$ 为二叉树的节点个数。每个节点都会递归恰好一次。
+- 空间复杂度：$\mathcal{O}(n)$。最坏情况下，二叉树是一条链，递归需要 $\mathcal{O}(n)$ 的栈空间。
+
+## 课后作业
+
+- [1377. T 秒后青蛙的位置](https://leetcode.cn/problems/frog-position-after-t-seconds/solution/dfs-ji-yi-ci-you-qu-de-hack-by-endlessch-jtsr/)，[题解](https://leetcode.cn/problems/frog-position-after-t-seconds/solution/dfs-ji-yi-ci-you-qu-de-hack-by-endlessch-jtsr/)
+- [2646. 最小化旅行的价格总和](https://leetcode.cn/problems/minimize-the-total-price-of-the-trips/)，[题解](https://leetcode.cn/problems/minimize-the-total-price-of-the-trips/solution/lei-si-da-jia-jie-she-iii-pythonjavacgo-4k3wq/)
+
+## 分类题单
+
+以下题单没有特定的顺序，可以按照个人喜好刷题。
+
+1. [滑动窗口（定长/不定长/多指针）](https://leetcode.cn/circle/discuss/0viNMK/)
+2. [二分算法（二分答案/最小化最大值/最大化最小值/第K小）](https://leetcode.cn/circle/discuss/SqopEo/)
+3. [单调栈（基础/矩形面积/贡献法/最小字典序）](https://leetcode.cn/circle/discuss/9oZFK9/)
+4. [网格图（DFS/BFS/综合应用）](https://leetcode.cn/circle/discuss/YiXPXW/)
+5. [位运算（基础/性质/拆位/试填/恒等式/贪心/脑筋急转弯）](https://leetcode.cn/circle/discuss/dHn9Vk/)
+6. [图论算法（DFS/BFS/拓扑排序/最短路/最小生成树/二分图/基环树/欧拉路径）](https://leetcode.cn/circle/discuss/01LUak/)
+7. [动态规划（入门/背包/状态机/划分/区间/状压/数位/数据结构优化/树形/博弈/概率期望）](https://leetcode.cn/circle/discuss/tXLS3i/)
+8. [常用数据结构（前缀和/差分/栈/队列/堆/字典树/并查集/树状数组/线段树）](https://leetcode.cn/circle/discuss/mOr1u6/)
+9. [数学算法（数论/组合/概率期望/博弈/计算几何/随机算法）](https://leetcode.cn/circle/discuss/IYT3ss/)
+
+[我的题解精选（已分类）](https://github.com/EndlessCheng/codeforces-go/blob/master/leetcode/SOLUTIONS.md)
+
+欢迎关注 [B站@灵茶山艾府](https://space.bilibili.com/206214)
