@@ -1,0 +1,149 @@
+> [394. 字符串解码](https://leetcode.cn/problems/decode-string/)
+
+[TOC]
+
+# 题目
+
+给定一个经过编码的字符串，返回它解码后的字符串。
+
+编码规则为: `k[encoded_string]`，表示其中方括号内部的 `encoded_string` 正好重复 `k` 次。注意 `k` 保证为正整数。
+
+你可以认为输入字符串总是有效的；输入字符串中没有额外的空格，且输入的方括号总是符合格式要求的。
+
+此外，你可以认为原始数据不包含数字，所有的数字只表示重复的次数 `k` ，例如不会出现像 `3a` 或 `2[4]` 的输入。
+
+# 题目分析
+
+## 思路分析
+
+这道题要解码一个字符串，其解码规则类似于数学中的乘法运算：
+
+![image-20240726223921818.png](https://pic.leetcode.cn/1722008714-OzETFm-image-20240726223921818.png)
+
+但是代码实现上我们不可能一下子就找到最里层的嵌套括号 `[]`，而是应该从左到右一步步匹配：
+
+![image-20240726231458945.png](https://pic.leetcode.cn/1722008714-eESUsz-image-20240726231458945.png)
+
+我们观察整个过程，我们需要有一个结构：每当我们要搜索新的子串的时候（即找到一个符号 `[`）：
+
+1. 需要将原有的子串存储起来；
+2. 需要将当前的乘数存储起来，同时要开辟一个映射空间存储它所要乘的子串；【比如上图中`3[cd2[` 这部分，当我们找到处理到2之后的左括号时，我们实际上要将3和已经找到的子串cd存储起来，等嵌套的 `2[abab]` 处理完得到字符串abab，它也是乘数3要操作的子串，将它拼接到cd之后】
+
+由于上面的过程我们每次都是将后处理的内容存储起来并且先使用，这是一个 后入先出的过程，我们可以适用栈结构实现：
+
+![image-20240726234139544.png](https://pic.leetcode.cn/1722008714-bRbqHD-image-20240726234139544.png)
+
+可以看到，最终栈内只有一个元素，其存储的内容就是解码后的字符串。**总结一下，我们遍历字符的每个字符**：
+
+1. 如果是数字，就构造 `k`；
+2. 如果是 `[`，新建一个元素对 `(k, "")` 入栈；
+3. 如果是 `]`，弹出栈顶元素构造重复字符串，然后追加到当前栈顶元素的子串中；
+4. 如果字符，直接追加到当前栈顶元素的子串中；
+
+由于栈底我们预先加入了一个元素对，且给出的字符串一定是合法的字符串，所以在处理过程中 **栈不可能为空**。
+
+# 代码
+
+* []
+
+```Java
+class Solution {
+        public String decodeString(String s) {
+        Stack<StringBuilder[]> st = new Stack<>();   // 栈，每个元素存储要重复的次数和要重复的字符串
+        st.add(new StringBuilder[]{new StringBuilder("1"), new StringBuilder()});     // 初始栈顶存入重复1次空字符，用来接收要重复的字符
+        int k = 0;      // 提取字符串中的数字部分
+        int n = s.length();
+        for(int i = 0; i < n; i++){
+            char ch = s.charAt(i);
+            if(Character.isDigit(ch)){    // 数字字符，提取数字
+                k *= 10;
+                k += ch - '0';
+            }else if(ch == '['){    // 左括号，标识已经提取了一个数字，接下来就要提取这个数字所对应要重复的字符串
+                st.add(new StringBuilder[]{new StringBuilder(Integer.toString(k)), new StringBuilder()});     // 数字入栈，这个数字要重复字符串就对应添加到pair里
+                k = 0;      // 数字清零，用于下一次提取数字
+            }else if(ch == ']'){    // 右括号，标识最后提取的重复字符串已经完成，栈顶元素可以生成一个重复字符串
+                StringBuilder[] sarray = st.pop();    // 匹配栈顶元素完成，弹出
+                String str = mulStr(Integer.parseInt(sarray[0].toString()), sarray[1].toString());     // 栈顶元素就是一个要重复的字符串的k和str
+                st.peek()[1].append(str);    // 生成的字符串追加到栈顶元素中
+            }else{      // 一个字符，追加到栈顶元素对中
+                st.peek()[1].append(ch);
+            }
+        }
+        return st.peek()[1].toString();    // 最终栈内一定只有一个元素，存储解码后的字符串
+    }
+
+    /**
+     * 返回一个重复字符串base k次的字符串
+     */
+    private String mulStr(int k, String base){
+        StringBuilder res = new StringBuilder();
+        while(k-- > 0){
+            res.append(base);
+        }
+        return res.toString();
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def decodeString(self, s: str) -> str:
+        st = [[1, ""]]   # 栈，每个元素存储要重复的次数和要重复的字符串; 初始栈顶存入重复1次空字符，用来接收要重复的字符
+        k = 0      # 提取字符串中的数字部分
+        for ch in s:
+            if ch.isdigit():    # 数字字符，提取数字
+                k *= 10
+                k += int(ch)
+            elif ch == '[':    # 左括号，标识已经提取了一个数字，接下来就要提取这个数字所对应要重复的字符串
+                st.append([k, ""])     # 数字入栈，这个数字要重复字符串就对应添加到pair里
+                k = 0      # 数字清零，用于下一次提取数字
+            elif ch == ']':    # 右括号，标识最后提取的重复字符串已经完成，栈顶元素可以生成一个重复字符串
+                mul, str_ = st.pop()      # 栈顶元素就是一个要重复的字符串的k和str, 弹出生成
+                st[-1][1] += str_ * mul    # 生成的字符串追加到栈顶元素中
+            else:      # 一个字符，追加到栈顶元素对中
+                st[-1][1] += ch
+        return st[0][1]    # 最终栈内一定只有一个元素，存储解码后的字符串
+```
+
+* []
+
+```C++
+class Solution {
+private:
+    /**
+     * 返回一个重复字符串base k次的字符串
+     */ 
+    string mulStr(int k, string& base){
+        string res = "";
+        while(k-- > 0){
+            res += base;
+        }
+        return res;
+    }
+public:
+    string decodeString(string s) {
+        vector<pair<int, string>> st;   // 栈，每个元素存储要重复的次数和要重复的字符串
+        st.emplace_back(1, "");     // 初始栈顶存入重复1次空字符，用来接收要重复的字符
+        int k = 0;      // 提取字符串中的数字部分
+        for(auto& ch: s){
+            if(isdigit(ch)){    // 数字字符，提取数字
+                k *= 10;
+                k += ch - '0';
+            }else if(ch == '['){    // 左括号，标识已经提取了一个数字，接下来就要提取这个数字所对应要重复的字符串
+                st.emplace_back(k, "");     // 数字入栈，这个数字要重复字符串就对应添加到pair里
+                k = 0;      // 数字清零，用于下一次提取数字
+            }else if(ch == ']'){    // 右括号，标识最后提取的重复字符串已经完成，栈顶元素可以生成一个重复字符串
+                string str = mulStr(st.back().first, st.back().second);     // 栈顶元素就是一个要重复的字符串的k和str
+                st.pop_back();      // 栈顶元素匹配完成，弹出
+                st.back().second += str;    // 生成的字符串追加到栈顶元素中
+            }else{      // 一个字符，追加到栈顶元素对中
+                st.back().second += ch;
+            }
+        }
+        return st[0].second;    // 最终栈内一定只有一个元素，存储解码后的字符串
+    }
+};
+```
+

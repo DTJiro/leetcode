@@ -1,0 +1,58 @@
+> 花了两个小时终于做出来了😭
+> 还好结果不错：0 ms 击败 100.00%使用 Java 的用户
+
+# 解题方法
+
+> 这道题的标签为`栈`，所以思路可以往栈的方向靠。
+> 对于示例 s = "3[a2[c]]"，我们可以看到第一对`[]`之间还有一对`[]`,正序遍历的话不知道`[`后面还有没有`[`,因此无法匹配`[]`。所以需要倒序遍历，s1 = "]]c[2a[3";
+> 遇到`]`或字母就压入栈，遇到`[`，就将栈中元素弹出，直到遇到第一个`]`。将弹出的字母组成的字符串记为tmp，并且接下来遍历的字母一定是整数n(1 <=n <= 300，所以n可能有多位，同理将数字弹出并记录，直到遇到非数字，然后将记录反转得到n)。然后将n个tmp压入栈中，重复以上过程直到遍历结束。
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public String decodeString(String s) {
+        StringBuilder builder = new StringBuilder();
+        // 将字符串反转
+        String s1 = builder.append(s).reverse().toString();
+        // 将builder当作栈
+        builder = new StringBuilder();
+        String substring = null;
+        for (int i = 0; i < s1.length() ; i++) {
+                // 如果遇到的是字符或者']'，压入栈
+                if(s1.charAt(i)>='a' || s1.charAt(i)==']')
+                    builder.append(s1.charAt(i));
+                // 如果遇到 '['
+                else if (s1.charAt(i)=='['){
+                  // 搜索离栈顶最近的']'
+                    int j = builder.lastIndexOf("]");
+                //记录当前栈的高度
+                    int k  = builder.toString().length();
+                    // 求得'[]' 之间的字符串
+                    substring = builder.toString().substring(j+1, k);
+                    // 将']'及之后的元素弹出栈
+                    builder.delete(j,k);
+                } else {
+                    // 遇到数字
+                     StringBuilder builder1 = new StringBuilder();
+                    // 数字可能有多位
+                    while (i<s1.length()&& s1.charAt(i)>='0'&&s1.charAt(i)<='9'){
+                        builder1.append(s1.charAt(i));
+                        i++;
+                    }
+                    // 这里要i--,因为for循环还要i++
+                    i--;
+                    int n  = Integer.parseInt(builder1.reverse().toString());
+                    //  将n个'[]'之间的字符串压入栈
+                    while (n-- >0)
+                        builder.append(substring);
+                }               
+        }
+        // 因为是倒序遍历，所以要反转结果
+        return builder.reverse().toString();
+    }
+}
+```
+
