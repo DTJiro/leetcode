@@ -1,0 +1,62 @@
+思路与代码，参考来自bilibili: 图灵星球Turing Planet
+看了很多youtube视频都没能让我很明白，最后在b站找到这个视频。
+感谢这个视频让我更清楚明白本题(并以Java的形式)！
+视频指路链接：https://www.bilibili.com/video/BV1XU4y1s7Lk
+
+具体代码如下（基本思路都附有注释）：
+第一次写题解请多多包含，希望大家阅读指正，也希望更多小伙伴能够理解这个题目，一起进步加油！！
+
+* 
+
+```
+class Solution {
+    public double[] calcEquation(List<List<String>> equations, double[] values, List<List<String>> queries) {
+        //初始化Graph(以HashMap形式)
+        Map<String, List<Cell>> graph = new HashMap<>();
+        //对于每个Equation和其结果答案，将其加入Graph中
+        for(int i = 0; i < values.length; i++) {
+            String s1 = equations.get(i).get(0), s2 = equations.get(i).get(1);
+            graph.computeIfAbsent(s1, k -> new ArrayList<>()).add(new Cell(s2, values[i]));
+            graph.computeIfAbsent(s2, k -> new ArrayList<>()).add(new Cell(s1, 1.0 / values[i]));
+        }
+
+        //创建答案result数组以及访问过的HashSet: visited
+        double[] res = new double[queries.size()];
+        //首先将答案中所有答案值置为-1.0，出现(x / x)情况可以直接不用修改
+        Arrays.fill(res, -1.0);
+        //对于每个query中的值调用dfs函数
+        for(int i = 0; i < queries.size(); i++) {
+            dfs(queries.get(i).get(0), queries.get(i).get(1), 1.0, graph, res, i, new HashSet<>());
+        }
+        return res;
+    }
+
+    //src: 当前位置; dst: 答案节点; cur: 当前计算值; graph: 之前建的图; res: 答案array; index: 当前遍历到第几个query; visited: 查重Set
+    private void dfs(String src, String dst, double cur, Map<String, List<Cell>> graph, double[] res, int index, Set<String> visited) {
+        //base case: 在visited中加入当前位置信息；如果加不了代表已经访问过，直接返回
+        if(!visited.add(src)) {
+            return;
+        }
+        //如果当前位置src = 答案节点dst，并且此节点在graph中(避免x/x的情况)，用当前计算值cur来填充答案res[index] 
+        if(src.equals(dst) && graph.containsKey(src)) {
+            res[index] = cur;
+            return;
+        }
+        //对于邻居节点，调用dfs函数
+        for(Cell nei : graph.getOrDefault(src, new ArrayList<>())) {
+            dfs(nei.str, dst, cur * nei.div, graph, res, index, visited);
+        }
+    }
+}
+
+class Cell {
+    String str;
+    double div;
+
+    Cell(String str, double div) {
+        this.str = str;
+        this.div = div;
+    }
+}
+```
+

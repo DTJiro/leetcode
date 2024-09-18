@@ -1,0 +1,227 @@
+# 题目
+
+## 399. 除法求值
+
+给你一个变量对数组 `equations` 和一个实数值数组 `values` 作为已知条件，其中 `equations[i] = [Ai, Bi]` 和 `values[i]` 共同表示等式 `Ai / Bi = values[i]` 。每个 `Ai` 或 `Bi` 是一个表示单个变量的字符串。
+
+另有一些以数组 `queries` 表示的问题，其中 `queries[j] = [Cj, Dj]` 表示第 `j` 个问题，请你根据已知条件找出 `Cj / Dj = ?` 的结果作为答案。
+
+返回 **所有问题的答案** 。如果存在某个无法确定的答案，则用 `-1.0` 替代这个答案。如果问题中出现了给定的已知条件中没有出现的字符串，也需要用 `-1.0` 替代这个答案。
+
+**注意：** 输入总是有效的。你可以假设除法运算中不会出现除数为 0 的情况，且不存在任何矛盾的结果。
+
+**注意：** 未在等式列表中出现的变量是未定义的，因此无法确定它们的答案。
+
+# 题目分析
+
+这道题我们需要根据已知的除法等式来计算待求解的等式。
+
+假设我们已知 `a / b = 3, b /c = 2`，我们要求解 `a / c`。很明显我们并没有 `a / c` 的直接信息。但是我们可以通过已知信息 `(a /b) * (b / c)` 得出 `a / c` 的结果。
+
+即我们通过 `b` 作为中间过渡变量，实现了从 `a` 到 `c` 计算。如果我们把每个变量 `a`, `b`, `c` 看成 **图的节点**，把每一个除法运算看成从被除数节点到除数节点的一条有向边且商为权重：
+
+![image.png](https://pic.leetcode.cn/1700748750-wZpxhH-image.png)
+
+那么我们求解 `a / c` 相当于计算**从节点 `a` 到 节点 `c` 的路径的权重乘积**。
+
+## 构图
+
+根据上面的分析，我们可以根据输入 `equations[i] = [Ai, Bi]` 和 `values[i]` 共同表示等式 `Ai / Bi = values[i]` 进行构图：
+- 构建一条从 `Ai` 节点 指向 `Bi` 节点，权重为 `values[i]` 的边；
+- 构建一条从 `Bi` 节点 指向 `Ai` 节点，权重为 `1 / values[i]` 的边;【表示 `Bi / Ai = values[i]`】；
+- 构建一条从 `Ai` 节点 指向 `Ai` 节点，权重为 `1` 的边；【表示 `Ai / Ai = 1` 】
+- 构建一条从 `Bi` 节点 指向 `Bi` 节点，权重为 `1` 的边；【表示 `Bi / Bi = 1`】
+
+![image.png](https://pic.leetcode.cn/1700749321-WUmFSw-image.png)
+
+即通过一组除法运算，我们可以构建四条边，保证只要等式数组中出现的变量都将构建相应的节点。
+
+由于变量名 `Ai` 和 `Bi` 都是字符串，因此我们需要使用两重哈希表来存储图结构 `graph`，即:
+- 第一层哈希表 `graph` 存储每个节点和它的邻节点信息表；
+- 第二层哈希表 `graph[s]` 存储节点 `s` 的邻节点信息表，其中键 `e` 为 `s` 的邻节点，值 `graph[s][e]` 的值表示 `s` 节点到 `e` 节点的权重值。
+
+* 
+
+```
+graph = {a: {b: 3, ...}, ...}
+```
+
+## 广度优先搜索
+
+根据上面的分析，我们对一个要求解的式子 `C / D`，就是找到图中 `C` 节点到 `D`节点的路径，并且计算这条路径上的权重积。
+那么对路径的搜索我们有两种方式：深度优先搜索和广度优先搜索。这道题我觉得使用**广度优先搜索会更优**。因为广度优先搜索会找到一个节点到另一个节点的最短路径，那么我们就可以更快的找到目标节点。
+
+![image.png](https://pic.leetcode.cn/1706804020-uUzkbF-image.png)
+
+因此对式子 `C / D` 的求解过程为：
+1. 首先判断求解的变量 `C` 和 `D` 是否都存在于图中；只要有一个变量不在图中，那一定是无法通过已有的变量计算得到的；
+2. 如果 `C` 和 `D` 都在图上，那么以 `C` 为搜索起点进行广度优先搜索；
+3. 如果无法到达终点，则该式子不可解；
+4. 否则，结果为到达终点时的路径权重积；
+
+# 代码
+
+> 小细节
+> 由于我们在进行广度优先搜索的过程中，不仅要找到下一个待搜索的节点【即当前节点的未处理邻节点】，还要得到**到达这个待搜索节点时的权重积**，因此我们对于搜索过程中的入队节点要存储节点变量名和权重积两个信息。
+
+* []
+
+```Java
+class Solution {
+    public double[] calcEquation(List<List<String>> equations, double[] values, List<List<String>> queries) {
+        // 生成存储变量所构成的图结构
+        Map<String, Map<String, Double>> graph = new HashMap<>();
+        int n = equations.size();  
+        for(int i = 0; i < n; i++){
+            String s = equations.get(i).get(0), e = equations.get(i).get(1);
+            double v = values[i];
+            if(!graph.containsKey(s)){
+                graph.put(s, new HashMap<>());
+            }
+            if(!graph.containsKey(e)){
+                graph.put(e, new HashMap<>());
+            }
+            graph.get(s).put(e, v);     // 生成一条s指向e，权重为v的路径，表示 s / e = v
+            graph.get(e).put(s, 1 / v); // 生成一条反向路径，权重为1 / v，表示 e / s = 1 /v
+            graph.get(s).put(s, 1.0);   // 生成一个指向自己、权重为1的路径，表示自己除自己等于1
+            graph.get(e).put(e, 1.0);
+        }
+
+        Queue<NodeData> queue = new LinkedList<>();   // 用于广度优先搜索的队列
+        int m = queries.size();    
+        double[] ans = new double[m];    // 答案列表
+        Arrays.fill(ans, -1.0);          // 初始都为-1表示未定义
+        Set<String> visited;
+
+        // 对于每个query，寻找从起点qx到终点qy的最短路径，并计算权重积
+        for(int i = 0; i < m; i++){
+            String qx = queries.get(i).get(0), qy = queries.get(i).get(1);
+            if(!graph.containsKey(qx) || !graph.containsKey(qy))continue;  // 未出现的变量，跳过处理
+            queue.offer(new NodeData(qx, 1.0));     // 初始将起点节点入队
+            visited = new HashSet<>();      // 存储已处理的节点
+            visited.add(qx);                // 初始化起点节点已处理
+            while(!queue.isEmpty()){
+                NodeData nd = queue.poll();    // 获取当前处理的节点node以及到该节点所得到的权重积mul
+                for(Map.Entry<String, Double> entry: graph.get(nd.var).entrySet()){
+                    // 遍历当前节点数据存储变量的所有邻节点
+                    String neighbor = entry.getKey();
+                    double weight = entry.getValue();
+                    // 枚举该节点的所有邻节点
+                    if(qy.equals(neighbor)){
+                        ans[i] = nd.mulWeight * weight;   // 找到终点，更新权重积后存储到答案并退出查找
+                        break;
+                    }
+                    if(!visited.contains(neighbor)){ // 找到一个未处理的邻节点加入队列
+                        visited.add(neighbor);
+                        queue.offer(new NodeData(neighbor, nd.mulWeight * weight));  // 将未处理的邻节点及到达该节点时的权重积加入队列
+                    }
+                }
+            }
+        }
+        return ans;
+    }
+}
+
+// 用于广度优先搜索存储数据的节点数据结构
+class NodeData{ 
+    String var;         // 当前变量名
+    double mulWeight;   // 到达该节点时的累乘权重积
+
+    NodeData(String var, double weight){
+        this.var = var;
+        this.mulWeight = weight;
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def calcEquation(self, equations: List[List[str]], values: List[float], queries: List[List[str]]) -> List[float]:
+        # 生成存储变量所构成的图结构
+        graph = {}  
+        for (s, e), v in zip(equations, values):
+            if s not in graph:
+                graph[s] = {}   # 存储邻节点的哈希表
+            graph[s][e] = v     # 生成一条s指向e，权重为v的路径，表示 s / e = v
+            if e not in graph:
+                graph[e] = {}
+            graph[e][s] = 1 / v # 生成一条反向路径，权重为1 / v，表示 e / s = 1 /v
+            graph[s][s] = 1.0   # 生成一个指向自己、权重为1的路径，表示自己除自己等于1
+            graph[e][e] = 1.0
+        
+        queue = []          # 用于广度优先搜索的队列
+        n = len(queries)    
+        ans = [-1.0] * n    # 答案列表，初始都为-1表示未定义
+
+        # 对于每个query，寻找从起点qx到终点qy的最短路径，并计算权重积
+        for i, (qx, qy) in enumerate(queries):
+            if qx not in graph or qy not in graph: continue  # 未出现的变量，跳过处理
+            queue = [[qx, 1.0]]     # 初始将起点节点入队
+            visited = set([qx])     # 存储已处理的节点；将qx放入列表表示存储整个字符串，否则会将字符串看成一个序列存储每个字母
+            while queue:
+                node, mul = queue.pop(0)    # 获取当前处理的节点node以及到该节点所得到的权重积mul
+                for neighbor, weight in graph[node].items():
+                    # 枚举该节点的所有邻节点
+                    if neighbor == qy:
+                        ans[i] = mul * weight   # 找到终点，更新权重积后存储到答案并退出查找
+                        break
+                    if neighbor not in visited: # 找到一个未处理的邻节点加入队列
+                        visited.add(neighbor)
+                        queue.append([neighbor, mul * weight])  # 将未处理的邻节点及到达该节点时的权重积加入队列
+        return ans                
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<double> calcEquation(vector<vector<string>>& equations, vector<double>& values, vector<vector<string>>& queries) {
+        // 生成存储变量所构成的图结构
+        unordered_map<string, unordered_map<string, double>> graph;
+        int n = equations.size();  
+        for(int i = 0; i < n; i++){
+            string s = equations[i][0], e = equations[i][1];
+            double v = values[i];
+            graph[s][e] = v;     // 生成一条s指向e，权重为v的路径，表示 s / e = v
+            graph[e][s] = 1 / v; // 生成一条反向路径，权重为1 / v，表示 e / s = 1 /v
+            graph[s][s] = 1.0;   // 生成一个指向自己、权重为1的路径，表示自己除自己等于1
+            graph[e][e] = 1.0;
+        }
+
+        queue<pair<string, double>> q;          // 用于广度优先搜索的队列
+        int m = queries.size();    
+        vector<double> ans(m, -1.0);    // 答案列表，初始都为-1表示未定义
+
+        // 对于每个query，寻找从起点qx到终点qy的最短路径，并计算权重积
+        for(int i = 0; i < m; i++){
+            string qx = queries[i][0], qy = queries[i][1];
+            if(graph.find(qx) == graph.end() || graph.find(qy) == graph.end())continue;  // 未出现的变量，跳过处理
+            q.emplace(qx, 1.0);     // 初始将起点节点入队
+            unordered_set<string> visited{qx};     // 存储已处理的节点；将qx放入列表表示存储整个字符串，否则会将字符串看成一个序列存储每个字母
+            while(!q.empty()){
+                string node = q.front().first;    // 获取当前处理的节点node以及到该节点所得到的权重积mul
+                double mul = q.front().second;
+                q.pop();
+                for(pair<string, double> neighbor: graph[node]){
+                    string ngh = neighbor.first;
+                    double weight = neighbor.second;
+                    // 枚举该节点的所有邻节点
+                    if(ngh == qy){
+                        ans[i] = mul * weight;   // 找到终点，更新权重积后存储到答案并退出查找
+                        break;
+                    }
+                    if(visited.find(ngh) == visited.end()){ // 找到一个未处理的邻节点加入队列
+                        visited.emplace(ngh);
+                        q.emplace(ngh, mul * weight);  // 将未处理的邻节点及到达该节点时的权重积加入队列
+                    }
+                }
+            }
+        }
+        return ans;
+    }
+};
+```
+
