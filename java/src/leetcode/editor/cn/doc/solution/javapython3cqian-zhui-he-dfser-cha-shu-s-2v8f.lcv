@@ -1,0 +1,143 @@
+> [437. 路径总和 III](https://leetcode.cn/problems/path-sum-iii/)
+
+[TOC]
+
+# 题目
+
+给定一个二叉树的根节点 `root` ，和一个整数 `targetSum` ，求该二叉树里节点值之和等于 `targetSum` 的 **路径** 的数目。
+
+**路径** 不需要从根节点开始，也不需要在叶子节点结束，但是路径方向必须是向下的（只能从父节点到子节点）。
+
+# 题目分析
+
+## 思路分析
+
+前置知识 —— 前缀和【详见：[前缀和：求任意区间的元素和【图解】](https://leetcode.cn/problems/range-sum-query-immutable/solutions/2693473/javapython3cqian-zhui-he-qiu-ren-yi-qu-j-zwpz/)】
+
+这道题要找到所有满足节点值之和等于目标值 `targetSum`的路径的总数。一条合法路径必须是自上而下的。
+
+![image-20240818231310076.png](https://pic.leetcode.cn/1723996403-xUzoLk-image-20240818231310076.png)
+
+我们来看一条从根节点到叶子节点的路径，暂且称为 **完整路径**。，在这条路径上包含了很多合法路径，每一条合法路径都是完整路径的子路径，是不是像一个完整数组的子数组？
+
+![image-20240818231328278.png](https://pic.leetcode.cn/1723996403-NYmBEo-image-20240818231328278.png)
+
+![image-20240818232934126.png](https://pic.leetcode.cn/1723996403-WonxkB-image-20240818232934126.png)
+
+那么我们就是求这条完整路径上有多少子路径的节点和等于 `target`，是不是就像求一个数组上有多少个子数组的元素和 `target` —— 也就是 [560. 和为 K 的子数组](https://leetcode.cn/problems/subarray-sum-equals-k/)。
+
+如果能理解 `560` 题是怎么做的【详见：[前缀和 + 哈希表：两数之和的子数组版本【图解】](https://leetcode.cn/problems/subarray-sum-equals-k/solutions/2883683/javapython3cqian-zhui-he-ha-xi-biao-lian-r2hn/)】，那映射到二叉树上道理的是一样的。
+
+## 前缀和 + 哈希表
+
+![image-20240818234214804.png](https://pic.leetcode.cn/1723996403-sPuyzj-image-20240818234214804.png)
+
+![image-20240818234605450.png](https://pic.leetcode.cn/1723996403-buflZe-image-20240818234605450.png)
+
+## 前序遍历
+
+由于这道题我们对于节点的处理方式是：先处理当前节点的状态，再递归处理左右子节点。因此节点的处理顺序为 ”中左右“ —— 前序遍历【详见：[144. 二叉树的前序遍历](https://leetcode.cn/problems/binary-tree-preorder-traversal/solutions/2637524/javapython3cshen-du-you-xian-sou-suo-zha-v1rw/)】
+
+# 代码
+
+![image-20240818235229861.png](https://pic.leetcode.cn/1723996403-kAQnHu-image-20240818235229861.png)
+
+1. 定义一个全局哈希表 `preSumCount`，记录当前路径上出现的前缀和以及数量；初始有一个前缀和 `0`，出现次数为 `1`。【相当于前缀和数组中的 `presum[0]`】
+2. 从根节点开始进行前序遍历，前缀和初始为 `0`；
+3. 定义递归函数，返回到达当前节点可以得到满足条件的路径：
+   1. 空节点直接返回 `0`；
+   2. 非空节点首先更新根节点到当前节点的路径和 `preSum`；
+   3. 那么以当前节点为最后一个节点的，满足条件的路径数就等于根节点到当前节点路径上出现的前缀和 `preSum - target` 的个数，通过哈希表 `preSumCount`，不存在则返回 `0`；
+   4. 然后将当前前缀和 `preSum` 加入哈希表中；【返回 `preSum` 在哈希表中的值如果不存在返回0，值+1后重新存入哈希表】
+   5. 分别对当前节点的左子节点和右子节点进行递归处理；
+   6. 累加左右子节点处理的结果，同时将当前前缀和 `preSum` 从哈希表移除【**不是真的移除，而是将 `preSum` 的次数`-1`**】
+   7. 返回统计的满足条件路径总数
+
+* []
+
+```Java
+class Solution {
+    private Map<Long, Integer> preSumCount = new HashMap<>();  // 记录当前路径上出现的前缀和以及数量
+
+    public int pathSum(TreeNode root, int targetSum) {
+        preSumCount.put(0L, 1);              // 有一个默认的前缀和0
+        return dfs(root, targetSum, 0);     // 从根节点开始搜索
+    }
+
+    /**
+     * 深度优先搜索，返回到达当前节点及其子节点可以得到满足条件的路径
+     * @param node: 当前节点
+     * @param targetSum: 目标和
+     * @param preSum: 根节点到当前节点的路径
+     * @return: 以当前节点为最后一个节点的，节点和等于目标和的路径数 
+     */
+    private int dfs(TreeNode node, int targetSum, long preSum){
+        if(node == null)return 0;       // 空节点，满足条件路径数为0
+        preSum += node.val;             // 更新节点和
+        int pathCnt = preSumCount.getOrDefault(preSum - targetSum, 0);                      // 从哈希表中获取能和preSum配对的前缀和个数
+        preSumCount.put(preSum, preSumCount.getOrDefault(preSum, 0 ) + 1);                  // 将当前前缀和加入哈希表
+        pathCnt += dfs(node.left, targetSum, preSum) + dfs(node.right, targetSum, preSum);  // 递归处理左右子树
+        preSumCount.put(preSum, preSumCount.get(preSum) - 1);                               // 这个节点所在的路径都处理完了，这个前缀和也就没用了
+        return pathCnt;                 // 返回总路径数
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def pathSum(self, root: Optional[TreeNode], targetSum: int) -> int:
+        """
+        深度优先搜索，返回到达当前节点可以得到满足条件的路径
+        @param node: 当前节点
+        @param presum: 根节点到当前节点的路径
+        @return: 以当前节点为最后一个节点的，节点和等于目标和的路径数     
+        """
+        def dfs(node: Optional[TreeNode], presum: int) -> int:
+            if not node: return 0          # 空节点，满足条件路径数为0
+            presum += node.val             # 更新节点和
+            
+            path_cnt = presum_counts.get(presum - targetSum, 0)             # 从哈希表中获取能和presum配对的前缀和个数
+            presum_counts[presum] = presum_counts.get(presum, 0) + 1        # 将当前前缀和加入哈希表
+            path_cnt += dfs(node.left, presum) + dfs(node.right, presum)    # 递归处理左右子树
+            presum_counts[presum] -= 1                                      # 这个节点所在的路径都处理完了，这个前缀和也就没用了
+            
+            return path_cnt                                                 # 返回总路径数
+
+        presum_counts = {0 : 1} # 记录当前路径上出现的前缀和以及数量, 有一个默认的前缀和0
+        return dfs(root, 0)     # 从根节点开始搜索
+```
+
+* []
+
+```C++
+class Solution {
+private:    
+    unordered_map<long long, int> preSumCount;  // 记录当前路径上出现的前缀和以及数量
+
+    /**
+     * 深度优先搜索，返回到达当前节点可以得到满足条件的路径
+     * @param node: 当前节点
+     * @param targetSum: 目标和
+     * @param preSum: 根节点到当前节点的路径
+     * @return: 以当前节点为最后一个节点的，节点和等于目标和的路径数 
+     */
+    int dfs(TreeNode* node, int targetSum, long long preSum){
+        if(!node)return 0;          // 空节点，满足条件路径数为0
+        preSum += node->val;        // 更新节点和
+        int pathCnt = preSumCount[preSum - targetSum];                                          // 从哈希表中获取能和preSum配对的前缀和个数
+        preSumCount[preSum] += 1;   // 将当前前缀和加入哈希表
+        pathCnt += dfs(node->left, targetSum, preSum) + dfs(node->right, targetSum, preSum);    // 递归处理左右子树
+        preSumCount[preSum] -= 1;   // 这个节点所在的路径都处理完了，这个前缀和也就没用了
+        return pathCnt;             // 返回总路径数
+    }
+
+public:
+    int pathSum(TreeNode* root, int targetSum) {
+        preSumCount[0] = 1;                 // 有一个默认的前缀和0
+        return dfs(root, targetSum, 0);     // 从根节点开始搜索
+    }
+};
+```
+
