@@ -1,0 +1,96 @@
+> [560. 和为 K 的子数组](https://leetcode.cn/problems/subarray-sum-equals-k/)
+
+[TOC]
+
+# 题目
+
+给你一个整数数组 `nums` 和一个整数 `k` ，请你统计并返回 *该数组中和为 `k` 的子数组的个数* 。
+
+子数组是数组中元素的连续非空序列。
+
+# 题目分析
+
+## 思路分析
+
+这道题要求元素和等于 `k` 的子数组个数。
+
+暴力枚举我们可以通过两重循环枚举所有的子数组 `nums[i, j]`，计算元素和是否等于 `k`。但是这样效率比较低，效率低的原因是在于存在重复计算
+
+![image-20240817152144581.png](https://pic.leetcode.cn/1723888020-CPEfIy-image-20240817152144581.png)
+
+对于计算子数组和，我们通常可以用前缀和的方式来解决。
+
+## 前缀和
+
+详见 [前缀和：求任意区间的元素和【图解】](https://leetcode.cn/problems/range-sum-query-immutable/solutions/2693473/javapython3cqian-zhui-he-qiu-ren-yi-qu-j-zwpz/)
+
+## 哈希表
+
+通过前缀和，任意范围的子数组 `[i, j)` 的元素和就等于 `preSum[j] - preSum[i]`。我们要查找的就是前缀和数组中满足 `j > i 且 preSum[j] - preSum[i] = k` 的下标对 `(i,j)` 的个数。
+
+![image-20240817172926738.png](https://pic.leetcode.cn/1723888020-JDqTDU-image-20240817172926738.png)
+
+是不是有点熟悉，这和力扣第一题  [1.两数之和](https://leetcode.cn/problems/two-sum) 是十分类似的【详见：[哈希表开启算法的第一题【图解】](https://leetcode.cn/problems/two-sum/solutions/2863302/javapython3cha-xi-biao-kai-qi-suan-fa-de-1o75/)】。
+我们可以借助哈希表存储已经遍历过的元素，即出现过的 `preSum[i]`。当我们遍历到 `preSum[j]` 的时候，我们就是要找在这之前，有多少个 `preSum[i] = preSum[j] - k`。
+
+![image.png](https://pic.leetcode.cn/1726846881-RnDIBq-image.png)
+
+# 代码
+
+实际上，我们可以边计算前缀和 `preSum[j]` 边查询 `preSum[j] - k`，从而我们只需要一个变量存储前缀和而无需实际生成前缀和数组。但要注意的是，我们计算前缀和的时候，每次累加 `nums[i]` 实际上是在处理前缀和 `preSum[i+1]`，因此我们要预先将 `preSum[0] = 0` 这个前缀和加入哈希表，即前缀和 `0` 出现了 `1`次。
+
+![image-20240817174644318.png](https://pic.leetcode.cn/1723888020-xycMJy-image-20240817174644318.png)
+
+* []
+
+```Java
+class Solution {
+    public int subarraySum(int[] nums, int k) {
+        Map<Integer, Integer> psCounts = new HashMap<>();    // 统计前缀和出现次数，
+        psCounts.put(0,1);                                   // 初始ps[0] = 0出现一次
+        int res = 0;                                         // 满足条件的子数组个数
+        int ps = 0;                                          // 当前前缀和ps[i]
+        for(int num: nums){
+            ps += num;                                              // 更新前缀和，[0, i+1)
+            res += psCounts.getOrDefault(ps - k, 0);                // 累加以元素nums[i]为结尾，满足子数组条件个数
+            psCounts.put(ps, psCounts.getOrDefault(ps, 0) + 1);     // 将当前前缀和加入哈希表
+        }
+        return res;
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def subarraySum(self, nums: List[int], k: int) -> int:
+        ps_counts = {0: 1}   # 统计前缀和出现次数，初始ps[0] = 0出现一次
+        res = 0              # 满足条件的子数组个数
+        ps = 0               # 当前前缀和ps[i]
+        for num in nums:
+            ps += num                                   # 更新前缀和，[0, i+1)
+            res += ps_counts.get(ps - k, 0)             # 累加以元素nums[i]为结尾，满足子数组条件个数
+            ps_counts[ps] = ps_counts.get(ps, 0) + 1    # 将当前前缀和加入哈希表
+        return res
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    int subarraySum(vector<int>& nums, int k) {
+        unordered_map<int, int> psCounts = {{0, 1}};    // 统计前缀和出现次数，初始ps[0] = 0出现一次
+        int res = 0;                                    // 满足条件的子数组个数
+        int ps = 0;                                     // 当前前缀和ps[i]
+        for(auto& num: nums){
+            ps += num;                  // 更新前缀和，[0, i+1)
+            res += psCounts[ps - k];    // 累加以元素nums[i]为结尾，满足子数组条件个数
+            psCounts[ps] += 1;          // 将当前前缀和加入哈希表
+        }
+        return res;
+    }
+};
+```
+
