@@ -1,0 +1,40 @@
+![微信图片_20200921212827.jpg](https://pic.leetcode-cn.com/1600694914-hYsQbc-%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20200921212827.jpg)
+
+**分析**
+
+对如下只有三个节点的搜索二叉树而言，计算结果就是，`右子节点`保持不变，`中间节点`的值是其本身与`右子节点`相加的和，`左子节点`的值是其本身与`中间节点`、`右子节点`三者的累计之和。
+
+![微信截图_20200921211159.png](https://pic.leetcode-cn.com/1600694068-IZNtNO-%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20200921211159.png)
+
+也就是说，若求`中间节点`的值必须要先遍历完`右子节点`，而若求`左子节点`的值必须要遍历完中间节点和`右子节点`。因此，我们只需要进行一次反向中序遍历（即遍历顺序为`右子树`-->`根节点`-->`左子树`），***在遍历过程中需要将已经遍历的节点的值进行累加，然后再赋值给当前节点***。
+
+**思路**
+
+1. 定义一个全局变量`sum`，用于存储遍历的所有节点值的累计和；
+2. 递归终止条件： `root`为空就返回`null`;
+3. 递归右子树`root.right`;
+4. 遍历当前节点，作如下操作：
+   - 将其值累加到`sum`中；
+   - 把`sum`赋值给当前节点的值；
+5. 递归左子树`root.left`;
+
+**代码**
+
+* []
+
+```java
+class Solution {
+    int sum = 0;
+    public TreeNode convertBST(TreeNode root) {
+        if (root == null) {
+            return null;
+        }
+        convertBST(root.right);
+        sum += root.val;
+        root.val = sum;
+        convertBST(root.left);
+        return root;
+    }
+}
+```
+

@@ -1,0 +1,95 @@
+## 中序遍历
+
+利用 **`BST` 的中序遍历是有序** 的特性，我们可以通过两次遍历 `BST` 来求解问题。
+
+首先，通过一次遍历，计算出整棵树的节点总和 `tot`，然后在中序遍历过程中，不断对 `tot` 进行更新，将其作为当前未遍历到的节点的总和，用于给当前节点赋值。
+
+假设当前遍历到的节点为 `x`（起始节点值为 `t`），那么将节点更新为当前节点 `tot` 后，更新 `tot = tot - t`。
+
+这是常规的中序遍历做法，更进一步，如果将其中序遍历的顺序进行翻转（从「左中右」调整为「右中左」），则可实现一次遍历。
+
+代码：
+
+* []
+
+```Java
+class Solution {
+    int tot = 0;
+    public TreeNode convertBST(TreeNode root) {
+        dfs(root);
+        return root;
+    }
+    void dfs(TreeNode root) {
+        if (root == null) return ;
+        dfs(root.right);
+        tot += root.val;
+        root.val = tot;
+        dfs(root.left);
+    }
+}
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    int tot = 0;
+    TreeNode* convertBST(TreeNode* root) {
+        dfs(root);
+        return root;
+    }
+    void dfs(TreeNode* root) {
+        if (root == nullptr) return;
+        dfs(root->right);
+        tot += root->val;
+        root->val = tot;
+        dfs(root->left);
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def convertBST(self, root: TreeNode) -> TreeNode:
+        tot = 0
+        def dfs(root):
+            nonlocal tot
+            if not root: return
+            dfs(root.right)
+            tot += root.val
+            root.val = tot
+            dfs(root.left)
+        dfs(root)
+        return root
+```
+
+* []
+
+```TypeScript
+function convertBST(root: TreeNode | null): TreeNode | null {
+    let tot = 0;
+    const dfs = function(root: TreeNode | null): void {
+        if (!root) return ;
+        dfs(root.right);
+        tot += root.val;
+        root.val = tot;
+        dfs(root.left);
+    }
+    dfs(root);
+    return root;
+};
+```
+
+* 时间复杂度：$O(n)$
+* 空间复杂度：$O(n)$
+
+---
+
+## 最后
+
+**如果有帮助到你，请给题解点个赞和收藏，让更多的人看到 ~ ("▔□▔)/**
+
+所有题解已经加入 [刷题指南](https://github.com/SharingSource/LogicStack-LeetCode/wiki)，欢迎 star 哦 ~
