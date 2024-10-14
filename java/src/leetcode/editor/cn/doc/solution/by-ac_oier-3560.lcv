@@ -1,0 +1,78 @@
+## 构造
+
+先考虑最为简单的情况：假设只有一类任务，除了最后一个任务以外，其余任务在安排后均需要增加 $n$ 个单位的冻结时间。
+
+![image.png](https://pic.leetcode.cn/1666687680-aCVvro-image.png)
+
+将任务数记为 $m$ 个，其中前 $m - 1$ 个任务均要消耗 $n + 1$ 的单位时间，最后一个任务仅消耗 $1$ 个单位时间，即所需要的时间为 $(n + 1) \times (m - 1) + 1$。
+
+**当存在多个任务时，由于每一类任务都需要被完成，因此本质上我们最需要考虑的是将数量最大的任务安排掉，其他任务则是间插其中。**
+
+假设数量最大的任务数为 `max`，共有 `tot` 个任务数为 `max` 的任务种类。
+
+实际上，当任务总数不超过 $(n + 1) \times (\max - 1) + tot$ 时，我们总能将其他任务插到空闲时间中去，不会引入额外的冻结时间（下左图）；而当任务数超过该值时，我们可以在将其横向添加每个 $n + 1$ 块的后面，同时不会引入额外的冻结时间（下右图）：
+
+![image.png](https://pic.leetcode.cn/1666689295-VuBpQL-image.png)
+
+综上，我们所需要的最小时间为上述两种情况中的较大值即可：
+
+$$
+\max(task.length, (n + 1) \times (max - 1) + tot)
+$$
+
+代码：
+
+* []
+
+```Java
+class Solution {
+    public int leastInterval(char[] tasks, int n) {
+        int[] cnts = new int[26];
+        for (char c : tasks) cnts[c - 'A']++;
+        int max = 0, tot = 0;
+        for (int i = 0; i < 26; i++) max = Math.max(max, cnts[i]);
+        for (int i = 0; i < 26; i++) tot += max == cnts[i] ? 1 : 0;
+        return Math.max(tasks.length, (n + 1) * (max - 1) + tot);
+    }
+}
+```
+
+* []
+
+```TypeScript
+function leastInterval(tasks: string[], n: number): number {
+    const cnts = new Array<number>(26).fill(0)
+    for (const c of tasks) cnts[c.charCodeAt(0) - 'A'.charCodeAt(0)]++
+    let max = 0, tot = 0
+    for (let i = 0; i < 26; i++) max = Math.max(max, cnts[i])
+    for (let i = 0; i < 26; i++) tot += max == cnts[i] ? 1 : 0
+    return Math.max(tasks.length, (n + 1) * (max - 1) + tot)
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def leastInterval(self, tasks: List[str], n: int) -> int:
+        cnts = [0] * 26
+        for c in tasks:
+            cnts[ord(c) - ord('A')] += 1
+        maxv, tot = 0, 0
+        for i in range(26):
+            maxv = max(maxv, cnts[i])
+        for i in range(26):
+            tot += 1 if maxv == cnts[i] else 0
+        return max(len(tasks), (n + 1) * (maxv - 1) + tot)
+```
+
+* 时间复杂度：$O(n + C)$
+* 空间复杂度：$O(C)$，其中 $C = 26$ 为任务字符集大小
+
+---
+
+## 最后
+
+**如果有帮助到你，请给题解点个赞和收藏，让更多的人看到 ~ ("▔□▔)/**
+
+所有题解已经加入 [刷题指南](https://github.com/SharingSource/LogicStack-LeetCode/wiki)，欢迎 star 哦 ~
