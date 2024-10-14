@@ -1,0 +1,85 @@
+> Problem: [581. 最短无序连续子数组](https://leetcode.cn/problems/shortest-unsorted-continuous-subarray/description/)
+
+[TOC]
+
+# 思路
+
+参考题解
+https://leetcode.cn/problems/shortest-unsorted-continuous-subarray/solutions/422614/si-lu-qing-xi-ming-liao-kan-bu-dong-bu-cun-zai-de-/
+![image.png](https://pic.leetcode.cn/1711537252-ghHELF-image.png)
+我觉得他文字解释得一般般，我来尝试解析一下。
+我先解析如何找到end？
+从前往后，其实这个**end的可以理解为非单调递增区域的最后位置**
+那么如何判断当前位置是否属于非单调递增区域呢？
+假设当前位置为i，**如果在0~i中，存在值nums[x] > nums[i],则可以认为i当前在非单调递增区域**。
+所以我们在for时，要**把遇到的最大值存起来**，因为他们**有可能随时作为nums[x]**
+我们**从前往后**遍历，当**nums[i] < max（即nums[x]）时**，刷新位置end，到最后，这个i便为**非单调递增区域**的**最后位置**。
+
+同理可得start
+从后往前，其实这个**start的可以理解为非单调递减区域的最前位置**
+那么如何判断当前位置是否属于非单调减增区域呢？
+假设当前位置为i，**如果在last~i中，存在值nums[y] < nums[i],则可以认为i当前在非单调递减区域**。
+所以我们在for时，要**把遇到的最小值存起来**，因为他们**有可能随时作为nums[y]**
+我们**从后往前**遍历，当**nums[i] > min（即nums[y]）时**，刷新位置start，直到数组最前方，这个i便为**非单调递增区域**的**最前位置**。
+
+# 解题方法
+
+> 1、for (int i = 0; i < len; i++)
+> 从前往后
+
+> 2、if (nums[i] < max) { end = i; }
+> 在0~i中，存在nums[x] > nums[i]，把i记下来
+
+> 3、else {max = nums[i]; }
+> nums[i] > max,更新max值，因为其有可能随时作为nums[x]
+
+> 4、for (int i = len - 1; i >= 0; i--)
+> 从后往前
+
+> 5、            if (nums[i] > min) { begin = i; }
+> 在last~i中，存在nums[y] < nums[i]，把i记下来
+
+> 6、else {min = nums[i]; }
+> nums[i] < min,更新min值，因为其有可能随时作为nums[y]
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(1)$
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int findUnsortedSubarray(int[] nums) {
+        // 初始化
+        int len = nums.length;
+        int min = nums[len - 1];
+        int max = nums[0];
+        int begin = 0, end = -1;
+        for (int i = 0; i < len; i++) {
+            if (nums[i] < max) {      // 从左到右维持最大值，寻找右边界end
+                end = i;
+            } else {
+                max = nums[i];
+            }
+        }
+        for (int i = len - 1; i >= 0; i--) {
+            if (nums[i] > min) {    // 从右到左维持最小值，寻找左边界begin
+                begin = i;
+            } else {
+                min = nums[i];
+            }
+        }
+        return end - begin + 1;
+    }
+}
+```
+

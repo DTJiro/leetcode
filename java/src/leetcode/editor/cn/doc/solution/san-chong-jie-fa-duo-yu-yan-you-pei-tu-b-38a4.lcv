@@ -1,0 +1,429 @@
+虽然这道题中标明是升序排序，但某些测试用例中出现了重复元素，所以本题解按照非递减的规则来写。
+
+# 解法一
+
+我们可以对数组拷贝后排序，然后比对，如下所示。
+
+![581_2.png](https://pic.leetcode.cn/1721117022-YifUjp-581_2.png)
+
+在元素不同时即可确定最短子数组的 $l$。
+
+同理可以从右向左比对，确定 $r$。
+
+* []
+
+```C++
+class Solution {
+public:
+    int findUnsortedSubarray(vector<int>& nums) {
+        vector<int> sortedNums(nums);
+        sort(sortedNums.begin(), sortedNums.end());
+
+        // 比对
+        int l = 0;
+        while (nums[l] == sortedNums[l]) {
+            l++;
+            if (l == nums.size()) return 0; // 原数组已经是非递减
+        }
+
+        // 反向比对
+        int r = nums.size() - 1;
+        while (nums[r] == sortedNums[r])
+            r--;
+
+        return r - l + 1;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def findUnsortedSubarray(self, nums: List[int]) -> int:
+        sorted_nums = sorted(nums)
+
+        # 比对
+        l = 0
+        while nums[l] == sorted_nums[l]:
+            l += 1
+            if l == len(nums):
+                return 0  # 原数组已经是非递减
+
+        # 反向比对
+        r = len(nums) - 1
+        while nums[r] == sorted_nums[r]:
+            r -= 1
+
+        return r - l + 1
+```
+
+* []
+
+```Java
+class Solution {
+    public int findUnsortedSubarray(int[] nums) {
+        int[] sortedNums = nums.clone();
+        Arrays.sort(sortedNums);
+
+        // 比对
+        int l = 0;
+        while (nums[l] == sortedNums[l]) {
+            l++;
+            if (l == nums.length) return 0; // 原数组已经是非递减
+        }
+
+        // 反向比对
+        int r = nums.length - 1;
+        while (nums[r] == sortedNums[r])
+            r--;
+
+        return r - l + 1;
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun findUnsortedSubarray(nums: IntArray): Int {
+        val sortedNums = nums.sorted()
+
+        // 比对
+        var l = 0
+        while(nums[l] == sortedNums[l]){
+            l++
+            if(l == nums.size) return 0 // 原数组已经是非递减
+        }
+        
+        // 反向比对
+        var r = nums.lastIndex
+        while(nums[r] == sortedNums[r])
+            r--
+        
+        return r - l + 1
+    }
+}
+```
+
+但是这样的时间复杂度达到 $\Theta(n \cdot log\ n)$，空间复杂度达到 $\Theta(n)$。
+
+# 解法二
+
+如下所示，从右向左枚举 $r$，在元素**即将**变大时截止。
+
+![581_3.png](https://pic.leetcode.cn/1721118897-CxffmT-581_3.png)
+
+记最短子数组的左右端点为 $l'$ 和 $r'$，能确定 $r' \geq r$。
+
+取子数组如下所示，并固定 $l$ 延伸 $r$。
+
+![581_4.png](https://pic.leetcode.cn/1721118906-vthjym-581_4.png)
+
+记当前子数组的最大元素为 max = 6，在 max > nums[r + 1] 时右移 r，最后即可确定 $r'$。满足对子数组非递减排序后， 整个数组变成非递减。
+
+同理可镜像操作确定 $l'$。
+
+* []
+
+```C++
+class Solution {
+public:
+    int findUnsortedSubarray(vector<int>& nums) {
+        // 计算 r
+        int r = nums.size() - 1;
+        while (r >= 1 && nums[r] >= nums[r - 1])
+            r--;
+        if (r == 0) return 0; // 已经是非递减
+
+        int maxV = *max_element(nums.begin(), nums.begin() + r + 1);
+
+        while (r < nums.size() - 1 && maxV > nums[r + 1]) {
+            r++;
+            maxV = max(maxV, nums[r]);
+        }
+
+        // 计算 l
+        int l = 0;
+        while (l < nums.size() - 1 && nums[l] <= nums[l + 1])
+            l++;
+
+        int minV = *min_element(nums.begin() + l, nums.end());
+
+        while (l > 0 && minV < nums[l - 1]) {
+            l--;
+            minV = min(minV, nums[l]);
+        }
+
+        return r - l + 1;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def findUnsortedSubarray(self, nums: List[int]) -> int:
+        # 计算 r
+        r = len(nums) - 1
+        while r >= 1 and nums[r] >= nums[r - 1]:
+            r -= 1
+        if r == 0:
+            return 0  # 已经是非递减
+
+        max_v = max(nums[:r + 1])
+
+        while r < len(nums) - 1 and max_v > nums[r + 1]:
+            r += 1
+            max_v = max(max_v, nums[r])
+
+        # 计算 l
+        l = 0
+        while l < len(nums) - 1 and nums[l] <= nums[l + 1]:
+            l += 1
+
+        min_v = min(nums[l:])
+
+        while l > 0 and min_v < nums[l - 1]:
+            l -= 1
+            min_v = min(min_v, nums[l])
+
+        return r - l + 1
+```
+
+* []
+
+```Java
+class Solution {
+    public int findUnsortedSubarray(int[] nums) {
+        // 计算 r
+        int r = nums.length - 1;
+        while (r >= 1 && nums[r] >= nums[r - 1])
+            r--;
+        if (r == 0) return 0; // 已经是非递减
+
+        int maxV = Integer.MIN_VALUE;
+        for (int i = 0; i <= r; i++) {
+            maxV = Math.max(maxV, nums[i]);
+        }
+
+        while (r < nums.length - 1 && maxV > nums[r + 1]) {
+            r++;
+            maxV = Math.max(maxV, nums[r]);
+        }
+
+        // 计算 l
+        int l = 0;
+        while (l < nums.length - 1 && nums[l] <= nums[l + 1])
+            l++;
+
+        int minV = Integer.MAX_VALUE;
+        for (int i = l; i < nums.length; i++) {
+            minV = Math.min(minV, nums[i]);
+        }
+
+        while (l > 0 && minV < nums[l - 1]) {
+            l--;
+            minV = Math.min(minV, nums[l]);
+        }
+
+        return r - l + 1;
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun findUnsortedSubarray(nums: IntArray): Int {
+        // 计算 r
+        var r = nums.lastIndex 
+        while(r >= 1 && nums[r] >= nums[r-1])
+            r--
+        if(r == 0) return 0 // 已经是非递减
+
+        var maxV = (0..r).maxOf{ nums[it] }
+
+        while(r < nums.lastIndex && maxV > nums[r+1]){
+            r++ 
+            maxV = max(maxV, nums[r])
+        }
+
+        // 计算 l
+        var l = 0
+        while(l < nums.lastIndex && nums[l] <= nums[l+1])
+            l++
+        
+        var minV = (l..<nums.size).minOf{ nums[it] }
+
+        while(l > 0 && minV < nums[l-1]){
+            l--
+            minV = min(minV, nums[l])
+        }
+        
+        return r - l + 1
+    }
+}
+```
+
+时间复杂度：$\Theta(n)$
+空间复杂度：$\Theta(1)$
+
+# 解法三
+
+我们还有另一种确定 $r'$ 的方法。如下所示，固定 $l = 0$。
+
+![581_5.png](https://pic.leetcode.cn/1721119683-PBXGrO-581_5.png)
+
+记绿色子数组的左右端点为 $0$ 和 $r$，$0$ 和 $r-1$ 之间的最大元素为 $h$，严谨表述如下。
+$$
+h =
+\begin{cases} 
+-\infty & if\ r = 0 \\
+max\{nums[i]\ |\ i \in [0, r) \} & 其他
+\end{cases}
+$$
+
+右移 $r$, 最后一次满足 $h > nums[r]$ 的 $r$ 即为 $r'$，严谨表示为 $r' = max\{ r\ |\ h > nums[r] \}$。
+
+这在分析 $r$ 的移动过程后很容易理解，如下所示，取两个时刻。
+
+下图中 $h = 5 > nums[r] = 3$，但绿色子数组显然不符合条件。
+
+![Screenshot 2024-07-16 at 5.19.14 PM.png](https://pic.leetcode.cn/1721121633-qrxLDt-Screenshot%202024-07-16%20at%205.19.14%20PM.png)
+
+下图中 $h = 8 > nums[r] = 6$，这是最后一次符合，可确定 $r' = r$。
+
+![Screenshot 2024-07-16 at 5.21.36 PM.png](https://pic.leetcode.cn/1721121712-hfxcdY-Screenshot%202024-07-16%20at%205.21.36%20PM.png)
+
+同理，我们可以镜像操作获得 $l'$。
+
+* []
+
+```C++
+class Solution {
+public:
+    int findUnsortedSubarray(vector<int>& nums) {
+        int maxV = INT_MIN;
+        int rightEnd = -1;
+        for (int i = 0; i < nums.size(); ++i) {
+            if (maxV > nums[i])
+                rightEnd = i;
+            else
+                maxV = nums[i];
+        }
+        if (rightEnd == -1) return 0;
+
+        int minV = INT_MAX;
+        int leftEnd = -1;
+        for (int i = nums.size() - 1; i >= 0; --i) {
+            if (minV < nums[i])
+                leftEnd = i;
+            else
+                minV = nums[i];
+        }
+
+        return rightEnd - leftEnd + 1;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def findUnsortedSubarray(self, nums: List[int]) -> int:
+        max_v = float('-inf')
+        right_end = -1
+        for i in range(len(nums)):
+            if max_v > nums[i]:
+                right_end = i
+            else:
+                max_v = nums[i]
+        if right_end == -1:
+            return 0
+
+        min_v = float('inf')
+        left_end = -1
+        for i in range(len(nums) - 1, -1, -1):
+            if min_v < nums[i]:
+                left_end = i
+            else:
+                min_v = nums[i]
+
+        return right_end - left_end + 1
+```
+
+* []
+
+```Java
+class Solution {
+    public int findUnsortedSubarray(int[] nums) {
+        int maxV = Integer.MIN_VALUE;
+        int rightEnd = -1;
+        for (int i = 0; i < nums.length; i++) {
+            if (maxV > nums[i])
+                rightEnd = i;
+            else
+                maxV = nums[i];
+        }
+        if (rightEnd == -1) return 0;
+
+        int minV = Integer.MAX_VALUE;
+        int leftEnd = -1;
+        for (int i = nums.length - 1; i >= 0; i--) {
+            if (minV < nums[i])
+                leftEnd = i;
+            else
+                minV = nums[i];
+        }
+
+        return rightEnd - leftEnd + 1;
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun findUnsortedSubarray(nums: IntArray): Int {
+        var maxV = Int.MIN_VALUE
+        var rightEnd = -1
+        for(i in nums.indices){
+            if(maxV > nums[i])
+                rightEnd = i
+            else 
+                maxV = nums[i]
+        }
+        if(rightEnd == -1) return 0
+
+        var minV = Int.MAX_VALUE
+        var leftEnd = -1
+        for(i in nums.indices.reversed()){
+            if(minV < nums[i])
+                leftEnd = i
+            else 
+                minV = nums[i]
+        }
+
+        return rightEnd - leftEnd + 1
+    }
+}
+```
+
+时间复杂度：$\Theta(n)$
+空间复杂度：$\Theta(1)$
+
+# 推广
+
+以下皆为个人所著，兼顾了职场面试和本硕阶段的学术考试。
+- [不同层次的面试算法学习规划](https://leetcode.cn/circle/discuss/xV68NV/)
+- [附个人题解的双指针题单](https://leetcode.cn/circle/discuss/BI95fj/)
+- [图论入门](https://leetcode.cn/leetbook/detail/introduction-to-graph/)
+- [图论进阶](https://leetcode.cn/leetbook/detail/advanced-graph-theory/)
+
+点赞关注不迷路。祝君早日上岸，飞黄腾达！
