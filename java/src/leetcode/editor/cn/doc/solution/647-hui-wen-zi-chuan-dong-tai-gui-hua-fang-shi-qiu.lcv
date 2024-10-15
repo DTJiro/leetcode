@@ -1,0 +1,114 @@
+### 解题思路
+
+这道题基本和[5. 最长回文子串](https://leetcode-cn.com/problems/longest-palindromic-substring/)思路是一样的，同样使用动态规划的方法。这里需要找的是最长回文子串，首先第一步，我们需要定义dp数组的含义，定义二维布尔数组$dp[i][j]$数组表示：
+
+**字符串$s[i\cdots j]$是否为回文子串，如果是，$dp[i][j] = true$，如果不是，$dp[i][j] = false$。**
+
+我们看如下例子：
+
+![5_1.png](https://pic.leetcode-cn.com/46911c56901283cb69b3400f5858977fd532097dd43abab3d281934592ae0e81-5_1.png)
+
+如何我们现在已经知道了$dp[i+1][j-1]$了，那我们如何计算$dp[i][j]$呢？通过观察，我们发现：
+
+- 如果$s[i] == s[j]$那么说明只要$dp[i+1][j-1]$是回文子串，那么是$dp[i][j]$也就是回文子串
+- 如果$s[i]\ne s[j]$那么说明$dp[i][j]$必定不是回文子串。
+
+* java
+
+```java
+if(s.charAt(i) == s.charAt(j)){
+    dp[i][j] = dp[i+1][j-1]
+}else{
+    dp[i][j] = false;
+}
+```
+
+接下来我们需要考虑base case，这里显而易见，当只有一个字母的时候肯定是回文子串，所以初始化的dp表应该如下图所示。
+
+![5_2.png](https://pic.leetcode-cn.com/e3e56c37be17f30e8c13371f398f0bc460a189f33324a34e2fcbdca7127c4081-5_2.png)
+
+遍历的方式呢我们可以按照右下角开始遍历。从右下角便利的原因是因为(i, j) 位置的值依赖于（i+1,j-1）
+
+* java
+
+```java
+for(int i = s.length()-1; i>=0; i--){
+    for(int j = i+1; j<s.length(); j++){
+        if(s.charAt(i) == s.charAt(j)){
+            dp[i][j] = dp[i+1][j-1]
+        }
+        else{
+            dp[i][j] = false;
+        }
+    }
+}
+                
+```
+
+这样就基本完成了这道题目。但是这样会有一种情况通过不了例如给的例子中的“cbbd”
+
+![5_3.png](https://pic.leetcode-cn.com/14261896b4e52242d334a7f91da8d18f4ba12f06fa447a35acdac11001d85601-5_3.png)
+
+这道题中的回文子串应该为**“bb”**但是我们的dp表中并没有计算出来，这是因为当计算$dp[i][j]$的时候，中间已经没有$dp[i+1][j-1]$了，这是我们在base case中没有考虑到的。由于我们在dp表中表示不出来，那我们就在计算的时候单独拿出来这种情况计算，即i和j相邻的时候:
+
+* java
+
+```java
+for(int i = s.length()-1; i>=0; i--){
+    for(int j = i+1; j<s.length(); j++){
+        if(s.charAt(i) == s.charAt(j)){
+            //i和j相邻的时候
+            if(j - i == 1){
+                dp[i][j] = true;
+            }
+            else{
+                dp[i][j] = dp[i+1][j-1]
+            }
+        }
+        else{
+            dp[i][j] = false;
+        }
+    }
+}
+                
+```
+
+由于最终需要输出最长的回文子串的数量，我们在遍历的时候记录一下即可。
+
+### 代码
+
+* java
+
+```java
+class Solution {
+    public int countSubstrings(String s) {
+        if(s == null || s.equals("")){
+            return 0;
+        }
+        int n = s.length();
+        boolean[][] dp = new boolean[n][n];
+        int result = s.length();
+        for(int i = 0; i<n; i++) dp[i][i] = true;
+        for(int i = n-1; i>=0; i--){
+            for(int j = i+1; j<n; j++){
+                if(s.charAt(i) == s.charAt(j)) {
+                    if(j-i == 1){
+                        dp[i][j] = true;
+                    }
+                    else{
+                        dp[i][j] = dp[i+1][j-1]; 
+                    }
+                }else{
+                    dp[i][j] = false;
+                }
+                if(dp[i][j]){
+                    result++;
+                }
+            }
+        }
+        return result;
+        
+    }
+}
+```
+
