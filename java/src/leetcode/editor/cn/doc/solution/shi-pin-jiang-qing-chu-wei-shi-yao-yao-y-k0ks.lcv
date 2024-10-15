@@ -1,0 +1,332 @@
+## 视频讲解
+
+请看 [单调栈【基础算法精讲 26】](https://www.bilibili.com/video/BV1VN411J7S7/)，欢迎点赞关注~
+
+## 写法一：从右到左
+
+栈中记录下一个更大元素的「候选项」。
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def dailyTemperatures(self, temperatures: List[int]) -> List[int]:
+        n = len(temperatures)
+        ans = [0] * n
+        st = []
+        for i in range(n - 1, -1, -1):
+            t = temperatures[i]
+            while st and t >= temperatures[st[-1]]:
+                st.pop()
+            if st:
+                ans[i] = st[-1] - i
+            st.append(i)
+        return ans
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public int[] dailyTemperatures(int[] temperatures) {
+        int n = temperatures.length;
+        int[] ans = new int[n];
+        Deque<Integer> st = new ArrayDeque<>();
+        for (int i = n - 1; i >= 0; i--) {
+            int t = temperatures[i];
+            while (!st.isEmpty() && t >= temperatures[st.peek()]) {
+                st.pop();
+            }
+            if (!st.isEmpty()) {
+                ans[i] = st.peek() - i;
+            }
+            st.push(i);
+        }
+        return ans;
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+public:
+    vector<int> dailyTemperatures(vector<int> &temperatures) {
+        int n = temperatures.size();
+        vector<int> ans(n);
+        stack<int> st;
+        for (int i = n - 1; i >= 0; i--) {
+            int t = temperatures[i];
+            while (!st.empty() && t >= temperatures[st.top()]) {
+                st.pop();
+            }
+            if (!st.empty()) {
+                ans[i] = st.top() - i;
+            }
+            st.push(i);
+        }
+        return ans;
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+func dailyTemperatures(temperatures []int) []int {
+    n := len(temperatures)
+    ans := make([]int, n)
+    st := []int{}
+    for i := n - 1; i >= 0; i-- {
+        t := temperatures[i]
+        for len(st) > 0 && t >= temperatures[st[len(st)-1]] {
+            st = st[:len(st)-1]
+        }
+        if len(st) > 0 {
+            ans[i] = st[len(st)-1] - i
+        }
+        st = append(st, i)
+    }
+    return ans
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var dailyTemperatures = function(temperatures) {
+    const n = temperatures.length;
+    const ans = new Array(n).fill(0);
+    const st = [];
+    for (let i = n - 1; i >= 0; i--) {
+        const t = temperatures[i];
+        while (st.length && t >= temperatures[st[st.length - 1]]) {
+            st.pop();
+        }
+        if (st.length) {
+            ans[i] = st[st.length - 1] - i;
+        }
+        st.push(i);
+    }
+    return ans;
+};
+```
+
+* [sol-Rust]
+
+```rust
+impl Solution {
+    pub fn daily_temperatures(temperatures: Vec<i32>) -> Vec<i32> {
+        let n = temperatures.len();
+        let mut ans = vec![0; n];
+        let mut st = Vec::new();
+        for i in (0..n).rev() {
+            let t = temperatures[i];
+            while !st.is_empty() && t >= temperatures[st[st.len() - 1]] {
+                st.pop();
+            }
+            if let Some(j) = st.last() {
+                ans[i] = (j - i) as i32;
+            }
+            st.push(i);
+        }
+        ans
+    }
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(n)$，其中 $n$ 为 $\textit{temperatures}$ 的长度。虽然我们写了个二重循环，但站在每个元素的视角看，这个元素在二重循环中最多入栈出栈各一次，因此循环次数**之和**是 $\mathcal{O}(n)$，所以时间复杂度是 $\mathcal{O}(n)$。
+- 空间复杂度：$\mathcal{O}(\min(n,U))$，其中 $U=\max(\textit{temperatures})-\min(\textit{temperatures})+1$。返回值不计入，仅考虑栈的最大空间消耗。
+
+## 写法二：从左到右
+
+栈中记录还没算出「下一个更大元素」的那些数（的下标）。
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def dailyTemperatures(self, temperatures: List[int]) -> List[int]:
+        n = len(temperatures)
+        ans = [0] * n
+        st = []
+        for i, t in enumerate(temperatures):
+            while st and t > temperatures[st[-1]]:
+                j = st.pop()
+                ans[j] = i - j
+            st.append(i)
+        return ans
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public int[] dailyTemperatures(int[] temperatures) {
+        int n = temperatures.length;
+        int[] ans = new int[n];
+        Deque<Integer> st = new ArrayDeque<>();
+        for (int i = 0; i < n; i++) {
+            int t = temperatures[i];
+            while (!st.isEmpty() && t > temperatures[st.peek()]) {
+                int j = st.pop();
+                ans[j] = i - j;
+            }
+            st.push(i);
+        }
+        return ans;
+    }
+}
+```
+
+* [sol-Java数组栈]
+
+```java
+class Solution {
+    public int[] dailyTemperatures(int[] temperatures) {
+        int n = temperatures.length;
+        int[] ans = new int[n];
+        int[] st = new int[n]; // 数组模拟，效率更高
+        int top = -1;
+        for (int i = 0; i < n; i++) {
+            int t = temperatures[i];
+            while (top >= 0 && t > temperatures[st[top]]) {
+                int j = st[top--];
+                ans[j] = i - j;
+            }
+            st[++top] = i;
+        }
+        return ans;
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+public:
+    vector<int> dailyTemperatures(vector<int> &temperatures) {
+        int n = temperatures.size();
+        vector<int> ans(n);
+        stack<int> st;
+        for (int i = 0; i < n; i++) {
+            int t = temperatures[i];
+            while (!st.empty() && t > temperatures[st.top()]) {
+                int j = st.top();
+                st.pop();
+                ans[j] = i - j;
+            }
+            st.push(i);
+        }
+        return ans;
+    }
+};
+```
+
+* [sol-Go]
+
+```go
+func dailyTemperatures(temperatures []int) []int {
+    n := len(temperatures)
+    ans := make([]int, n)
+    st := []int{}
+    for i, t := range temperatures {
+        for len(st) > 0 && t > temperatures[st[len(st)-1]] {
+            j := st[len(st)-1]
+            st = st[:len(st)-1]
+            ans[j] = i - j
+        }
+        st = append(st, i)
+    }
+    return ans
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var dailyTemperatures = function (temperatures) {
+    const n = temperatures.length;
+    const ans = new Array(n).fill(0);
+    const st = [];
+    for (let i = 0; i < n; i++) {
+        const t = temperatures[i];
+        while (st.length && t > temperatures[st[st.length - 1]]) {
+            const j = st.pop();
+            ans[j] = i - j;
+        }
+        st.push(i);
+    }
+    return ans;
+};
+```
+
+* [sol-Rust]
+
+```rust
+impl Solution {
+    pub fn daily_temperatures(temperatures: Vec<i32>) -> Vec<i32> {
+        let mut ans = vec![0; temperatures.len()];
+        let mut st = Vec::new();
+        for (i, &t) in temperatures.iter().enumerate() {
+            while !st.is_empty() && t > temperatures[st[st.len() - 1]] {
+                let j = st.pop().unwrap();
+                ans[j] = (i - j) as i32;
+            }
+            st.push(i);
+        }
+        ans
+    }
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(n)$，其中 $n$ 为 $\textit{temperatures}$ 的长度。虽然我们写了个二重循环，但站在每个元素的视角看，这个元素在二重循环中最多入栈出栈各一次，因此循环次数**之和**是 $\mathcal{O}(n)$，所以时间复杂度是 $\mathcal{O}(n)$。
+- 空间复杂度：$\mathcal{O}(n)$。注意这种写法栈中可以有重复元素。
+
+## 题单
+
+#### 单调栈
+
+- [1475. 商品折扣后的最终价格](https://leetcode.cn/problems/final-prices-with-a-special-discount-in-a-shop/)
+- [901. 股票价格跨度](https://leetcode.cn/problems/online-stock-span/)
+- [1019. 链表中的下一个更大节点](https://leetcode.cn/problems/next-greater-node-in-linked-list/)
+- [496. 下一个更大元素 I](https://leetcode.cn/problems/next-greater-element-i/)
+- [503. 下一个更大元素 II](https://leetcode.cn/problems/next-greater-element-ii/)
+- [2454. 下一个更大元素 IV](https://leetcode.cn/problems/next-greater-element-iv/)
+- [456. 132 模式](https://leetcode.cn/problems/132-pattern/)
+- [1124. 表现良好的最长时间段](https://leetcode.cn/problems/longest-well-performing-interval/)
+- [2289. 使数组按非递减顺序排列](https://leetcode.cn/problems/steps-to-make-array-non-decreasing/)
+- [2866. 美丽塔 II](https://leetcode.cn/problems/beautiful-towers-ii/)
+
+#### 矩形系列
+
+- [84. 柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/)
+- [85. 最大矩形](https://leetcode.cn/problems/maximal-rectangle/)
+- [1504. 统计全 1 子矩形](https://leetcode.cn/problems/count-submatrices-with-all-ones/)
+
+#### 字典序最小
+
+- [316. 去除重复字母](https://leetcode.cn/problems/remove-duplicate-letters/)
+- [316 扩展：重复个数不超过 limit](https://leetcode.cn/contest/tianchi2022/problems/ev2bru/)
+- [402. 移掉 K 位数字](https://leetcode.cn/problems/remove-k-digits/)
+- [321. 拼接最大数](https://leetcode.cn/problems/create-maximum-number/)
+
+#### 贡献法
+
+- [907. 子数组的最小值之和](https://leetcode.cn/problems/sum-of-subarray-minimums/)
+- [1856. 子数组最小乘积的最大值](https://leetcode.cn/problems/maximum-subarray-min-product/)
+- [2104. 子数组范围和](https://leetcode.cn/problems/sum-of-subarray-ranges/)
+- [2281. 巫师的总力量和](https://leetcode.cn/problems/sum-of-total-strength-of-wizards/)
+- [2818. 操作使得分最大](https://leetcode.cn/problems/apply-operations-to-maximize-score/)
+
+完整题单请看 [单调栈（矩形系列/字典序最小/贡献法）](https://leetcode.cn/circle/discuss/9oZFK9/)
+
+更多题单，点我个人主页 - 讨论发布。
+
+[往期题解精选（已分类）](https://github.com/EndlessCheng/codeforces-go/blob/master/leetcode/SOLUTIONS.md)
